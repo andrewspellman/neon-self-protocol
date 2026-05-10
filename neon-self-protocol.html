@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v2.3</title>
+<title>NEON SELF PROTOCOL v2.4</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -1540,6 +1540,144 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
 .section-label::after{
   content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);
 }
+/* ===== STREAK FREEZE ===== */
+.freeze-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;margin-bottom:8px;
+  background:rgba(100,180,255,0.05);
+  border:1px solid rgba(100,180,255,0.2);
+  border-radius:5px;
+  animation:fadeSlideIn 0.4s ease;
+}
+.freeze-icon{font-size:16px;flex-shrink:0;}
+.freeze-body{flex:1;}
+.freeze-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:#88ccff;display:block;
+}
+.freeze-sub{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);display:block;margin-top:1px;
+}
+.freeze-btn{
+  padding:5px 10px;
+  font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:1px;color:#88ccff;
+  background:rgba(100,180,255,0.08);
+  border:1px solid rgba(100,180,255,0.25);
+  border-radius:4px;cursor:pointer;
+  transition:all 0.15s;flex-shrink:0;
+}
+.freeze-btn:hover{background:rgba(100,180,255,0.15);}
+.freeze-btn:disabled{opacity:0.3;cursor:default;}
+
+/* ===== WEEKLY REVIEW PROMPT ===== */
+.review-prompt{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;margin-bottom:8px;
+  background:rgba(0,200,255,0.05);
+  border:1px solid rgba(0,200,255,0.2);
+  border-radius:5px;cursor:pointer;
+  transition:all 0.15s;
+  animation:fadeSlideIn 0.4s ease;
+}
+.review-prompt:hover{background:rgba(0,200,255,0.08);border-color:rgba(0,200,255,0.3);}
+.review-prompt-icon{font-size:16px;flex-shrink:0;}
+.review-prompt-body{flex:1;}
+.review-prompt-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--neon-cyan);display:block;
+}
+.review-prompt-sub{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);display:block;margin-top:1px;
+}
+.review-prompt-arrow{
+  font-size:18px;color:var(--neon-cyan);opacity:0.6;flex-shrink:0;
+}
+@keyframes fadeSlideIn{
+  from{opacity:0;transform:translateY(-6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ===== WEEKLY REVIEW CONTENT ===== */
+.review-week-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--text-dim);
+  margin-bottom:14px;
+}
+.review-stat-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:6px;margin-bottom:8px;
+}
+.review-stat-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:1px;color:var(--text-dim);
+}
+.review-stat-val{
+  font-family:'Orbitron',monospace;font-size:14px;font-weight:700;
+  color:var(--neon-cyan);
+}
+.review-insight{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-left:3px solid var(--neon-cyan);
+  border-radius:6px;padding:10px 12px;
+  margin-bottom:8px;
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text);line-height:1.65;
+}
+.review-insight.positive{border-left-color:var(--neon-green);}
+.review-insight.warn{border-left-color:var(--neon-orange);}
+.review-insight.critical{border-left-color:var(--neon-red);}
+.review-insight.neutral{border-left-color:var(--text-dim);}
+.review-cat-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  margin-bottom:8px;
+}
+.review-cat-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;padding:8px 10px;
+}
+.review-cat-name{
+  font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;
+  color:#e8f4ff;display:block;
+}
+.review-cat-count{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);display:block;margin-top:2px;
+}
+.review-section-title{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;
+  margin:14px 0 8px;display:flex;align-items:center;gap:8px;
+}
+.review-section-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);}
+.review-archetype-drift{
+  padding:10px 12px;
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;margin-bottom:8px;
+}
+.review-archetype-name{
+  font-family:'Orbitron',monospace;font-size:12px;font-weight:700;
+  color:var(--neon-cyan);letter-spacing:1px;
+}
+.review-archetype-desc{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:4px;line-height:1.6;
+}
+.review-corruption-bar{
+  height:8px;background:rgba(255,255,255,0.05);
+  border-radius:4px;overflow:hidden;margin-top:6px;
+}
+.review-corruption-fill{
+  height:100%;background:var(--neon-red);border-radius:4px;
+  transition:width 0.4s;
+}
+
 /* ===== AUDIO MUTE TOGGLE ===== */
 #audioToggle{
   display:flex;align-items:center;gap:5px;
@@ -1627,6 +1765,28 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
       <div class="meta-pill actions"><span class="val" id="todayCount">0</span><span class="lbl">ACTIONS</span></div>
       <div class="meta-pill"><span class="val" id="totalXPLabel" style="color:var(--neon-yellow)">0</span><span class="lbl">TOTAL XP</span></div>
       <div class="meta-pill boss" onclick="openEventsModal()" style="cursor:pointer" title="View Events & Skills"><span class="val" id="bossProgress">0%</span><span class="lbl">⚡ EVENT</span></div>
+    </div>
+    <!-- Streak Freeze Token -->
+    <div id="freezeBar" style="display:none">
+      <div class="freeze-bar">
+        <span class="freeze-icon">🧊</span>
+        <div class="freeze-body">
+          <span class="freeze-label">STREAK FREEZE</span>
+          <span class="freeze-sub" id="freezeSub">1 token available</span>
+        </div>
+        <button class="freeze-btn" id="freezeBtn" onclick="useStreakFreeze()">USE TOKEN</button>
+      </div>
+    </div>
+    <!-- Weekly Review Prompt (Sunday) -->
+    <div id="reviewPrompt" style="display:none">
+      <div class="review-prompt" onclick="openWeeklyReview()">
+        <span class="review-prompt-icon">📋</span>
+        <div class="review-prompt-body">
+          <span class="review-prompt-label">WEEKLY REVIEW READY</span>
+          <span class="review-prompt-sub">Tap to view your week — takes 10 seconds</span>
+        </div>
+        <span class="review-prompt-arrow">›</span>
+      </div>
     </div>
     <!-- Combo Bar -->
     <div id="comboBar" class="combo-bar" style="display:none">
@@ -1927,6 +2087,30 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
   </div>
 </div>
 
+<!-- WEEKLY REVIEW MODAL -->
+<div id="weeklyReviewModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);overflow-y:auto;">
+  <div style="max-width:480px;margin:0 auto;padding:16px 14px 80px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--neon-cyan);letter-spacing:2px;">📋 WEEKLY REVIEW</div>
+      <button onclick="closeWeeklyReview()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text-dim);padding:6px 12px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;">CLOSE</button>
+    </div>
+    <div id="weeklyReviewContent"></div>
+  </div>
+</div>
+
+<!-- STREAK FREEZE CONFIRM MODAL -->
+<div id="freezeModal" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0d1525;border:1px solid rgba(100,180,255,0.3);border-radius:8px;padding:22px 20px;max-width:380px;width:100%;box-shadow:0 0 24px rgba(100,180,255,0.1);">
+    <div style="font-family:'Orbitron',monospace;font-size:14px;color:#88ccff;margin-bottom:8px;letter-spacing:1px;">🧊 USE STREAK FREEZE?</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#4a6080;line-height:1.7;margin-bottom:20px;" id="freezeModalBody">
+      This will protect your streak for today without logging an action. Use it when life genuinely got in the way — travel, illness, emergency.<br><br>
+      You have <span id="freezeTokenCount" style="color:#88ccff">1</span> token available. Tokens regenerate monthly.
+    </div>
+    <button onclick="confirmFreeze()" style="width:100%;padding:13px;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px;color:#050810;background:#88ccff;border:none;border-radius:6px;cursor:pointer;margin-bottom:10px;">Activate Freeze</button>
+    <button onclick="closeFreezeModal()" style="width:100%;padding:10px;background:transparent;border:1px solid rgba(255,255,255,0.07);border-radius:4px;color:#4a6080;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;">Cancel</button>
+  </div>
+</div>
+
 <!-- RECOVERY MODAL -->
 <div id="recoveryModal">
   <div class="recovery-card">
@@ -1977,6 +2161,17 @@ const DEFAULT_STATE = {
   currentSystemState: 'NOMINAL',
   currentArchetype: 'WANDERER',
   mvd: null,
+  weeklyReview: {
+    lastGenerated: null,   // week string of last generated review
+    data: null,            // the generated review object
+    seen: false,           // has user opened it this week
+  },
+  streakFreeze: {
+    tokens: 1,             // available freeze tokens
+    lastEarnedMonth: null, // month string of last earned token
+    usedThisMonth: false,  // prevent double-use in same month
+    log: [],               // history of freeze uses
+  },
   combo: {
     count: 0,           // consecutive positive actions
     todayCats: [],      // categories logged today for balanced mind
@@ -4134,6 +4329,10 @@ function updateUI() {
   renderArchetypeUI();
   // Reactive visual vibe
   applyVisualVibe();
+  // Streak freeze badge
+  renderFreezeBadge();
+  // Weekly review prompt
+  renderReviewPrompt();
 
   // Re-render dynamic panels
   renderMissions();
@@ -5246,6 +5445,328 @@ function sfxComboBreak() {
   playNoise({ duration:0.05, gain:0.04, highpass:400, startDelay:0.03 });
 }
 
+// ==========================================================================
+// STREAK FREEZE / GRACE TOKEN
+// ==========================================================================
+
+function getMonthStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}`;
+}
+
+function ensureStreakFreeze() {
+  if (!S.streakFreeze) {
+    S.streakFreeze = { tokens:1, lastEarnedMonth:null, usedThisMonth:false, log:[] };
+  }
+  // Earn back one token at start of each new calendar month
+  const thisMonth = getMonthStr();
+  if (S.streakFreeze.lastEarnedMonth !== thisMonth) {
+    S.streakFreeze.lastEarnedMonth = thisMonth;
+    S.streakFreeze.usedThisMonth = false;
+    if (S.streakFreeze.tokens < 1) {
+      S.streakFreeze.tokens = 1; // restore one token per month
+    }
+  }
+}
+
+function renderFreezeBadge() {
+  ensureStreakFreeze();
+  const bar  = document.getElementById('freezeBar');
+  const btn  = document.getElementById('freezeBtn');
+  const sub  = document.getElementById('freezeSub');
+  if (!bar) return;
+
+  const tokens   = S.streakFreeze.tokens;
+  const noTokens = tokens <= 0;
+  const usedToday = S.streakFreeze.lastUsedDate === todayStr();
+
+  // Only show the bar if streak ≥ 3 (valuable enough to protect)
+  if (S.streak < 3) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+
+  if (usedToday) {
+    sub.textContent  = 'Freeze active — streak protected for today';
+    btn.textContent  = '✓ ACTIVE';
+    btn.disabled     = true;
+  } else if (noTokens) {
+    sub.textContent  = 'No tokens — refills next month';
+    btn.disabled     = true;
+  } else {
+    sub.textContent  = `${tokens} token${tokens>1?'s':''} available · refills monthly`;
+    btn.disabled     = false;
+    btn.textContent  = 'USE TOKEN';
+  }
+}
+
+function useStreakFreeze() {
+  ensureStreakFreeze();
+  if (S.streakFreeze.tokens <= 0) {
+    toast('NO TOKEN', 'No freeze tokens available.', 'Refills at the start of next month.', 'warn');
+    return;
+  }
+  // Show confirm modal
+  document.getElementById('freezeTokenCount').textContent = S.streakFreeze.tokens;
+  const modal = document.getElementById('freezeModal');
+  modal.style.display = 'flex';
+}
+
+function closeFreezeModal() {
+  document.getElementById('freezeModal').style.display = 'none';
+}
+
+function confirmFreeze() {
+  ensureStreakFreeze();
+  closeFreezeModal();
+
+  const today = todayStr();
+  S.streakFreeze.tokens     = Math.max(0, S.streakFreeze.tokens - 1);
+  S.streakFreeze.usedThisMonth = true;
+  S.streakFreeze.lastUsedDate  = today;
+  S.streakFreeze.log.unshift({ date:today, streakProtected:S.streak });
+
+  // Protect streak: mark today as played without logging an action
+  S.lastPlayedDate = today;
+
+  S.history.unshift({
+    time: new Date().toISOString(),
+    action: `[STREAK FREEZE] Token used — streak of ${S.streak} protected`,
+    category: 'system', effects: '', xp: 0, credits: 0, type: 'system'
+  });
+
+  saveState();
+  updateUI();
+  renderFreezeBadge();
+  toast('🧊 STREAK FROZEN', `${S.streak}-day streak protected`, `${S.streakFreeze.tokens} token${S.streakFreeze.tokens!==1?'s':''} remaining`, 'success');
+}
+
+// ==========================================================================
+// WEEKLY REVIEW SYSTEM
+// ==========================================================================
+
+function ensureWeeklyReview() {
+  if (!S.weeklyReview) S.weeklyReview = { lastGenerated:null, data:null, seen:false };
+}
+
+function shouldShowWeeklyReview() {
+  ensureWeeklyReview();
+  const week = getWeekStr();
+  const dow  = new Date().getDay(); // 0 = Sunday
+  // Show on Sunday if we haven't generated this week's review yet
+  // OR if we generated it but user hasn't seen it yet
+  if (dow === 0 && S.weeklyReview.lastGenerated !== week) return true;
+  if (S.weeklyReview.lastGenerated === week && !S.weeklyReview.seen) return true;
+  return false;
+}
+
+function generateWeeklyReviewData() {
+  ensureWeeklyReview();
+  const week    = getWeekStr();
+  const now     = new Date();
+  const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const weekHist = S.history.filter(h => new Date(h.time) >= weekAgo);
+  const posHist  = weekHist.filter(h => h.type === 'positive' || h.type === 'mission');
+  const negHist  = weekHist.filter(h => h.type === 'negative');
+
+  // XP earned this week
+  const weekXP = posHist.reduce((s, h) => s + (h.xp || 0), 0);
+
+  // Credits earned this week
+  const weekCredits = weekHist
+    .filter(h => (h.credits || 0) > 0)
+    .reduce((s, h) => s + h.credits, 0);
+
+  // Best category (most positive actions)
+  const catCounts = {};
+  posHist.forEach(h => { catCounts[h.category] = (catCounts[h.category]||0)+1; });
+  const catSorted = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]);
+  const bestCat   = catSorted[0] || null;
+  const allCats   = catSorted.slice(0, 5);
+
+  // Worst day (most negatives or fewest positives)
+  const dayMap = {};
+  weekHist.forEach(h => {
+    const d = new Date(h.time).toDateString();
+    if (!dayMap[d]) dayMap[d] = { pos:0, neg:0, triggers:[], corruption:0 };
+    if (h.type === 'positive' || h.type === 'mission') dayMap[d].pos++;
+    if (h.type === 'negative') dayMap[d].neg++;
+  });
+  S.triggerLog.filter(t => new Date(t.time) >= weekAgo).forEach(t => {
+    const d = new Date(t.time).toDateString();
+    if (dayMap[d]) dayMap[d].triggers.push(t.triggerLabel);
+  });
+  const worstDay = Object.entries(dayMap)
+    .sort((a,b) => (b[1].neg - b[1].pos) - (a[1].neg - a[1].pos))[0] || null;
+
+  // Corruption trend (start of week vs end)
+  const weekHistReverse = [...weekHist].reverse();
+  const corruptStart = weekHistReverse[0]?.stats?.corruption ?? S.stats.corruption;
+  const corruptEnd   = S.stats.corruption;
+  const corruptTrend = corruptEnd - corruptStart;
+
+  // Archetype drift this week (what archetype were actions building toward)
+  const archetype = S.currentArchetype || 'WANDERER';
+  const archetypeObj = typeof ARCHETYPES !== 'undefined' ? ARCHETYPES[archetype] : null;
+
+  // Total actions logged
+  const totalActions = weekHist.filter(h => h.type !== 'system').length;
+
+  // Streak status
+  const streakNote = S.streak >= 7 ? `${S.streak}-day streak active — solid consistency.`
+    : S.streak >= 3 ? `${S.streak}-day streak — building momentum.`
+    : S.streak > 0  ? `${S.streak}-day streak — keep going.`
+    : 'Streak reset this week — reestablish tomorrow.';
+
+  const review = {
+    week, weekXP, weekCredits, bestCat, allCats,
+    worstDay, corruptStart, corruptEnd, corruptTrend,
+    archetype, archetypeObj, totalActions, streakNote,
+    posCount: posHist.length, negCount: negHist.length,
+    generatedAt: new Date().toISOString(),
+  };
+
+  S.weeklyReview.lastGenerated = week;
+  S.weeklyReview.data = review;
+  S.weeklyReview.seen = false;
+  saveState();
+  return review;
+}
+
+function openWeeklyReview() {
+  ensureWeeklyReview();
+  // Generate if not yet generated for this week or stale
+  const week = getWeekStr();
+  if (S.weeklyReview.lastGenerated !== week || !S.weeklyReview.data) {
+    generateWeeklyReviewData();
+  }
+  S.weeklyReview.seen = true;
+  saveState();
+
+  renderWeeklyReviewContent();
+  document.getElementById('weeklyReviewModal').style.display = 'block';
+  document.getElementById('reviewPrompt').style.display = 'none';
+}
+
+function closeWeeklyReview() {
+  document.getElementById('weeklyReviewModal').style.display = 'none';
+}
+
+function renderWeeklyReviewContent() {
+  const r = S.weeklyReview?.data;
+  const container = document.getElementById('weeklyReviewContent');
+  if (!r) { container.innerHTML = '<div style="color:#4a6080;font-family:\'Share Tech Mono\',monospace;font-size:11px;text-align:center;padding:20px;">No data yet. Log actions this week to generate a review.</div>'; return; }
+
+  const skillLabels = {body:'Body',grift:'Grift',creativity:'Creativity',discipline:'Discipline',mindSoul:'Mind',family:'Family',recovery:'Recovery',food:'Food',soul:'Soul',caffeine:'Caffeine'};
+  const corruptColor = r.corruptTrend > 10 ? 'var(--neon-red)' : r.corruptTrend < -5 ? 'var(--neon-green)' : 'var(--neon-yellow)';
+  const corruptArrow = r.corruptTrend > 0 ? `▲ +${r.corruptTrend}%` : r.corruptTrend < 0 ? `▼ ${r.corruptTrend}%` : '→ Stable';
+
+  let html = `<div class="review-week-label">// ${r.week} — ${new Date(r.generatedAt).toLocaleDateString()}</div>`;
+
+  // Top stats row
+  html += `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px;">
+      <div class="review-stat-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
+        <span class="review-stat-label">XP EARNED</span>
+        <span class="review-stat-val">+${r.weekXP}</span>
+      </div>
+      <div class="review-stat-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
+        <span class="review-stat-label">CREDITS</span>
+        <span class="review-stat-val" style="color:var(--neon-green)">+$${r.weekCredits.toFixed(2)}</span>
+      </div>
+      <div class="review-stat-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
+        <span class="review-stat-label">ACTIONS</span>
+        <span class="review-stat-val">${r.totalActions}</span>
+      </div>
+    </div>`;
+
+  // Corruption trend
+  html += `
+    <div class="review-stat-row" style="margin-bottom:12px;flex-direction:column;align-items:flex-start;gap:6px;">
+      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+        <span class="review-stat-label">CORRUPTION TREND</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:${corruptColor}">${corruptArrow}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;width:100%;">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#4a6080">Start: ${r.corruptStart}%</span>
+        <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${r.corruptEnd}%;background:var(--neon-red);border-radius:3px;"></div>
+        </div>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#4a6080">Now: ${r.corruptEnd}%</span>
+      </div>
+    </div>`;
+
+  // Best / active categories
+  if (r.allCats.length > 0) {
+    html += `<div class="review-section-title">Active Categories</div>
+      <div class="review-cat-grid">`;
+    r.allCats.forEach(([cat, count], i) => {
+      const isTop = i === 0;
+      html += `<div class="review-cat-card" style="${isTop?'border-color:rgba(0,200,255,0.25);background:rgba(0,200,255,0.04);':''}">
+        <span class="review-cat-name" style="${isTop?'color:var(--neon-cyan)':''}">${skillLabels[cat]||cat}${isTop?' ★':''}</span>
+        <span class="review-cat-count">${count} action${count!==1?'s':''}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Archetype drift
+  if (r.archetypeObj) {
+    html += `<div class="review-section-title">Archetype This Week</div>
+      <div class="review-archetype-drift">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px">${r.archetypeObj.icon||'◈'}</span>
+          <div>
+            <div class="review-archetype-name">${r.archetypeObj.name}</div>
+            <div class="review-archetype-desc">${r.archetypeObj.desc}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Worst day
+  if (r.worstDay && r.worstDay[1].neg > 0) {
+    const [dayStr, dayData] = r.worstDay;
+    const triggerSummary = dayData.triggers.length > 0
+      ? `Triggers logged: ${[...new Set(dayData.triggers)].join(', ')}.`
+      : 'No triggers logged for that day.';
+    html += `<div class="review-section-title">Hardest Day</div>
+      <div class="review-insight warn">
+        ${dayStr} — ${dayData.neg} negative action${dayData.neg!==1?'s':''}, ${dayData.pos} positive.<br>
+        ${triggerSummary}
+      </div>`;
+  }
+
+  // Streak note
+  html += `<div class="review-section-title">Consistency</div>
+    <div class="review-insight ${S.streak >= 7 ? 'positive' : S.streak >= 3 ? '' : 'neutral'}">
+      ${r.streakNote}
+    </div>`;
+
+  // Summary insight
+  const balance = r.posCount - r.negCount;
+  if (balance >= 8) {
+    html += `<div class="review-insight positive">Strong week. Positive actions outnumbered negatives ${r.posCount}–${r.negCount}. The system is trending upward.</div>`;
+  } else if (balance <= -2) {
+    html += `<div class="review-insight critical">Difficult week. Negatives dominated. This is data, not judgment — use it to adjust next week.</div>`;
+  } else {
+    html += `<div class="review-insight neutral">${r.posCount} positive, ${r.negCount} negative. Mixed week. Look at the hardest day and identify the pattern.</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function renderReviewPrompt() {
+  ensureWeeklyReview();
+  const el = document.getElementById('reviewPrompt');
+  if (!el) return;
+  el.style.display = shouldShowWeeklyReview() ? 'block' : 'none';
+  // Auto-generate data in background on Sunday even before user opens it
+  const week = getWeekStr();
+  if (new Date().getDay() === 0 && S.weeklyReview.lastGenerated !== week) {
+    generateWeeklyReviewData();
+  }
+}
+
 function init() {
   loadState();
   applyDecay();
@@ -5262,6 +5783,8 @@ function init() {
   if (!S.triggerLog) S.triggerLog = [];
   ensureAchievements();
   ensureCombo();
+  ensureStreakFreeze();
+  ensureWeeklyReview();
   applySystemState(evaluateSystemState());
   applyArchetype(evaluateArchetype());
   // Init MVD check on load
