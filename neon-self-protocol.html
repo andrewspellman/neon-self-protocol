@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v3.0</title>
+<title>NEON SELF PROTOCOL v3.1</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -49,8 +49,8 @@ body{
   font-size:16px;
   min-height:100vh;
   overflow-x:hidden;
-  padding-top:env(safe-area-inset-top, 16px);
-  padding-bottom:calc(72px + env(safe-area-inset-bottom, 16px));
+  padding-top:env(safe-area-inset-top, 0px);
+  padding-bottom:calc(40px + env(safe-area-inset-bottom, 16px));
 }
 
 /* Scanline overlay */
@@ -69,10 +69,13 @@ body::before{
 #app{max-width:480px;margin:0 auto;padding:0 12px}
 
 /* ===== HEADER ===== */
-#header{
+#stickyTop{
   position:sticky;top:0;z-index:100;
-  background:linear-gradient(180deg,var(--bg) 80%,transparent);
+  background:var(--bg);
+}
+#header{
   padding:16px 14px 6px;
+  background:linear-gradient(180deg,var(--bg) 80%,transparent);
 }
 .header-top{
   display:flex;align-items:center;justify-content:space-between;
@@ -83,20 +86,49 @@ body::before{
   letter-spacing:3px;color:var(--neon-cyan);
   text-shadow:var(--glow-cyan);
 }
-.header-right{display:flex;gap:8px;align-items:center}
+.header-right{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;overflow:hidden;}
 .streak-badge{
   font-family:'Share Tech Mono',monospace;font-size:11px;
   color:var(--neon-yellow);border:1px solid rgba(255,221,0,0.3);
-  padding:2px 8px;border-radius:3px;
-  background:rgba(255,221,0,0.05);
+  padding:2px 7px;border-radius:3px;
+  background:rgba(255,221,0,0.05);white-space:nowrap;
 }
 .credits-badge{
   font-family:'Share Tech Mono',monospace;font-size:11px;
   color:var(--neon-green);border:1px solid rgba(0,255,136,0.3);
-  padding:2px 8px;border-radius:3px;
+  padding:2px 7px;border-radius:3px;
   background:rgba(0,255,136,0.05);
-  cursor:pointer;
+  cursor:pointer;white-space:nowrap;
 }
+.signal-badge{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-cyan);border:1px solid rgba(0,200,255,0.25);
+  padding:2px 7px;border-radius:3px;
+  background:rgba(0,200,255,0.05);white-space:nowrap;
+}
+.energy-badge{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-green);border:1px solid rgba(0,255,136,0.2);
+  padding:2px 7px;border-radius:3px;
+  background:rgba(0,255,136,0.04);white-space:nowrap;
+  transition:color 0.3s,border-color 0.3s;
+}
+.energy-badge.low     { color:var(--neon-orange);border-color:rgba(255,106,0,0.3); }
+.energy-badge.critical{ color:var(--neon-red);border-color:rgba(255,34,68,0.3); }
+
+/* Combo chip — top-right of level row */
+.combo-chip{
+  display:flex;align-items:center;gap:4px;
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-green);
+  border:1px solid rgba(0,255,136,0.3);
+  background:rgba(0,255,136,0.07);
+  padding:3px 8px;border-radius:4px;
+  white-space:nowrap;flex-shrink:0;
+  transition:all 0.2s;
+}
+.combo-chip.hot { color:var(--neon-cyan);border-color:rgba(0,200,255,0.35);background:rgba(0,200,255,0.08); }
+.combo-chip.max { color:var(--neon-purple);border-color:rgba(170,68,255,0.4);background:rgba(170,68,255,0.1); }
 
 /* ===== BRIEFING ===== */
 .briefing{
@@ -226,18 +258,14 @@ body[class*="phase-"]::after{
 
 /* ===== NAV TABS ===== */
 #nav{
-  position:fixed;
-  bottom:0;left:50%;
-  transform:translateX(-50%);
-  width:100%;max-width:480px;
-  z-index:200;
+  z-index:99;
+  width:100%;
   background:rgba(5,8,16,0.97);
-  border-top:1px solid rgba(0,200,255,0.15);
+  border-bottom:1px solid rgba(0,200,255,0.15);
   backdrop-filter:blur(12px);
   display:flex;overflow-x:auto;
   scrollbar-width:none;
-  padding:4px 6px calc(6px + env(safe-area-inset-bottom, 0px));
-  gap:2px;
+  padding:4px 6px 6px;gap:2px;
 }
 #nav::-webkit-scrollbar{display:none}
 .nav-btn{
@@ -2135,12 +2163,14 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
 <body>
 
 <div id="app">
+  <div id="stickyTop">
   <!-- HEADER / DASHBOARD -->
   <div id="header">
     <div class="header-top">
       <div class="logo">NSP // ANDREW</div>
       <div class="header-right">
-        <div id="audioToggle" onclick="toggleAudio()" title="Toggle sound">🔊 SFX</div>
+        <div class="signal-badge" id="signalBadge">📶 0</div>
+        <div class="energy-badge" id="energyBadge">⚡ 70%</div>
         <div class="streak-badge" id="streakBadge">🔥 0d</div>
         <div class="credits-badge" id="creditsBadge" onclick="showPanel('history')">₢ 0.00</div>
       </div>
@@ -2175,6 +2205,10 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
           <span id="xpLabel" style="color:var(--neon-yellow);font-family:'Share Tech Mono',monospace;font-size:10px">0/100</span>
         </div>
       </div>
+      <!-- Combo indicator top-right of level bar -->
+      <div id="comboChip" style="display:none" class="combo-chip">
+        <span id="comboChipIcon">⚡</span><span id="comboChipLabel">x1</span>
+      </div>
     </div>
     <!-- Stats -->
     <div class="stats-grid">
@@ -2205,22 +2239,6 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
       <div class="meta-pill"><span class="val" id="totalXPLabel" style="color:var(--neon-yellow)">0</span><span class="lbl">TOTAL XP</span></div>
       <div class="meta-pill" onclick="openMissionsModal()" style="cursor:pointer" title="Daily Missions"><span class="val" id="missionsPct" style="color:var(--neon-green)">0%</span><span class="lbl">📋 MISSIONS</span></div>
       <div class="meta-pill boss" onclick="openEventsModal()" style="cursor:pointer" title="View Events & Skills"><span class="val" id="bossProgress">0%</span><span class="lbl">⚡ EVENT</span></div>
-    </div>
-    <!-- Signal + Energy HUD -->
-    <div class="signal-energy-row">
-      <div class="signal-hud">
-        <span class="hud-label">📶 SIGNAL</span>
-        <span class="hud-val" id="signalVal">0</span>
-      </div>
-      <div class="energy-hud">
-        <div class="energy-hud-top">
-          <span class="hud-label">⚡ ENERGY</span>
-          <span class="hud-val" id="energyVal">70%</span>
-        </div>
-        <div class="energy-bar-outer">
-          <div class="energy-bar-fill" id="energyBar" style="width:70%"></div>
-        </div>
-      </div>
     </div>
     <!-- Streak Freeze Token -->
     <div id="freezeBar" style="display:none">
@@ -2255,13 +2273,6 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
         <span class="review-prompt-arrow" style="color:var(--neon-purple);">›</span>
       </div>
     </div>
-    <!-- Combo Bar -->
-    <div id="comboBar" class="combo-bar" style="display:none">
-      <span class="combo-icon" id="comboIcon">⚡</span>
-      <span class="combo-label" id="comboLabel">COMBO x1</span>
-      <span class="combo-mult" id="comboMult"></span>
-      <div class="combo-dots" id="comboDots"></div>
-    </div>
   </div>
 
 <!-- NAVIGATION -->
@@ -2278,8 +2289,11 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
   <button class="nav-btn" onclick="showPanel('custom')">Custom</button>
   <button class="nav-btn" onclick="showPanel('trends')">Trends</button>
   <button class="nav-btn" onclick="showPanel('achievements')">🏆 Awards</button>
+  <button class="nav-btn" onclick="showPanel('settings')">⚙ Settings</button>
   <button class="nav-btn" onclick="showPanel('history')">History</button>
 </nav>
+
+  </div><!-- /stickyTop -->
 
   <!-- PANELS -->
   <div id="panels" style="padding:0 14px 20px">
@@ -2425,9 +2439,45 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
       <div id="achievements-container"></div>
     </div>
 
+    <!-- SETTINGS -->
+    <div class="panel" id="panel-settings">
+      <div class="panel-title">⚙ Settings</div>
+      <div class="section-label">Audio</div>
+      <div style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#e8f4ff;">Sound Effects</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:2px;">Action feedback, level-up chimes, warnings</div>
+        </div>
+        <button id="audioToggle" onclick="toggleAudio()" style="font-family:'Share Tech Mono',monospace;font-size:12px;padding:7px 14px;border-radius:4px;cursor:pointer;background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.25);color:var(--neon-cyan);letter-spacing:1px;">🔊 ON</button>
+      </div>
+      <div class="section-label" style="margin-top:12px;">Data</div>
+      <div style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#e8f4ff;">Export Backup</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:2px;">Copy all save data to clipboard</div>
+        </div>
+        <button onclick="openExportModal()" style="font-family:'Share Tech Mono',monospace;font-size:12px;padding:7px 14px;border-radius:4px;cursor:pointer;background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.25);color:var(--neon-cyan);letter-spacing:1px;">EXPORT</button>
+      </div>
+      <div style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#e8f4ff;">Import Backup</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:2px;">Restore from clipboard JSON</div>
+        </div>
+        <button onclick="openImportModal()" style="font-family:'Share Tech Mono',monospace;font-size:12px;padding:7px 14px;border-radius:4px;cursor:pointer;background:rgba(255,221,0,0.06);border:1px solid rgba(255,221,0,0.2);color:var(--neon-yellow);letter-spacing:1px;">IMPORT</button>
+      </div>
+      <div class="section-label" style="margin-top:12px;">Danger Zone</div>
+      <div style="background:var(--panel);border:1px solid rgba(255,34,68,0.15);border-radius:6px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#e8f4ff;">Reset All Data</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:2px;">Wipes all progress. Cannot be undone.</div>
+        </div>
+        <button onclick="resetData()" style="font-family:'Share Tech Mono',monospace;font-size:12px;padding:7px 14px;border-radius:4px;cursor:pointer;background:rgba(255,34,68,0.08);border:1px solid rgba(255,34,68,0.25);color:var(--neon-red);letter-spacing:1px;">RESET</button>
+      </div>
+    </div>
+
     <!-- HISTORY / BACKUP -->
     <div class="panel" id="panel-history">
-      <div class="panel-title">💾 History & Backup</div>
+      <div class="panel-title">💾 History</div>
 
       <!-- Withdraw -->
       <div class="withdraw-section">
@@ -2442,13 +2492,7 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
           </div>
         </div>
       </div>
-
-      <!-- Backup -->
-      <div class="section-label">Data Management</div>
-      <button class="backup-btn" onclick="openExportModal()">📤 Export / Copy Backup</button>
-      <button class="backup-btn" onclick="openImportModal()">📥 Restore from Backup</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-      <button class="backup-btn danger" onclick="resetData()">🗑️ Reset All Data</button>
 
       <!-- History -->
       <div class="sep"></div>
@@ -3192,7 +3236,7 @@ function showPanel(id) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   const btns = document.querySelectorAll('.nav-btn');
-  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','seasonal','creativity','custom','trends','achievements','history'];
+  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','seasonal','creativity','custom','trends','achievements','settings','history'];
   const idx = labels.indexOf(id);
   if (idx >= 0) btns[idx].classList.add('active');
   if (id === 'caffeine') updateCaffeineMeter();
@@ -4940,32 +4984,15 @@ function applyComboBonus(bonuses) {
 }
 
 function renderComboUI() {
-  const bar = document.getElementById('comboBar');
-  if (!bar) return;
+  const chip = document.getElementById('comboChip');
+  if (!chip) return;
   const count = S.combo?.count || 0;
-  if (count < 3) { bar.style.display = 'none'; return; }
+  if (count < 3) { chip.style.display = 'none'; return; }
   const tier = getComboTier(count);
-  bar.style.display = 'flex';
-  bar.className = `combo-bar${tier.cls ? ' '+tier.cls : ''}`;
-  document.getElementById('comboIcon').textContent = tier.icon;
-  document.getElementById('comboLabel').textContent = `${tier.label}  ×${count}`;
-  document.getElementById('comboMult').textContent = `+${Math.round((tier.mult-1)*100)}% XP`;
-  // Dots show progress to next threshold
-  const dotsEl = document.getElementById('comboDots');
-  const nextThresh = count < 5 ? 5 : 10;
-  const base       = count < 5 ? 0 : 5;
-  const progress   = Math.min(count - base, nextThresh - base);
-  const dotCount   = nextThresh - base;
-  dotsEl.innerHTML = '';
-  for (let i=0;i<dotCount;i++) {
-    const d = document.createElement('div');
-    d.className = 'combo-dot'+(i<progress?' lit':'');
-    dotsEl.appendChild(d);
-  }
-  // Pop animation on update
-  bar.classList.remove('combo-pop');
-  void bar.offsetWidth;
-  bar.classList.add('combo-pop');
+  chip.style.display = 'flex';
+  chip.className = `combo-chip${tier.cls ? ' '+tier.cls : ''}`;
+  document.getElementById('comboChipIcon').textContent  = tier.icon;
+  document.getElementById('comboChipLabel').textContent = `×${count}`;
 }
 
 function fireSynergyToast(syn) {
@@ -5275,15 +5302,17 @@ function updateUI() {
   const mpctEl = document.getElementById('missionsPct');
   if (mpctEl) mpctEl.textContent = getMissionsPct()+'%';
 
-  // Signal + Energy HUD
+  // Signal + Energy badges in header
   ensureSignalEnergy();
-  document.getElementById('signalVal').textContent = S.signal;
   const energyPct = Math.round((S.energy.current / S.energy.max) * 100);
-  document.getElementById('energyVal').textContent  = energyPct + '%';
-  const energyBarEl = document.getElementById('energyBar');
-  energyBarEl.style.width = energyPct + '%';
-  energyBarEl.className = 'energy-bar-fill' +
-    (S.energy.current < 10 ? ' critical' : S.energy.current < 30 ? ' low' : '');
+  const sigBadge = document.getElementById('signalBadge');
+  const engBadge = document.getElementById('energyBadge');
+  if (sigBadge) sigBadge.textContent = `📶 ${S.signal}`;
+  if (engBadge) {
+    engBadge.textContent = `⚡ ${energyPct}%`;
+    engBadge.className = 'energy-badge' +
+      (S.energy.current < 10 ? ' critical' : S.energy.current < 30 ? ' low' : '');
+  }
 
   // System State UI
   renderSystemStateUI();
@@ -6233,9 +6262,10 @@ function getAudioCtx() {
 function toggleAudio() {
   _audioMuted = !_audioMuted;
   const el = document.getElementById('audioToggle');
-  if (_audioMuted) { el.textContent = '🔇 SFX'; el.classList.add('muted'); }
-  else             { el.textContent = '🔊 SFX'; el.classList.remove('muted'); }
-  // Persist preference
+  if (el) {
+    if (_audioMuted) { el.textContent = '🔇 OFF'; el.style.color='var(--text-dim)'; el.style.borderColor='rgba(255,255,255,0.1)'; }
+    else             { el.textContent = '🔊 ON';  el.style.color='var(--neon-cyan)'; el.style.borderColor='rgba(0,200,255,0.25)'; }
+  }
   try { localStorage.setItem('nsp_audio_muted', _audioMuted ? '1' : '0'); } catch(e) {}
 }
 
@@ -6244,8 +6274,8 @@ function loadAudioPref() {
   catch(e) { _audioMuted = false; }
   const el = document.getElementById('audioToggle');
   if (el) {
-    if (_audioMuted) { el.textContent = '🔇 SFX'; el.classList.add('muted'); }
-    else             { el.textContent = '🔊 SFX'; el.classList.remove('muted'); }
+    if (_audioMuted) { el.textContent = '🔇 OFF'; el.style.color='var(--text-dim)'; el.style.borderColor='rgba(255,255,255,0.1)'; }
+    else             { el.textContent = '🔊 ON';  el.style.color='var(--neon-cyan)'; el.style.borderColor='rgba(0,200,255,0.25)'; }
   }
 }
 
