@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v3.2</title>
+<title>NEON SELF PROTOCOL v3.4</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -654,7 +654,7 @@ body[class*="phase-"]::after{
   color:var(--neon-cyan);
 }
 #toast .toast-chip.xp{background:rgba(255,221,0,0.1);border-color:rgba(255,221,0,0.25);color:var(--neon-yellow);}
-#toast .toast-chip.credit{background:rgba(0,255,136,0.1);border-color:rgba(0,255,136,0.25);color:var(--neon-green);}
+#toast .toast-chip.signal{background:rgba(0,200,255,0.1);border-color:rgba(0,200,255,0.25);color:var(--neon-cyan);}
 #toast .toast-chip.warn{background:rgba(255,106,0,0.1);border-color:rgba(255,106,0,0.25);color:var(--neon-orange);}
 #toast .toast-chip.bad{background:rgba(255,34,68,0.1);border-color:rgba(255,34,68,0.25);color:var(--neon-red);}
 #toast .toast-effects{
@@ -2192,7 +2192,25 @@ input[type=range].music-slider::-moz-range-thumb{
   background:var(--neon-cyan);
   box-shadow:0 0 6px rgba(0,200,255,0.4);
   cursor:pointer;border:none;
-}</style>
+/* ===== WAR READINESS HUD ===== */
+.war-hud{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 12px;margin-bottom:10px;
+  background:rgba(170,68,255,0.04);
+  border:1px solid rgba(170,68,255,0.18);
+  border-radius:var(--radius);
+}
+.war-hud-label{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:2px;color:rgba(170,68,255,0.7);
+  white-space:nowrap;flex-shrink:0;
+}
+.war-hud-stats{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-cyan);letter-spacing:0.5px;
+  text-align:right;
+}
+</style>
 </head>
 <body>
 
@@ -2210,7 +2228,6 @@ input[type=range].music-slider::-moz-range-thumb{
         <div class="signal-badge" id="signalBadge">📶 0</div>
         <div class="energy-badge" id="energyBadge">⚡ 70%</div>
         <div class="streak-badge" id="streakBadge">🔥 0d</div>
-        <div class="credits-badge" id="creditsBadge" onclick="showPanel('history')">₢ 0.00</div>
       </div>
     </div>
     <div class="briefing" id="briefing">
@@ -2310,6 +2327,13 @@ input[type=range].music-slider::-moz-range-thumb{
         </div>
         <span class="review-prompt-arrow" style="color:var(--neon-purple);">›</span>
       </div>
+    </div>
+    <!-- War Readiness HUD -->
+    <div id="warHUD" class="war-hud">
+      <span class="war-hud-label">◈ WAR READINESS</span>
+      <span class="war-hud-stats" id="warHUDStats">
+        STR — · DEF — · FW — · REC — · SIG —
+      </span>
     </div>
   </div>
 
@@ -2449,7 +2473,7 @@ input[type=range].music-slider::-moz-range-thumb{
       <div class="form-group">
         <label class="form-label" style="display:flex;align-items:center;gap:8px">
           <input type="checkbox" id="customCredit" style="accent-color:var(--neon-cyan)">
-          Include Credit Drop Chance
+          Include Bonus Signal Chance
         </label>
       </div>
       <button class="submit-btn" onclick="submitCustomAction()">LOG ACTION</button>
@@ -2534,20 +2558,6 @@ input[type=range].music-slider::-moz-range-thumb{
     <!-- HISTORY / BACKUP -->
     <div class="panel" id="panel-history">
       <div class="panel-title">💾 History</div>
-
-      <!-- Withdraw -->
-      <div class="withdraw-section">
-        <div class="withdraw-title">// CREDIT EXTRACTION</div>
-        <div class="credits-big" id="creditsDisplay">₢ 0.00</div>
-        <div class="form-group" style="margin-bottom:8px">
-          <label class="form-label" style="font-size:9px">Withdrawal Note</label>
-          <input class="form-input" id="withdrawNote" type="text" placeholder="e.g. Coffee, Amazon buy..." style="margin-bottom:8px">
-          <div class="inline-input">
-            <input id="withdrawAmt" type="number" step="0.01" min="0.01" placeholder="Amount ($)">
-            <button class="withdraw-btn" onclick="withdrawCredits()">EXTRACT</button>
-          </div>
-        </div>
-      </div>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
 
       <!-- History -->
@@ -2850,12 +2860,13 @@ const DEFAULT_STATE = {
     log: [],               // history of freeze uses
   },
   combo: {
-    count: 0,           // consecutive positive actions
-    todayCats: [],      // categories logged today for balanced mind
+    count: 0,
+    todayCats: [],
     lastActionTime: null,
     balancedMindAwarded: false,
     lastSynergy: null,
   },
+  warLog: [],
 };
 
 let S = {};
@@ -2864,6 +2875,11 @@ function loadState() {
   try {
     const raw = localStorage.getItem('nsp_v3');
     S = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_STATE));
+    // Archive old credits as legacyCredits — stop displaying them
+    if (S.credits !== undefined && S.credits !== 0) {
+      S.legacyCredits = S.credits;
+    }
+    S.credits = 0; // neutralise — no longer used
     // Ensure all keys exist
     const def = JSON.parse(JSON.stringify(DEFAULT_STATE));
     for (const k of Object.keys(def)) {
@@ -2968,221 +2984,221 @@ const ACTIONS = {
     {id:'pushups', name:'10 Exercises', icon:'💪',
      fx:{health:2,control:1}, xp:4, skillXp:{body:4},
      signal:4, energy:-3,
-     credit:{chance:0.4, amt:0.25}},
+     bonusSignal:{chance:0.4, amt:2}},
     {id:'walk', name:'Walk', icon:'🚶',
      fx:{health:4,soul:2}, xp:10, skillXp:{body:10},
      signal:8, energy:2,
-     credit:{chance:0.4, amt:0.50}},
+     bonusSignal:{chance:0.4, amt:4}},
     {id:'run', name:'Run', icon:'🏃',
      fx:{health:7,control:2}, xp:18, skillXp:{body:18},
      signal:14, energy:-12,
-     credit:{guaranteed:1}},
+     bonusSignal:{guaranteed:8}},
     {id:'bjj', name:'BJJ', icon:'🥋',
      fx:{health:10,control:5,soul:3}, xp:35, skillXp:{body:35},
      signal:30, energy:-20,
-     credit:{guaranteed:3, bonusChance:0.5, bonusAmt:2}},
+     bonusSignal:{guaranteed:22, bonusChance:0.5, bonusAmt:15}},
     {id:'lift', name:'Lift Weights', icon:'🏋️',
      fx:{health:8,control:3}, xp:25, skillXp:{body:25},
      signal:22, energy:-15,
-     credit:{guaranteed:2}},
+     bonusSignal:{guaranteed:15}},
     {id:'stretch', name:'Stretch', icon:'🧘',
      fx:{health:3,soul:1}, xp:8, skillXp:{body:8},
      signal:6, energy:3,
-     credit:{chance:0.25, amt:0.25}},
+     bonusSignal:{chance:0.25, amt:2}},
   ],
   food: [
     {id:'cleanMeal', name:'Clean Meal', icon:'🥗',
      fx:{health:5,control:2}, xp:10, skillXp:{discipline:8},
      signal:10, energy:5,
-     credit:{chance:0.3, amt:0.50}},
+     bonusSignal:{chance:0.3, amt:4}},
     {id:'proteinHit', name:'Protein Hit', icon:'🥩',
      fx:{health:3}, xp:5, skillXp:{body:5},
      signal:6, energy:3,
-     credit:{chance:0.2, amt:0.25}},
+     bonusSignal:{chance:0.2, amt:2}},
     {id:'water', name:'Drink Water', icon:'💧',
      fx:{health:1,control:1}, xp:2, skillXp:{},
      signal:2, energy:2,
-     credit:null},
+     bonusSignal:null},
     {id:'junkMeal', name:'Junk Meal', icon:'🍔',
      negative:true, fx:{health:-5,control:-2,corruption:6}, xp:0, awarenessXp:2,
      signal:0, energy:-6,
-     skillXp:{}, credit:null, recovery:true},
+     skillXp:{}, bonusSignal:null, recovery:true},
     {id:'junkSnack', name:'Junk Snack', icon:'🍟',
      negative:true, fx:{health:-3,control:-1,corruption:3}, xp:0, awarenessXp:1,
      signal:0, energy:-3,
-     skillXp:{}, credit:null, recovery:true},
+     skillXp:{}, bonusSignal:null, recovery:true},
     {id:'lateSnack', name:'Late Night Snack', icon:'🌙',
      negative:true, fx:{health:-2,focus:-1,corruption:2}, xp:0, awarenessXp:1,
      signal:0, energy:-4,
-     skillXp:{}, credit:null},
+     skillXp:{}, bonusSignal:null},
     {id:'overeat', name:'Overeat', icon:'😮',
      negative:true, fx:{health:-6,control:-3,corruption:5}, xp:0, awarenessXp:2,
      signal:0, energy:-8,
-     skillXp:{}, credit:null, recovery:true},
+     skillXp:{}, bonusSignal:null, recovery:true},
   ],
   caffeine: [
     {id:'caff60', name:'60mg Caffeine', icon:'🍵', caffeineMg:60,
-     fx:{}, xp:0, skillXp:{}, credit:null, isCaffeine:true},
+     fx:{}, xp:0, skillXp:{}, bonusSignal:null, isCaffeine:true},
     {id:'caff200', name:'200mg Caffeine', icon:'☕', caffeineMg:200,
-     fx:{}, xp:0, skillXp:{}, credit:null, isCaffeine:true},
+     fx:{}, xp:0, skillXp:{}, bonusSignal:null, isCaffeine:true},
   ],
   grift: [
     {id:'list1', name:'List 1 Item', icon:'📦',
      fx:{focus:2,control:2}, xp:10, skillXp:{grift:10},
      signal:10, energy:-4,
-     credit:{chance:0.35, amt:0.50}},
+     bonusSignal:{chance:0.35, amt:4}},
     {id:'list10', name:'List 10 Items', icon:'📋',
      fx:{focus:8,control:5}, xp:35, skillXp:{grift:35},
      signal:30, energy:-12,
-     credit:{guaranteed:2, bonusChance:0.3, bonusAmt:1}},
+     bonusSignal:{guaranteed:15, bonusChance:0.3, bonusAmt:8}},
     {id:'shipOrders', name:'Ship Orders', icon:'📬',
      fx:{focus:5,control:3}, xp:20, skillXp:{grift:20},
      signal:18, energy:-8,
-     credit:{chance:0.4, amt:1}},
+     bonusSignal:{chance:0.4, amt:8}},
     {id:'sourceProduct', name:'Source Product', icon:'🔍',
      fx:{focus:4}, xp:15, skillXp:{grift:15},
      signal:15, energy:-8,
-     credit:{chance:0.25, amt:1}},
+     bonusSignal:{chance:0.25, amt:8}},
     {id:'updateSite', name:'Update Website', icon:'🌐',
      fx:{focus:6}, xp:25, skillXp:{grift:25},
      signal:22, energy:-10,
-     credit:{chance:0.35, amt:1}},
+     bonusSignal:{chance:0.35, amt:8}},
     {id:'recordContent', name:'Record Content', icon:'🎥',
      fx:{focus:5}, xp:25, skillXp:{grift:10, creativity:20},
      signal:22, energy:-10,
-     credit:{chance:0.4, amt:1}},
+     bonusSignal:{chance:0.4, amt:8}},
     {id:'organizeInventory', name:'Organize Inventory', icon:'🗃️',
      fx:{focus:3,control:4}, xp:15, skillXp:{grift:12, discipline:5},
      signal:18, energy:-8,
-     credit:{chance:0.3, amt:0.50}},
+     bonusSignal:{chance:0.3, amt:4}},
     {id:'adminWork', name:'Admin Work', icon:'🧾',
      fx:{focus:4,control:3}, xp:18, skillXp:{grift:15, discipline:10},
      signal:20, energy:-10,
-     credit:{chance:0.3, amt:0.75}},
+     bonusSignal:{chance:0.3, amt:6}},
   ],
   creativity: [
     {id:'makeMusic', name:'Make Music', icon:'🎵',
      fx:{soul:5,focus:4}, xp:25, skillXp:{creativity:25},
      signal:20, energy:-8,
-     credit:{chance:0.25, amt:1}},
+     bonusSignal:{chance:0.25, amt:8}},
     {id:'creativeProject', name:'Work on Creative Project', icon:'🎨',
      fx:{focus:6,soul:3}, xp:25, skillXp:{creativity:25},
      signal:22, energy:-10,
-     credit:{chance:0.3, amt:1}},
+     bonusSignal:{chance:0.3, amt:8}},
     {id:'brainstorm', name:'Brainstorm Ideas', icon:'💡',
      fx:{soul:2,focus:2}, xp:10, skillXp:{creativity:10},
      signal:8, energy:-4,
-     credit:{chance:0.2, amt:0.50}},
+     bonusSignal:{chance:0.2, amt:4}},
     {id:'workManga', name:'Work on Manga', icon:'🖊️',
      fx:{soul:4,focus:5}, xp:25, skillXp:{creativity:30},
      signal:24, energy:-10,
-     credit:{chance:0.25, amt:1}},
+     bonusSignal:{chance:0.25, amt:8}},
   ],
   soul: [
     {id:'familyTime', name:'Family Time', icon:'👨‍👦',
      fx:{soul:8,control:3}, xp:25, skillXp:{family:25},
      signal:18, energy:4,
-     credit:{chance:0.3, amt:1}},
+     bonusSignal:{chance:0.3, amt:8}},
     {id:'apologize', name:'Apologize / Repair', icon:'🤝',
      fx:{soul:6,control:6,corruption:-8}, xp:20, skillXp:{recovery:20},
      signal:20, energy:6,
-     credit:{chance:0.25, amt:0.50}},
+     bonusSignal:{chance:0.25, amt:4}},
     {id:'readPhilosophy', name:'Study Philosophy', icon:'📖',
      fx:{soul:5,focus:3}, xp:20, skillXp:{mindSoul:20},
      signal:14, energy:4,
-     credit:{chance:0.25, amt:0.50}},
+     bonusSignal:{chance:0.25, amt:4}},
     {id:'meditate', name:'Meditate', icon:'🧠',
      fx:{soul:5,control:5,corruption:-4}, xp:20, skillXp:{mindSoul:15, recovery:10},
      signal:16, energy:8,
-     credit:{chance:0.2, amt:0.50}},
+     bonusSignal:{chance:0.2, amt:4}},
     {id:'realBreak', name:'Take Actual Break', icon:'☕',
      fx:{soul:4,focus:2,corruption:-2}, xp:10, skillXp:{recovery:10},
      signal:10, energy:10,
-     credit:null},
+     bonusSignal:null},
     {id:'spouseTime', name:'Spend Time with Spouse', icon:'💙',
      fx:{soul:7,control:4,corruption:-3}, xp:22, skillXp:{family:20, recovery:5},
      signal:18, energy:5,
-     credit:{chance:0.25, amt:0.50}},
+     bonusSignal:{chance:0.25, amt:4}},
   ],
   discipline: [
     {id:'upkeepTask', name:'Complete Upkeep Task', icon:'🔧',
      fx:{control:3,focus:3}, xp:12, skillXp:{discipline:14},
      signal:14, energy:-5,
-     credit:{chance:0.25, amt:0.50}},
+     bonusSignal:{chance:0.25, amt:4}},
     {id:'backlogTask', name:'Complete Backlog Task', icon:'✅',
      fx:{control:7,focus:3,soul:2}, xp:28, skillXp:{discipline:22},
      signal:26, energy:-10,
-     credit:{chance:0.4, amt:1}},
+     bonusSignal:{chance:0.4, amt:8}},
     {id:'householdTask', name:'Household Progress Task', icon:'🏠',
      fx:{focus:4,soul:2}, xp:22, skillXp:{discipline:20, family:8},
      signal:28, energy:-12,
-     credit:{chance:0.35, amt:1}},
+     bonusSignal:{chance:0.35, amt:8}},
     {id:'purge', name:'Purge Possessions', icon:'🗑️',
      fx:{soul:4,focus:3,control:3,corruption:-3}, xp:18, skillXp:{discipline:15, recovery:6},
      signal:22, energy:-8,
-     credit:{chance:0.2, amt:0.50}},
+     bonusSignal:{chance:0.2, amt:4}},
     {id:'cleanArea', name:'Clean One Area', icon:'🧹',
      fx:{focus:3,control:3}, xp:12, skillXp:{discipline:12},
      signal:12, energy:-5,
-     credit:{chance:0.25, amt:0.50}},
+     bonusSignal:{chance:0.25, amt:4}},
     {id:'sleepOnTime', name:'Sleep On Time', icon:'😴',
      fx:{health:5,focus:4,control:3}, xp:20, skillXp:{discipline:20},
      signal:25, energy:20,
-     credit:{chance:0.25, amt:0.50}},
+     bonusSignal:{chance:0.25, amt:4}},
     {id:'noDoomscroll', name:'No Doomscroll Block', icon:'📵',
      fx:{focus:4,control:4}, xp:15, skillXp:{discipline:15},
      signal:14, energy:4,
-     credit:{chance:0.25, amt:0.50}},
+     bonusSignal:{chance:0.25, amt:4}},
     {id:'workBlock30', name:'30 Min Work Block', icon:'⏱️',
      fx:{focus:6,control:4}, xp:18, skillXp:{discipline:18, grift:6},
      signal:18, energy:-8,
-     credit:{chance:0.3, amt:0.75}},
+     bonusSignal:{chance:0.3, amt:6}},
     {id:'brushTeeth', name:'Brush Teeth', icon:'🪥',
      fx:{control:1,health:1}, xp:3, skillXp:{discipline:4},
      signal:3, energy:1,
-     credit:null},
+     bonusSignal:null},
   ],
   corruption: [
     {id:'lostControl', name:'Lost Control / Yelled', icon:'😤',
      negative:true, fx:{control:-8,soul:-4,corruption:10}, xp:0, awarenessXp:2,
      signal:0, energy:-10,
-     skillXp:{}, credit:null, recovery:true},
+     skillXp:{}, bonusSignal:null, recovery:true},
     {id:'doomscrolled', name:'Doomscrolled', icon:'📱',
      negative:true, fx:{focus:-5,control:-3,corruption:5}, xp:0, awarenessXp:1,
      signal:0, energy:-8,
-     skillXp:{}, credit:null},
+     skillXp:{}, bonusSignal:null},
     {id:'skippedWorkout', name:'Skipped Planned Workout', icon:'🚫',
      negative:true, fx:{health:-4,control:-3,corruption:4}, xp:0, awarenessXp:1,
      signal:0, energy:-5,
-     skillXp:{}, credit:null},
+     skillXp:{}, bonusSignal:null},
     {id:'avoidedTask', name:'Avoided Important Task', icon:'🙈',
      negative:true, fx:{focus:-5,control:-4,corruption:6}, xp:0, awarenessXp:1,
      signal:0, energy:-6,
-     skillXp:{}, credit:null},
+     skillXp:{}, bonusSignal:null},
     {id:'triedOverspend', name:'Tried to Overspend', icon:'💸',
      negative:true, fx:{control:-3,corruption:5}, xp:0, awarenessXp:1,
      signal:0, energy:-4,
-     skillXp:{}, credit:null},
+     skillXp:{}, bonusSignal:null},
     {id:'stayedUpLate', name:'Stayed Up Too Late', icon:'🌙',
      negative:true, fx:{health:-4,focus:-4,control:-2,corruption:5}, xp:0, awarenessXp:1,
      signal:0, energy:-15,
-     skillXp:{}, credit:null},
+     skillXp:{}, bonusSignal:null},
     {id:'junkMeal2', name:'Junk Meal', icon:'🍔',
      negative:true, fx:{health:-5,control:-2,corruption:6}, xp:0, awarenessXp:2,
      signal:0, energy:-6,
-     skillXp:{}, credit:null, recovery:true},
+     skillXp:{}, bonusSignal:null, recovery:true},
     {id:'junkSnack2', name:'Junk Snack', icon:'🍟',
      negative:true, fx:{health:-3,control:-1,corruption:3}, xp:0, awarenessXp:1,
      signal:0, energy:-3,
-     skillXp:{}, credit:null},
+     skillXp:{}, bonusSignal:null},
     {id:'lateSnack2', name:'Late Night Snack', icon:'🌙',
      negative:true, fx:{health:-2,focus:-1,corruption:2}, xp:0, awarenessXp:1,
      signal:0, energy:-4,
-     skillXp:{}, credit:null},
+     skillXp:{}, bonusSignal:null},
     {id:'overeat2', name:'Overeat', icon:'😮',
      negative:true, fx:{health:-6,control:-3,corruption:5}, xp:0, awarenessXp:2,
      signal:0, energy:-8,
-     skillXp:{}, credit:null, recovery:true},
+     skillXp:{}, bonusSignal:null, recovery:true},
   ]
 };
 
@@ -3201,32 +3217,32 @@ const RECOVERY_OPTS = [
 // MISSION POOL
 // ==========================================================================
 const MISSION_POOL = [
-  {name:'Complete 10 Exercises', cat:'Body', action:'pushups', xpBonus:10, credit:{chance:0.3,amt:0.50}},
-  {name:'Go for a walk', cat:'Body', action:'walk', xpBonus:15, credit:{chance:0.3,amt:0.50}},
-  {name:'List 1 item for sale', cat:'Grift', action:'list1', xpBonus:12, credit:{chance:0.4,amt:0.50}},
-  {name:'Drink water twice', cat:'Food', action:'water', xpBonus:6, credit:null},
-  {name:'Eat a clean meal', cat:'Food', action:'cleanMeal', xpBonus:12, credit:{chance:0.2,amt:0.50}},
-  {name:'Take an actual break', cat:'Soul', action:'realBreak', xpBonus:10, credit:null},
-  {name:'Repair one small thing', cat:'Soul', action:'apologize', xpBonus:15, credit:{chance:0.2,amt:0.50}},
-  {name:'Clean one area', cat:'Discipline', action:'cleanArea', xpBonus:12, credit:{chance:0.2,amt:0.50}},
-  {name:'Avoid doomscrolling', cat:'Discipline', action:'noDoomscroll', xpBonus:12, credit:{chance:0.2,amt:0.50}},
-  {name:'Knock out a backlog task', cat:'Discipline', action:'backlogTask', xpBonus:15, credit:{chance:0.3,amt:1}},
-  {name:'Do one upkeep task', cat:'Discipline', action:'upkeepTask', xpBonus:10, credit:{chance:0.2,amt:0.50}},
-  {name:'Make household progress', cat:'Discipline', action:'householdTask', xpBonus:12, credit:{chance:0.2,amt:0.50}},
-  {name:'Purge something you don\'t need', cat:'Discipline', action:'purge', xpBonus:12, credit:null},
-  {name:'Stretch for 5 min', cat:'Body', action:'stretch', xpBonus:8, credit:null},
-  {name:'Spend time with family', cat:'Soul', action:'familyTime', xpBonus:15, credit:{chance:0.2,amt:0.50}},
-  {name:'Work on a creative project', cat:'Creativity', action:'creativeProject', xpBonus:15, credit:{chance:0.2,amt:0.50}},
-  {name:'Meditate or breathe', cat:'Soul', action:'meditate', xpBonus:12, credit:null},
-  {name:'Study something meaningful', cat:'Soul', action:'readPhilosophy', xpBonus:12, credit:null},
-  {name:'Log a protein hit', cat:'Food', action:'proteinHit', xpBonus:8, credit:null},
-  {name:'Sleep on time tonight', cat:'Discipline', action:'sleepOnTime', xpBonus:15, credit:{chance:0.2,amt:0.50}},
-  {name:'Lift weights', cat:'Body', action:'lift', xpBonus:18, credit:{chance:0.3,amt:1}},
-  {name:'Brainstorm 3 ideas', cat:'Creativity', action:'brainstorm', xpBonus:10, credit:null},
-  {name:'Source one product', cat:'Grift', action:'sourceProduct', xpBonus:12, credit:{chance:0.2,amt:0.50}},
-  {name:'Organize your inventory', cat:'Grift', action:'organizeInventory', xpBonus:12, credit:{chance:0.2,amt:0.50}},
-  {name:'Tackle one admin task', cat:'Grift', action:'adminWork', xpBonus:12, credit:{chance:0.2,amt:0.50}},
-  {name:'Work on the manga', cat:'Creativity', action:'workManga', xpBonus:15, credit:{chance:0.2,amt:0.50}},
+  {name:'Complete 10 Exercises', cat:'Body', action:'pushups', xpBonus:10, bonusSignal:{chance:0.3,amt:4}},
+  {name:'Go for a walk', cat:'Body', action:'walk', xpBonus:15, bonusSignal:{chance:0.3,amt:4}},
+  {name:'List 1 item for sale', cat:'Grift', action:'list1', xpBonus:12, bonusSignal:{chance:0.4,amt:4}},
+  {name:'Drink water twice', cat:'Food', action:'water', xpBonus:6, bonusSignal:null},
+  {name:'Eat a clean meal', cat:'Food', action:'cleanMeal', xpBonus:12, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Take an actual break', cat:'Soul', action:'realBreak', xpBonus:10, bonusSignal:null},
+  {name:'Repair one small thing', cat:'Soul', action:'apologize', xpBonus:15, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Clean one area', cat:'Discipline', action:'cleanArea', xpBonus:12, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Avoid doomscrolling', cat:'Discipline', action:'noDoomscroll', xpBonus:12, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Knock out a backlog task', cat:'Discipline', action:'backlogTask', xpBonus:15, bonusSignal:{chance:0.3,amt:8}},
+  {name:'Do one upkeep task', cat:'Discipline', action:'upkeepTask', xpBonus:10, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Make household progress', cat:'Discipline', action:'householdTask', xpBonus:12, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Purge something you don\'t need', cat:'Discipline', action:'purge', xpBonus:12, bonusSignal:null},
+  {name:'Stretch for 5 min', cat:'Body', action:'stretch', xpBonus:8, bonusSignal:null},
+  {name:'Spend time with family', cat:'Soul', action:'familyTime', xpBonus:15, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Work on a creative project', cat:'Creativity', action:'creativeProject', xpBonus:15, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Meditate or breathe', cat:'Soul', action:'meditate', xpBonus:12, bonusSignal:null},
+  {name:'Study something meaningful', cat:'Soul', action:'readPhilosophy', xpBonus:12, bonusSignal:null},
+  {name:'Log a protein hit', cat:'Food', action:'proteinHit', xpBonus:8, bonusSignal:null},
+  {name:'Sleep on time tonight', cat:'Discipline', action:'sleepOnTime', xpBonus:15, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Lift weights', cat:'Body', action:'lift', xpBonus:18, bonusSignal:{chance:0.3,amt:8}},
+  {name:'Brainstorm 3 ideas', cat:'Creativity', action:'brainstorm', xpBonus:10, bonusSignal:null},
+  {name:'Source one product', cat:'Grift', action:'sourceProduct', xpBonus:12, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Organize your inventory', cat:'Grift', action:'organizeInventory', xpBonus:12, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Tackle one admin task', cat:'Grift', action:'adminWork', xpBonus:12, bonusSignal:{chance:0.2,amt:4}},
+  {name:'Work on the manga', cat:'Creativity', action:'workManga', xpBonus:15, bonusSignal:{chance:0.2,amt:4}},
 ];
 
 // ==========================================================================
@@ -3257,16 +3273,15 @@ function toast(title, msg, effects='', type='') {
   }
 
   if (effects) {
-    // Parse effects string and build individual chips
-    const parts = effects.split(/\s{2,}|\s(?=[+₢✨❤️🧿⚔️🌐☠️])/);
+    const parts = effects.split(/\s{2,}|\s(?=[+📶✨❤️🧿⚔️🌐☠️⚡])/);
     parts.forEach(part => {
       part = part.trim();
       if (!part) return;
       const chip = document.createElement('span');
       if (part.includes('XP')) {
         chip.className = 'toast-chip xp';
-      } else if (part.includes('₢') || part.includes('$')) {
-        chip.className = 'toast-chip credit';
+      } else if (part.includes('📶')) {
+        chip.className = 'toast-chip signal';
       } else if (part.match(/[+-]\d/) && part.match(/corruption/i)) {
         chip.className = 'toast-chip bad';
       } else {
@@ -3353,18 +3368,15 @@ function addSkillXP(skillXpObj) {
   }
 }
 
-function calcCreditDrop(credit) {
-  if (!credit) return 0;
-  if (credit.guaranteed) {
-    let total = credit.guaranteed;
-    if (credit.bonusChance && Math.random() < credit.bonusChance) total += credit.bonusAmt || 0;
-    return parseFloat(total.toFixed(2));
+function calcBonusSignal(bonusSignal) {
+  if (!bonusSignal) return 0;
+  if (bonusSignal.guaranteed) {
+    let total = bonusSignal.guaranteed;
+    if (bonusSignal.bonusChance && Math.random() < bonusSignal.bonusChance) total += bonusSignal.bonusAmt || 0;
+    return Math.round(total);
   }
-  if (credit.chance && Math.random() < credit.chance) {
-    if (credit.minAmt !== undefined) {
-      return parseFloat((credit.minAmt + Math.random() * (credit.maxAmt - credit.minAmt)).toFixed(2));
-    }
-    return credit.amt || 0;
+  if (bonusSignal.chance && Math.random() < bonusSignal.chance) {
+    return bonusSignal.amt || 0;
   }
   return 0;
 }
@@ -3398,14 +3410,12 @@ function executeAction(action, source='button') {
   addXP(gainedXP);
   addSkillXP(action.skillXp || {});
 
-  // Credits — apply state mult + archetype bonus
-  let gainedCredits = 0;
+  // ── Bonus Signal drop (replaces credit system) ──
+  let bonusSignalDrop = 0;
   if (!action.negative) {
-    const rawCredits = calcCreditDrop(action.credit);
-    const stateAdjusted = rawCredits > 0 ? parseFloat((rawCredits * stateCreditMult()).toFixed(2)) : 0;
-    gainedCredits = archetypeCreditBonus(action.category, stateAdjusted);
+    const rawBonus = calcBonusSignal(action.bonusSignal);
+    bonusSignalDrop = archetypeBonusSignal(action.category, rawBonus);
   }
-  S.credits = parseFloat((S.credits + gainedCredits).toFixed(2));
 
   // ── Signal & Operational Energy ──
   ensureSignalEnergy();
@@ -3426,7 +3436,7 @@ function executeAction(action, source='button') {
   const gainedSignal = action.negative ? 0 : Math.round(rawSignal * signalMod);
   const energyDelta  = Math.round(rawEnergy * (rawEnergy < 0 ? energyMod : 1.0));
 
-  S.signal += gainedSignal;
+  S.signal += gainedSignal + bonusSignalDrop;
   S.energy.current = clamp(S.energy.current + energyDelta, 0, S.energy.max);
 
   // Evaluate system state and archetype after action
@@ -3456,8 +3466,8 @@ function executeAction(action, source='button') {
     category: action.category || 'other',
     effects: effectsStr,
     xp: gainedXP,
-    credits: gainedCredits,
-    signal: gainedSignal,
+    signal: gainedSignal + bonusSignalDrop,
+    bonusSignal: bonusSignalDrop,
     energyDelta,
     type: action.negative ? 'negative' : 'positive'
   });
@@ -3467,8 +3477,8 @@ function executeAction(action, source='button') {
   updateUI();
   generateBriefing();
 
-  // Apply combo bonuses (XP + credits) and fire notifications
-  if (comboBonuses.xp > 0 || comboBonuses.credits > 0) {
+  // Apply combo bonuses (XP + Signal) and fire notifications
+  if (comboBonuses.xp > 0 || comboBonuses.signal > 0) {
     applyComboBonus(comboBonuses);
     saveState();
     updateUI();
@@ -3482,12 +3492,12 @@ function executeAction(action, source='button') {
     const icons = {health:'❤️',focus:'🧿',control:'⚔️',soul:'🌐',corruption:'☠️'};
     fxParts.push(`${icons[k]||''}${k} ${v>0?'+':''}${v}`);
   }
-  if (gainedXP > 0)      fxParts.push(`✨ +${gainedXP}XP`);
-  if (gainedCredits > 0) fxParts.push(`₢ +$${gainedCredits.toFixed(2)}`);
-  if (gainedSignal > 0)  fxParts.push(`📶 +${gainedSignal}`);
-  if (energyDelta !== 0) fxParts.push(`⚡ ${energyDelta > 0 ? '+' : ''}${energyDelta}`);
+  if (gainedXP > 0)           fxParts.push(`✨ +${gainedXP}XP`);
+  if (gainedSignal > 0)       fxParts.push(`📶 +${gainedSignal}`);
+  if (bonusSignalDrop > 0)    fxParts.push(`📶 +${bonusSignalDrop} bonus`);
+  if (energyDelta !== 0)      fxParts.push(`⚡ ${energyDelta > 0 ? '+' : ''}${energyDelta}`);
 
-  const toastType = action.negative ? 'warn' : (gainedCredits > 0 ? 'success' : '');
+  const toastType = action.negative ? 'warn' : (bonusSignalDrop > 0 ? 'success' : '');
   toast(action.negative ? '⚠ LOGGED' : '✓ LOGGED', action.name, fxParts.join('  '), toastType);
 
   // Low energy warnings (fire once per threshold crossing, not every action)
@@ -3502,8 +3512,8 @@ function executeAction(action, source='button') {
     sfxNegative();
   } else {
     sfxActionPositive();
-    if (gainedXP > 0) setTimeout(sfxXPGain, 80);
-    if (gainedCredits > 0) setTimeout(sfxCreditDrop, 160);
+    if (gainedXP > 0)         setTimeout(sfxXPGain, 80);
+    if (bonusSignalDrop > 0)  setTimeout(sfxCreditDrop, 160); // repurpose as signal bonus chime
   }
   // Corruption warning audio
   if (S.stats.corruption >= 40 && (action.fx?.corruption > 0 || action.negative)) {
@@ -3535,6 +3545,8 @@ function executeAction(action, source='button') {
     updateSeasonalArc(action.category);
     maybeShowOpLogPrompt();
   }
+  // War system hook — always fires
+  processWarAction(action, gainedSignal + bonusSignalDrop, energyDelta);
 }
 
 function updateStreak() {
@@ -3659,13 +3671,12 @@ function renderActionButton(action, cat, container) {
   action.category = cat;
 
   let rewardHtml = '';
-  if (action.credit) {
-    if (action.credit.guaranteed) {
-      rewardHtml = `<span class="btn-reward">₢ $${action.credit.guaranteed}+</span>`;
-    } else if (action.credit.chance) {
-      const pct = Math.round(action.credit.chance * 100);
-      const amt = action.credit.minAmt ? `$${action.credit.minAmt}-$${action.credit.maxAmt}` : `$${action.credit.amt}`;
-      rewardHtml = `<span class="btn-reward">${pct}% ${amt}</span>`;
+  if (action.bonusSignal) {
+    if (action.bonusSignal.guaranteed) {
+      rewardHtml = `<span class="btn-reward">📶 +${action.bonusSignal.guaranteed}+</span>`;
+    } else if (action.bonusSignal.chance) {
+      const pct = Math.round(action.bonusSignal.chance * 100);
+      rewardHtml = `<span class="btn-reward">${pct}% +${action.bonusSignal.amt}sig</span>`;
     }
   }
 
@@ -3822,7 +3833,7 @@ function renderMissions() {
     const m = S.missions[i];
     const card = document.createElement('div');
     card.className = `mission-card${m.completed ? ' completed' : ''}`;
-    const rewardStr = m.credit ? `+${m.xpBonus}XP + ₢ chance` : `+${m.xpBonus}XP`;
+    const rewardStr = m.bonusSignal ? `+${m.xpBonus}XP + Signal chance` : `+${m.xpBonus}XP`;
     card.innerHTML = `
       <div class="mission-header">
         <div>
@@ -3852,12 +3863,11 @@ function completeMission(idx) {
   }
 
   if (action) {
-    // Apply action effects + bonus XP
     applyFX(action.fx || {});
     addXP((action.xp || 0) + m.xpBonus);
     addSkillXP(action.skillXp || {});
-    const credits = calcCreditDrop(m.credit);
-    S.credits = parseFloat((S.credits + credits).toFixed(2));
+    const bonusSig = calcBonusSignal(m.bonusSignal);
+    S.signal += (action.signal || 0) + bonusSig;
 
     S.history.unshift({
       time: new Date().toISOString(),
@@ -3865,7 +3875,7 @@ function completeMission(idx) {
       category: m.cat.toLowerCase(),
       effects: '',
       xp: (action.xp || 0) + m.xpBonus,
-      credits,
+      signal: (action.signal || 0) + bonusSig,
       type: 'mission'
     });
   }
@@ -3907,8 +3917,8 @@ function checkBossCompletion() {
   const allDone = Object.entries(BOSS_TARGETS).every(([k,v]) => (S.boss[k]||0) >= v);
   if (allDone) {
     S.boss.completed = true;
-    const reward = 5;
-    S.credits = parseFloat((S.credits + reward).toFixed(2));
+    const signalReward = 50;
+    S.signal += signalReward;
     addXP(200);
     S.history.unshift({
       time: new Date().toISOString(),
@@ -3916,12 +3926,12 @@ function checkBossCompletion() {
       category:'boss',
       effects:'',
       xp:200,
-      credits:reward,
+      signal:signalReward,
       type:'boss'
     });
     saveState();
     updateUI();
-    setTimeout(() => { toast('☠️ BOSS DEFEATED', S.boss.name, '+200XP  ₢ +$5.00', 'success'); sfxBossDefeated(); }, 200);
+    setTimeout(() => { toast('☠️ BOSS DEFEATED', S.boss.name, '+200XP  📶 +50 Signal', 'success'); sfxBossDefeated(); }, 200);
   }
 }
 
@@ -3951,7 +3961,7 @@ function renderBoss() {
       <div class="boss-week">// ${S.boss.week} //</div>
       <div class="boss-hp-wrap"><div class="boss-hp-fill" style="width:${hpPct}%"></div></div>
       <div class="boss-req">${rows}</div>
-      <div class="boss-reward-info">Defeat reward: ₢ $5.00 + 200 XP</div>
+      <div class="boss-reward-info">Defeat reward: 📶 +50 Signal + 200 XP</div>
     </div>
   `;
 }
@@ -3993,7 +4003,7 @@ const RANDOM_EVENTS = [
     id:'griftSurge',
     name:'MARKET SURGE',
     desc:'Demand is up. Grift actions have elevated credit drop chances this week.',
-    bonus:'+20% Credit chance on all Grift actions',
+    bonus:'+20% Grift Signal bonus chance',
     multiplier:{category:'grift', stat:'credit', factor:1.2},
   },
   {
@@ -4125,7 +4135,7 @@ function submitCustomAction() {
   const desc = document.getElementById('customDesc').value.trim();
   if (!desc) { toast('ERROR','Enter a description.','','error'); return; }
   const cat = document.getElementById('customCat').value;
-  const includeCredit = document.getElementById('customCredit').checked;
+  // bonus signal handled below
   const isNeg = customPolarity === 'neg';
   const xpAmt = isNeg ? 1 : EFFORT_XP[customEffort];
   const statAmt = EFFORT_STAT[customEffort];
@@ -4148,22 +4158,24 @@ function submitCustomAction() {
     Object.assign(fx, baseFX);
   }
 
-  let gainedCredits = 0;
-  const creditConfig = includeCredit && !isNeg ? {chance:0.3, amt:EFFORT_XP[customEffort]*0.02} : null;
-  if (creditConfig) gainedCredits = calcCreditDrop(creditConfig);
+  const includeBonusSig = document.getElementById('customCredit').checked;
+  let customBonusSignal = 0;
+  if (includeBonusSig && !isNeg) {
+    const bonusSigConfig = { chance:0.3, amt: Math.round(EFFORT_XP[customEffort] * 0.4) };
+    customBonusSignal = calcBonusSignal(bonusSigConfig);
+  }
 
   applyFX(fx);
   addXP(xpAmt);
   const skillMap = {body:{body:xpAmt},food:{discipline:Math.ceil(xpAmt/2)},grift:{grift:xpAmt},creativity:{creativity:xpAmt},soul:{mindSoul:xpAmt},discipline:{discipline:xpAmt},recovery:{recovery:xpAmt},other:{}};
   addSkillXP(skillMap[cat]||{});
-  S.credits = parseFloat((S.credits + gainedCredits).toFixed(2));
-  if (!isNeg) S.todayActions++;
+  if (!isNeg) { S.signal += customBonusSignal; S.todayActions++; }
 
   S.history.unshift({
     time:new Date().toISOString(),
     action:`[CUSTOM] ${desc}`,
-    category:cat,effects:Object.entries(fx).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' '),
-    xp:xpAmt,credits:gainedCredits,type:isNeg?'negative':'positive'
+    category:cat, effects:Object.entries(fx).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' '),
+    xp:xpAmt, signal:customBonusSignal, type:isNeg?'negative':'positive'
   });
 
   saveState();
@@ -4537,27 +4549,6 @@ function startBriefingClock() {
 // ==========================================================================
 // WITHDRAW
 // ==========================================================================
-function withdrawCredits() {
-  const amt = parseFloat(document.getElementById('withdrawAmt').value);
-  const note = document.getElementById('withdrawNote').value.trim() || 'Withdrawal';
-  if (!amt || amt <= 0) { toast('ERROR','Enter a valid amount.','','error'); return; }
-  if (amt > S.credits) {
-    toast('DENIED', 'Insufficient credits. Earn before extraction.', `Balance: $${S.credits.toFixed(2)}`, 'error');
-    return;
-  }
-  S.credits = parseFloat((S.credits - amt).toFixed(2));
-  S.history.unshift({
-    time:new Date().toISOString(),
-    action:`[WITHDRAWAL] ${note} — $${amt.toFixed(2)}`,
-    category:'withdrawal',effects:'',xp:0,credits:-amt,type:'withdrawal'
-  });
-  saveState();
-  updateUI();
-  document.getElementById('withdrawAmt').value = '';
-  document.getElementById('withdrawNote').value = '';
-  toast('₢ EXTRACTED', `$${amt.toFixed(2)} — ${note}`, `Remaining: $${S.credits.toFixed(2)}`, 'success');
-}
-
 // ==========================================================================
 // HISTORY RENDER
 // ==========================================================================
@@ -4585,7 +4576,7 @@ function renderMissionsModalContent() {
   if (missions.length === 0) { container.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-family:\'Share Tech Mono\',monospace;font-size:11px;padding:20px;">No missions generated yet.</div>'; return; }
 
   container.innerHTML = missions.map((m, i) => {
-    const rewardStr = m.credit ? `+${m.xpBonus}XP + ₢ chance` : `+${m.xpBonus}XP`;
+    const rewardStr = m.bonusSignal ? `+${m.xpBonus}XP + Signal chance` : `+${m.xpBonus}XP`;
     return `<div class="mission-card${m.completed ? ' completed' : ''}" style="margin-bottom:10px;">
       <div class="mission-header">
         <div>
@@ -4631,11 +4622,10 @@ function renderHistory(filter='today') {
     const d = new Date(h.time);
     const timeStr = `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
     const xpStr   = h.xp    ? `+${h.xp}XP` : '';
-    const credStr = h.credits > 0
-      ? `<span class="h-credits">+₢$${h.credits.toFixed(2)}</span>`
-      : h.credits < 0 ? `<span class="h-withdrawal">₢$${h.credits.toFixed(2)}</span>` : '';
     const sigStr  = h.signal > 0  ? `<span style="color:var(--neon-cyan)">📶 +${h.signal}</span>` : '';
     const engStr  = h.energyDelta ? `<span style="color:${h.energyDelta>0?'var(--neon-green)':'var(--text-dim)'}">⚡${h.energyDelta>0?'+':''}${h.energyDelta}</span>` : '';
+    // Legacy credit entries — show neutrally without dollar signs
+    const legacyStr = (h.credits && h.credits > 0 && !h.signal) ? `<span style="color:var(--text-dim);font-size:9px">[legacy]</span>` : '';
     // Only show delete for non-system entries logged in the last 24 hours
     const canDelete = h.type !== 'system' && (now - d) < 24 * 60 * 60 * 1000;
     const deleteBtn = canDelete
@@ -4647,7 +4637,7 @@ function renderHistory(filter='today') {
         ${deleteBtn}
       </div>
       <div class="h-action">${h.action}</div>
-      <div class="h-effects">${h.effects ? h.effects + '  ' : ''}${xpStr} ${credStr} ${sigStr} ${engStr}</div>
+      <div class="h-effects">${h.effects ? h.effects + '  ' : ''}${xpStr} ${sigStr} ${engStr} ${legacyStr}</div>
     </div>`;
   }).join('');
 }
@@ -4673,18 +4663,12 @@ function deleteHistoryEntry(idx) {
   // Reverse XP
   if (entry.xp > 0) {
     S.xp = Math.max(0, S.xp - entry.xp);
-    // Reverse level if needed
-    while (S.level > 1 && S.xp < 0) {
-      S.level--;
-      S.xp += xpForLevel(S.level);
-    }
+    while (S.level > 1 && S.xp < 0) { S.level--; S.xp += xpForLevel(S.level); }
     S.xp = Math.max(0, S.xp);
   }
 
-  // Reverse credits
-  if (entry.credits && entry.credits > 0) {
-    S.credits = parseFloat(Math.max(0, S.credits - entry.credits).toFixed(2));
-  }
+  // Reverse signal
+  if (entry.signal > 0) S.signal = Math.max(0, S.signal - entry.signal);
 
   // Adjust today action count if it was today
   const isToday = new Date(entry.time).toDateString() === new Date().toDateString();
@@ -4807,11 +4791,9 @@ function resetData() {
 const STATE_CONFIG = {
   NOMINAL: {
     label:'NOMINAL', effect:'System stable.',
-    xpMult:1.0, creditMult:1.0,
   },
   FLOW: {
     label:'FLOW STATE', effect:'+XP  +Credits  Balance active',
-    xpMult:1.15, creditMult:1.2,
     briefingOverride:[
       'Flow State active. Every action is compounding right now. Stay in it.',
       'System in sync. XP and credits running hot. Keep the chain.',
@@ -4820,7 +4802,6 @@ const STATE_CONFIG = {
   },
   BURNOUT: {
     label:'BURNOUT', effect:'Rest needed. Reduced output.',
-    xpMult:0.9, creditMult:0.8,
     briefingOverride:[
       'Burnout detected. You have been grinding without recovery. Slow down and restore.',
       'Output quality degrading. Soul is low. Take a break before continuing.',
@@ -4829,7 +4810,6 @@ const STATE_CONFIG = {
   },
   CORRUPTED: {
     label:'CORRUPTED', effect:'⚠ XP reduced. Recovery required.',
-    xpMult:0.8, creditMult:0.85,
     briefingOverride:[
       'CORRUPTED. Negative patterns dominating. Immediate recovery protocol advised.',
       'System integrity compromised. Corruption is controlling output. Recover now.',
@@ -4838,7 +4818,6 @@ const STATE_CONFIG = {
   },
   DISCIPLINE: {
     label:'DISCIPLINE', effect:'+XP  System stable.',
-    xpMult:1.1, creditMult:1.0,
     briefingOverride:[
       'Discipline State online. Consistency is your edge. The system is stable.',
       'Structural integrity high. Keep logging. Keep building.',
@@ -4920,10 +4899,7 @@ function stateXPMult() {
 }
 
 // Apply state multipliers to credit drop
-function stateCreditMult() {
-  const cfg = STATE_CONFIG[S.currentSystemState || 'NOMINAL'];
-  return cfg ? cfg.creditMult : 1.0;
-}
+function stateCreditMult() { return 1; } // legacy stub — credits removed
 
 // ==========================================================================
 // COMBO & MOMENTUM ENGINE
@@ -4936,17 +4912,17 @@ const COMBO_TIERS = [
 ];
 
 const SYNERGIES = [
-  { cats:['body','discipline'],  name:'WARRIOR SYNC',   desc:'Body + Discipline aligned.',  xpBonus:20, creditBonus:0.25 },
-  { cats:['creativity','soul'],  name:'RESONANCE SYNC', desc:'Creativity + Soul in flow.',   xpBonus:20, creditBonus:0.25 },
-  { cats:['grift','discipline'], name:'BUILDER SYNC',   desc:'Grift + Discipline locked.',   xpBonus:20, creditBonus:0.50 },
-  { cats:['body','soul'],        name:'BALANCE SYNC',   desc:'Body + Soul harmonized.',      xpBonus:15, creditBonus:0.25 },
-  { cats:['grift','creativity'], name:'SIGNAL SYNC',    desc:'Grift + Creativity converge.', xpBonus:18, creditBonus:0.25 },
-  { cats:['discipline','soul'],  name:'CLARITY SYNC',   desc:'Discipline + Soul grounded.',  xpBonus:15, creditBonus:0.25 },
+  { cats:['body','discipline'],  name:'WARRIOR SYNC',   desc:'Body + Discipline aligned.',  xpBonus:20, signalBonus:4 },
+  { cats:['creativity','soul'],  name:'RESONANCE SYNC', desc:'Creativity + Soul in flow.',   xpBonus:20, signalBonus:4 },
+  { cats:['grift','discipline'], name:'BUILDER SYNC',   desc:'Grift + Discipline locked.',   xpBonus:20, signalBonus:8 },
+  { cats:['body','soul'],        name:'BALANCE SYNC',   desc:'Body + Soul harmonized.',      xpBonus:15, signalBonus:4 },
+  { cats:['grift','creativity'], name:'SIGNAL SYNC',    desc:'Grift + Creativity converge.', xpBonus:18, signalBonus:4 },
+  { cats:['discipline','soul'],  name:'CLARITY SYNC',   desc:'Discipline + Soul grounded.',  xpBonus:15, signalBonus:4 },
 ];
 
 const BALANCED_MIND_CATS = 4;
 const BALANCED_MIND_XP   = 50;
-const BALANCED_MIND_CRED = 1.00;
+const BALANCED_MIND_SIGNAL = 12;
 
 let synergyTimer = null;
 
@@ -4975,7 +4951,7 @@ function processCombo(action) {
   const isNeg = !!action.negative;
   const isMajorNeg = isNeg && ((action.fx?.corruption || 0) >= 5);
   const now = Date.now();
-  const bonuses = { xp:0, credits:0, messages:[] };
+  const bonuses = { xp:0, signal:0, messages:[] };
 
   // Inactivity reset (4 hours of nothing)
   if (S.combo.lastActionTime && !isNeg && (now - S.combo.lastActionTime) > 4*60*60*1000) {
@@ -5017,7 +4993,7 @@ function processCombo(action) {
       if (syn.cats.every(c=>unique.includes(c)) && S.combo.lastSynergy !== syn.name) {
         S.combo.lastSynergy = syn.name;
         bonuses.xp += syn.xpBonus;
-        bonuses.credits += syn.creditBonus;
+        bonuses.signal += syn.signalBonus;
         bonuses.messages.push({ type:'synergy', syn });
         break; // one synergy per action
       }
@@ -5027,7 +5003,7 @@ function processCombo(action) {
     if (!S.combo.balancedMindAwarded && S.combo.todayCats.length >= BALANCED_MIND_CATS) {
       S.combo.balancedMindAwarded = true;
       bonuses.xp += BALANCED_MIND_XP;
-      bonuses.credits += BALANCED_MIND_CRED;
+      bonuses.signal += BALANCED_MIND_SIGNAL;
       bonuses.messages.push({ type:'balancedMind' });
     }
   }
@@ -5035,8 +5011,8 @@ function processCombo(action) {
 }
 
 function applyComboBonus(bonuses) {
-  if (bonuses.xp > 0) addXP(bonuses.xp);
-  if (bonuses.credits > 0) S.credits = parseFloat((S.credits + bonuses.credits).toFixed(2));
+  if (bonuses.xp > 0)     addXP(bonuses.xp);
+  if (bonuses.signal > 0) S.signal += bonuses.signal;
 }
 
 function renderComboUI() {
@@ -5056,7 +5032,7 @@ function fireSynergyToast(syn) {
   if (!el) return;
   document.getElementById('synergyName').textContent  = syn.name;
   document.getElementById('synergyDesc').textContent  = syn.desc;
-  document.getElementById('synergyBonus').textContent = `+${syn.xpBonus}XP  ₢ +$${syn.creditBonus.toFixed(2)}`;
+  document.getElementById('synergyBonus').textContent = `+${syn.xpBonus}XP  📶 +${syn.signalBonus} Signal`;
   el.classList.remove('hiding');
   el.classList.add('show');
   clearTimeout(synergyTimer);
@@ -5073,7 +5049,7 @@ function handleComboBonusMessages(messages) {
     } else if (msg.type==='synergy') {
       setTimeout(()=>{ fireSynergyToast(msg.syn); sfxSynergy(); },600);
     } else if (msg.type==='balancedMind') {
-      setTimeout(()=>{ toast('🧠 BALANCED MIND',`${BALANCED_MIND_CATS}+ categories today`,`+${BALANCED_MIND_XP}XP  ₢ +$${BALANCED_MIND_CRED.toFixed(2)}`,'success'); sfxBalancedMind(); },800);
+      setTimeout(()=>{ toast('🧠 BALANCED MIND',`${BALANCED_MIND_CATS}+ categories today`,`+${BALANCED_MIND_XP}XP  📶 +${BALANCED_MIND_SIGNAL} Signal`,'success'); sfxBalancedMind(); },800);
     } else if (msg.type==='comboBreak') {
       setTimeout(()=>{ toast('💥 COMBO BROKEN',`${msg.count}-chain ended`,'Major negative action','warn'); sfxComboBreak(); },300);
     }
@@ -5094,7 +5070,6 @@ const ARCHETYPES = {
     desc:'Discipline forged through physical action.',
     bonus:'+8% Body XP',
     bonusFn: (cat, xp) => cat === 'body' ? Math.round(xp * 1.08) : xp,
-    creditFn: null,
     corruptMod: 1.0,
     tags:['body','discipline'],
   },
@@ -5104,7 +5079,6 @@ const ARCHETYPES = {
     desc:'Systems thinker. Output over everything.',
     bonus:'+8% Grift XP',
     bonusFn: (cat, xp) => cat === 'grift' ? Math.round(xp * 1.08) : xp,
-    creditFn: (cat, c) => cat === 'grift' ? parseFloat((c * 1.08).toFixed(2)) : c,
     corruptMod: 1.0,
     tags:['grift','discipline'],
   },
@@ -5114,7 +5088,6 @@ const ARCHETYPES = {
     desc:'Inner work. Corruption resists your presence.',
     bonus:'Corruption gain -20%',
     bonusFn: null,
-    creditFn: null,
     corruptMod: 0.8,
     tags:['soul','recovery'],
   },
@@ -5124,7 +5097,6 @@ const ARCHETYPES = {
     desc:'Expression is your edge. Ideas become reality.',
     bonus:'+8% Creativity XP',
     bonusFn: (cat, xp) => cat === 'creativity' ? Math.round(xp * 1.08) : xp,
-    creditFn: null,
     corruptMod: 1.0,
     tags:['creativity','soul'],
   },
@@ -5132,9 +5104,8 @@ const ARCHETYPES = {
     name:'THE MERCHANT',
     icon:'📡',
     desc:'Flow state of the operator. Everything is leverage.',
-    bonus:'+10% Credit drops',
+    bonus:'+10% Bonus Signal drops',
     bonusFn: null,
-    creditFn: (cat, c) => c > 0 ? parseFloat((c * 1.10).toFixed(2)) : c,
     corruptMod: 1.0,
     tags:['grift'],
   },
@@ -5144,7 +5115,6 @@ const ARCHETYPES = {
     desc:'Legacy is built one day at a time.',
     bonus:'+10% Family XP',
     bonusFn: (cat, xp) => cat === 'family' ? Math.round(xp * 1.10) : xp,
-    creditFn: null,
     corruptMod: 0.9,
     tags:['family','soul'],
   },
@@ -5154,7 +5124,6 @@ const ARCHETYPES = {
     desc:'Long game. Every move is deliberate.',
     bonus:'+8% Discipline & Mind XP',
     bonusFn: (cat, xp) => (cat === 'discipline' || cat === 'mindSoul') ? Math.round(xp * 1.08) : xp,
-    creditFn: null,
     corruptMod: 0.9,
     tags:['discipline','mindSoul'],
   },
@@ -5164,7 +5133,6 @@ const ARCHETYPES = {
     desc:'Fading signal. The system is losing you.',
     bonus:'No bonus active',
     bonusFn: null,
-    creditFn: null,
     corruptMod: 1.2,
     tags:[],
   },
@@ -5174,7 +5142,6 @@ const ARCHETYPES = {
     desc:'Climbing back. Recovery is your superpower.',
     bonus:'+15% Recovery XP',
     bonusFn: (cat, xp) => cat === 'recovery' ? Math.round(xp * 1.15) : xp,
-    creditFn: null,
     corruptMod: 0.85,
     tags:['recovery'],
   },
@@ -5184,7 +5151,6 @@ const ARCHETYPES = {
     desc:'No dominant path yet. Keep logging.',
     bonus:'Archetype forming...',
     bonusFn: null,
-    creditFn: null,
     corruptMod: 1.0,
     tags:[],
   },
@@ -5267,10 +5233,13 @@ function archetypeXPBonus(cat, xp) {
   if (arch?.bonusFn) return arch.bonusFn(cat, xp);
   return xp;
 }
-function archetypeCreditBonus(cat, credits) {
+function archetypeBonusSignal(cat, signal) {
+  // Merchant: +10% bonus signal; Builder: +8% grift signal bonus
   const arch = ARCHETYPES[S.currentArchetype || 'WANDERER'];
-  if (arch?.creditFn) return arch.creditFn(cat, credits);
-  return credits;
+  if (!arch || !signal) return signal;
+  if (arch.id === 'MERCHANT') return Math.round(signal * 1.10);
+  if (arch.id === 'BUILDER' && cat === 'grift') return Math.round(signal * 1.08);
+  return signal;
 }
 function archetypeCorruptMod() {
   const arch = ARCHETYPES[S.currentArchetype || 'WANDERER'];
@@ -5347,10 +5316,8 @@ function updateUI() {
   document.getElementById('totalXPLabel').textContent = S.xp;
 
   // Credits / streak / today
-  document.getElementById('creditsBadge').textContent = `₢ ${S.credits.toFixed(2)}`;
   document.getElementById('streakBadge').textContent = `🔥 ${S.streak}d`;
   document.getElementById('todayCount').textContent = S.todayActions || 0;
-  document.getElementById('creditsDisplay').textContent = `₢ ${S.credits.toFixed(2)}`;
   document.getElementById('totalXPLabel').textContent = S.xp;
 
   // Boss progress + missions progress
@@ -5384,6 +5351,8 @@ function updateUI() {
   renderReviewPrompt();
   // Monthly report prompt
   renderMonthlyReportPrompt();
+  // War Readiness HUD
+  renderWarHUD();
 
   // Re-render dynamic panels
   renderMissions();
@@ -6627,10 +6596,8 @@ function generateWeeklyReviewData() {
   // XP earned this week
   const weekXP = posHist.reduce((s, h) => s + (h.xp || 0), 0);
 
-  // Credits earned this week
-  const weekCredits = weekHist
-    .filter(h => (h.credits || 0) > 0)
-    .reduce((s, h) => s + h.credits, 0);
+  // Signal earned this week
+  const weekSignal = weekHist.filter(h => (h.signal||0) > 0).reduce((s,h) => s + (h.signal||0), 0);
 
   // Best category (most positive actions)
   const catCounts = {};
@@ -6674,7 +6641,7 @@ function generateWeeklyReviewData() {
     : 'Streak reset this week — reestablish tomorrow.';
 
   const review = {
-    week, weekXP, weekCredits, bestCat, allCats,
+    week, weekXP, weekSignal, bestCat, allCats,
     worstDay, corruptStart, corruptEnd, corruptTrend,
     archetype, archetypeObj, totalActions, streakNote,
     posCount: posHist.length, negCount: negHist.length,
@@ -6726,8 +6693,8 @@ function renderWeeklyReviewContent() {
         <span class="review-stat-val">+${r.weekXP}</span>
       </div>
       <div class="review-stat-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
-        <span class="review-stat-label">CREDITS</span>
-        <span class="review-stat-val" style="color:var(--neon-green)">+$${r.weekCredits.toFixed(2)}</span>
+        <span class="review-stat-label">SIGNAL</span>
+        <span class="review-stat-val" style="color:var(--neon-cyan)">+${r.weekSignal||0}</span>
       </div>
       <div class="review-stat-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
         <span class="review-stat-label">ACTIONS</span>
@@ -7498,7 +7465,7 @@ const SEASONAL_ARCS = [
     theme: 'Systems before results. This quarter is about establishing the infrastructure of discipline, physical momentum, and operational output.',
     icon: '🏗️',
     targets: { body:30, discipline:25, grift:20, soul:15 },
-    reward: { xp:500, credits:20, title:'Foundation Operator' },
+    reward: { xp:500, signal:50, title:'Foundation Operator' },
   },
   {
     quarter: 2,
@@ -7506,7 +7473,7 @@ const SEASONAL_ARCS = [
     theme: 'The foundation holds. Now amplify. Push into creative territory, expand grift operations, and maintain the discipline that got you here.',
     icon: '📡',
     targets: { grift:35, creativity:20, discipline:20, body:25 },
-    reward: { xp:500, credits:20, title:'Signal Expander' },
+    reward: { xp:500, signal:50, title:'Signal Expander' },
   },
   {
     quarter: 3,
@@ -7514,7 +7481,7 @@ const SEASONAL_ARCS = [
     theme: 'Mid-year friction is real. This quarter: shore up the Soul, protect Control, and convert momentum into sustainable systems.',
     icon: '🛡️',
     targets: { soul:30, recovery:20, discipline:25, body:25 },
-    reward: { xp:500, credits:20, title:'Ghost Protocol Operator' },
+    reward: { xp:500, signal:50, title:'Ghost Protocol Operator' },
   },
   {
     quarter: 4,
@@ -7522,7 +7489,7 @@ const SEASONAL_ARCS = [
     theme: 'Q4 is for legacy actions. Family, output, finishing what you started. No drift. No avoidance. Close every open loop.',
     icon: '⚡',
     targets: { grift:30, discipline:30, family:15, soul:25 },
-    reward: { xp:600, credits:25, title:'Year-End Ascendant' },
+    reward: { xp:600, signal:60, title:'Year-End Ascendant' },
   },
 ];
 
@@ -7565,14 +7532,14 @@ function updateSeasonalArc(category) {
     S.seasonalArc.earnedTitle   = S.seasonalArc.reward.title;
 
     addXP(S.seasonalArc.reward.xp);
-    S.credits = parseFloat((S.credits + S.seasonalArc.reward.credits).toFixed(2));
+    S.signal += S.seasonalArc.reward.signal || 50;
     saveState();
 
     setTimeout(() => {
       toast(
         `🌐 ARC COMPLETE`,
         S.seasonalArc.name,
-        `+${S.seasonalArc.reward.xp}XP  ₢ +$${S.seasonalArc.reward.credits}  "${S.seasonalArc.reward.title}"`,
+        `+${S.seasonalArc.reward.xp}XP  📶 +${S.seasonalArc.reward.signal || 50} Signal  "${S.seasonalArc.reward.title}"`,
         'success'
       );
       sfxBossDefeated();
@@ -7632,7 +7599,7 @@ function renderSeasonalArc() {
         <div class="arc-hp-fill" style="width:${pct}%"></div>
       </div>
       ${reqRows}
-      <div class="arc-reward">Victory: +${arc.reward.xp}XP  ₢ +$${arc.reward.credits}  Title: "${arc.reward.title}"</div>
+      <div class="arc-reward">Victory: +${arc.reward.xp}XP  📶 +${arc.reward.signal || 50} Signal  Title: "${arc.reward.title}"</div>
     </div>`;
 }
 
@@ -7936,6 +7903,137 @@ function saveMusicPrefs() {
   } catch(e) {}
 }
 
+// ==========================================================================
+// WAR SYSTEM — PHASE 1: Combat Stats + War Log Foundation
+// ==========================================================================
+
+function ensureWarLog() {
+  if (!S.warLog) S.warLog = [];
+}
+
+let _warLogIdCounter = 0;
+
+function addWarLog(type, message, data = {}) {
+  ensureWarLog();
+  _warLogIdCounter++;
+  S.warLog.unshift({
+    id: `wl_${Date.now()}_${_warLogIdCounter}`,
+    timestamp: new Date().toISOString(),
+    type,    // 'system'|'action'|'warning'|'recovery'|'corruption'|'victory'|'scan'
+    message,
+    data,
+  });
+  if (S.warLog.length > 100) S.warLog = S.warLog.slice(0, 100);
+}
+
+function getCombatStats() {
+  const { health, focus, control, soul } = S.stats;
+  const skills   = S.skills || {};
+  const discLvl  = skills.discipline?.level  || 1;
+  const bodyLvl  = skills.body?.level        || 1;
+  const recLvl   = skills.recovery?.level    || 1;
+  const mindLvl  = skills.mindSoul?.level    || 1;
+  const lvl      = S.level  || 1;
+  const streak   = S.streak || 0;
+  const energy   = S.energy?.current ?? 70;
+  const signal   = S.signal || 0;
+
+  // Recent positive action bonus for Signal Strength (last 24h)
+  const cutoff    = Date.now() - 24 * 60 * 60 * 1000;
+  const recentPos = (S.history || []).filter(h =>
+    (h.type === 'positive' || h.type === 'mission') &&
+    new Date(h.time).getTime() >= cutoff
+  ).length;
+  const recentBonus = Math.min(recentPos * 2, 20);
+
+  // Balanced category bonus for Signal Strength
+  const today = new Date().toDateString();
+  const todayCats = new Set(
+    (S.history || [])
+      .filter(h => (h.type==='positive'||h.type==='mission') && new Date(h.time).toDateString()===today)
+      .map(h => h.category)
+      .filter(c => ['body','food','grift','creativity','soul','discipline','recovery'].includes(c))
+  );
+  const catBonus = todayCats.size >= 5 ? 10 : todayCats.size >= 3 ? 5 : 0;
+
+  const strike = Math.max(0, Math.round(
+    focus * 0.45 + control * 0.25 + discLvl * 4 + lvl * 2
+  ));
+  const defense = Math.max(0, Math.round(
+    health * 0.4 + control * 0.35 + energy * 0.15 + bodyLvl * 3
+  ));
+  const firewall = Math.max(0, Math.round(
+    control * 0.4 + soul * 0.35 + recLvl * 4 + streak * 1.5
+  ));
+  const recoveryPower = Math.max(0, Math.round(
+    soul * 0.4 + recLvl * 6 + mindLvl * 3 + energy * 0.1
+  ));
+  const signalStrength = Math.max(0, Math.round(
+    lvl * 4 + streak * 3 + recentBonus + catBonus + signal / 25
+  ));
+
+  return { strike, defense, firewall, recoveryPower, signalStrength };
+}
+
+// Flavor messages per category
+const WAR_FLAVOR = {
+  body:       'Body signal reinforced. Defense matrix strengthened.',
+  food:       'Fuel intake logged. Operational capacity maintained.',
+  grift:      'Operational output increased. Strike potential rising.',
+  creativity: 'Creative channel opened. Signal Strength increased.',
+  soul:       'Soul resonance stabilized. Firewall integrity improved.',
+  discipline: 'Discipline protocol executed. Control systems sharpened.',
+  recovery:   'Recovery signal emitted. Corruption resistance improved.',
+  family:     'Family connection logged. Soul resonance increased.',
+  mindSoul:   'Mental clarity signal detected. Firewall reinforced.',
+};
+
+function processWarAction(action, gainedSignal, energyDelta) {
+  ensureWarLog();
+  const cat = action.category || 'other';
+
+  if (action.negative) {
+    addWarLog('corruption',
+      'Corruption vector detected. Enemy ecosystem will adapt.',
+      { category: cat, corruption: S.stats.corruption }
+    );
+    // Warn if corruption is reaching critical level
+    if (S.stats.corruption >= 60) {
+      addWarLog('warning',
+        `ALERT: Corruption at ${S.stats.corruption}%. System integrity compromised. Initiate recovery.`,
+        { corruption: S.stats.corruption }
+      );
+    }
+  } else {
+    const flavor = WAR_FLAVOR[cat] || 'Signal activity logged. System updated.';
+    addWarLog('action', flavor, { category: cat, signal: gainedSignal });
+
+    // Signal surge notification
+    if (gainedSignal >= 25) {
+      addWarLog('system',
+        `Signal surge detected (+${gainedSignal}). War readiness increased.`,
+        { signalGain: gainedSignal }
+      );
+    }
+  }
+
+  // Low energy warning
+  if ((S.energy?.current ?? 100) < 30) {
+    addWarLog('warning',
+      'Operational Energy low. Recovery action recommended.',
+      { energy: S.energy?.current }
+    );
+  }
+}
+
+function renderWarHUD() {
+  const el = document.getElementById('warHUDStats');
+  if (!el) return;
+  const cs = getCombatStats();
+  el.textContent =
+    `STR ${cs.strike} · DEF ${cs.defense} · FW ${cs.firewall} · REC ${cs.recoveryPower} · SIG ${cs.signalStrength}`;
+}
+
 function init() {
   loadState();
   applyDecay();
@@ -7951,6 +8049,7 @@ function init() {
   if (!S.mvd) S.mvd = null;
   if (!S.triggerLog) S.triggerLog = [];
   ensureSignalEnergy();
+  ensureWarLog();
   ensureAchievements();
   ensureCombo();
   ensureStreakFreeze();
@@ -7988,6 +8087,9 @@ function init() {
   _briefingPhaseCache = getTimePhase().id;
   generateBriefing();
   startBriefingClock();
+  // War system boot
+  renderWarHUD();
+  addWarLog('system', 'System online. War readiness assessed.');
   // Restore MVD calm UI if still active
   if (S.mvd && S.mvd.active && S.mvd.date === todayStr() && !S.mvd.allDone && S.mvd.dismissed !== todayStr()) {
     document.body.classList.add('mvd-active');
