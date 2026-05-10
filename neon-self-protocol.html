@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v3.4</title>
+<title>NEON SELF PROTOCOL v3.5</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -3338,7 +3338,9 @@ function applyFX(fx) {
 }
 
 function addXP(amount) {
-  S.xp += amount;
+  const safe = Math.round(amount) || 0;
+  if (safe <= 0) return;
+  S.xp += safe;
   // Check level ups
   while (true) {
     const needed = xpForLevel(S.level);
@@ -3673,11 +3675,12 @@ function renderActionButton(action, cat, container) {
   let rewardHtml = '';
   if (action.bonusSignal) {
     if (action.bonusSignal.guaranteed) {
-      rewardHtml = `<span class="btn-reward">📶 +${action.bonusSignal.guaranteed}+</span>`;
+      rewardHtml = `<span class="btn-reward">📶+${action.bonusSignal.guaranteed + (action.signal||0)}</span>`;
     } else if (action.bonusSignal.chance) {
-      const pct = Math.round(action.bonusSignal.chance * 100);
-      rewardHtml = `<span class="btn-reward">${pct}% +${action.bonusSignal.amt}sig</span>`;
+      rewardHtml = `<span class="btn-reward">📶+${action.signal||0}</span>`;
     }
+  } else if (action.signal) {
+    rewardHtml = `<span class="btn-reward">📶+${action.signal}</span>`;
   }
 
   const fxParts = Object.entries(action.fx||{}).map(([k,v]) => `${k}${v>0?'+':''}${v}`).join(' ');
@@ -4791,17 +4794,20 @@ function resetData() {
 const STATE_CONFIG = {
   NOMINAL: {
     label:'NOMINAL', effect:'System stable.',
+    xpMult: 1.0,
   },
   FLOW: {
-    label:'FLOW STATE', effect:'+XP  +Credits  Balance active',
+    label:'FLOW STATE', effect:'+15% XP  +Signal  Balance active',
+    xpMult: 1.15,
     briefingOverride:[
       'Flow State active. Every action is compounding right now. Stay in it.',
-      'System in sync. XP and credits running hot. Keep the chain.',
+      'System in sync. XP and Signal running hot. Keep the chain.',
       'Momentum detected. Balanced output across all systems. Lean in.',
     ],
   },
   BURNOUT: {
     label:'BURNOUT', effect:'Rest needed. Reduced output.',
+    xpMult: 0.9,
     briefingOverride:[
       'Burnout detected. You have been grinding without recovery. Slow down and restore.',
       'Output quality degrading. Soul is low. Take a break before continuing.',
@@ -4810,6 +4816,7 @@ const STATE_CONFIG = {
   },
   CORRUPTED: {
     label:'CORRUPTED', effect:'⚠ XP reduced. Recovery required.',
+    xpMult: 0.8,
     briefingOverride:[
       'CORRUPTED. Negative patterns dominating. Immediate recovery protocol advised.',
       'System integrity compromised. Corruption is controlling output. Recover now.',
@@ -4817,7 +4824,8 @@ const STATE_CONFIG = {
     ],
   },
   DISCIPLINE: {
-    label:'DISCIPLINE', effect:'+XP  System stable.',
+    label:'DISCIPLINE', effect:'+10% XP  System stable.',
+    xpMult: 1.10,
     briefingOverride:[
       'Discipline State online. Consistency is your edge. The system is stable.',
       'Structural integrity high. Keep logging. Keep building.',
@@ -4871,9 +4879,9 @@ function applySystemState(newState) {
   renderSystemStateUI();
 
   // Notify on meaningful transitions
-  if (newState === 'FLOW') toast('⚡ FLOW STATE', 'Momentum active. XP and credits enhanced.', '+15% XP  +20% Credits', 'success');
-  else if (newState === 'BURNOUT') toast('😮‍💨 BURNOUT', 'Grinding too hard. Prioritize recovery.', 'XP -10%  Credits -20%', 'warn');
-  else if (newState === 'CORRUPTED') toast('☠ CORRUPTED', 'Negative patterns dominating. Recover now.', 'XP -20%  Recovery required', 'error');
+  if (newState === 'FLOW') toast('⚡ FLOW STATE', 'Momentum active. XP and Signal enhanced.', '+15% XP  Signal running hot', 'success');
+  else if (newState === 'BURNOUT') toast('😮‍💨 BURNOUT', 'Grinding too hard. Prioritize recovery.', '-10% XP  Recovery needed', 'warn');
+  else if (newState === 'CORRUPTED') toast('☠ CORRUPTED', 'Negative patterns dominating. Recover now.', '-20% XP  Recovery required', 'error');
   else if (newState === 'DISCIPLINE') toast('🔒 DISCIPLINE STATE', 'Consistency detected. System stable.', '+10% XP  Control enhanced', '');
   else if (prev !== 'NOMINAL') toast('◎ NOMINAL', 'System stabilized.', '', '');
 }
@@ -5308,17 +5316,19 @@ function updateUI() {
 
   // Level / XP
   const needed = xpForLevel(S.level);
-  const pct = Math.round((S.xp / needed) * 100);
+  const pct = Math.max(0, Math.min(100, Math.round((S.xp / needed) * 100)));
   document.getElementById('levelBadge').textContent = `Lv.${S.level}`;
   document.getElementById('rankName').textContent = getRank(S.level);
   document.getElementById('xpBar').style.width = pct+'%';
   document.getElementById('xpLabel').textContent = `${S.xp}/${needed}`;
-  document.getElementById('totalXPLabel').textContent = S.xp;
+  // Total XP = XP earned across all levels (sum of thresholds passed + current)
+  let totalXP = S.xp;
+  for (let i = 1; i < (S.level || 1); i++) totalXP += xpForLevel(i);
+  document.getElementById('totalXPLabel').textContent = totalXP;
 
-  // Credits / streak / today
+  // Streak / today
   document.getElementById('streakBadge').textContent = `🔥 ${S.streak}d`;
   document.getElementById('todayCount').textContent = S.todayActions || 0;
-  document.getElementById('totalXPLabel').textContent = S.xp;
 
   // Boss progress + missions progress
   document.getElementById('bossProgress').textContent = getBossProgress()+'%';
