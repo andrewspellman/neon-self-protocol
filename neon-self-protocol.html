@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v2.6</title>
+<title>NEON SELF PROTOCOL v2.7</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -1874,6 +1874,174 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
 .report-cat-pct{
   font-family:'Share Tech Mono',monospace;font-size:10px;
   color:var(--text-dim);min-width:32px;text-align:right;
+}
+
+/* ===== CATEGORY STREAKS ===== */
+.cat-streak-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:6px;margin-bottom:6px;
+  transition:border-color 0.2s;
+}
+.cat-streak-row.active{border-color:rgba(0,200,255,0.25);}
+.cat-streak-row.hot{border-color:rgba(0,255,136,0.3);}
+.cat-streak-icon{font-size:18px;flex-shrink:0;}
+.cat-streak-body{flex:1;}
+.cat-streak-name{
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  color:#e8f4ff;
+}
+.cat-streak-meta{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:1px;
+}
+.cat-streak-count{
+  font-family:'Orbitron',monospace;font-size:18px;font-weight:700;
+  color:var(--neon-cyan);
+  flex-shrink:0;min-width:44px;text-align:right;
+}
+.cat-streak-count.hot{color:var(--neon-green);}
+.cat-streak-best{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);display:block;text-align:right;margin-top:1px;
+}
+
+/* ===== SEASONAL ARC ===== */
+.arc-card{
+  background:var(--panel);
+  border:1px solid rgba(0,200,255,0.2);
+  border-radius:8px;padding:18px;
+  margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.arc-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,200,255,0.04) 0%,transparent 70%);
+  pointer-events:none;
+}
+.arc-quarter{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--text-dim);margin-bottom:4px;
+}
+.arc-name{
+  font-family:'Orbitron',monospace;font-size:16px;font-weight:900;
+  color:var(--neon-cyan);text-shadow:var(--glow-cyan);
+  margin-bottom:4px;
+}
+.arc-theme{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);margin-bottom:16px;line-height:1.6;
+}
+.arc-hp-wrap{
+  height:10px;background:rgba(255,255,255,0.05);
+  border-radius:5px;overflow:hidden;margin-bottom:14px;
+  border:1px solid rgba(0,200,255,0.15);
+}
+.arc-hp-fill{
+  height:100%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-green));
+  border-radius:5px;transition:width 0.5s ease;
+  box-shadow:0 0 6px rgba(0,200,255,0.3);
+}
+.arc-req-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;
+}
+.arc-req-label{
+  font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;
+  color:var(--text);width:140px;flex-shrink:0;
+}
+.arc-req-bar{
+  flex:1;height:6px;background:rgba(255,255,255,0.05);
+  border-radius:3px;overflow:hidden;
+}
+.arc-req-fill{
+  height:100%;background:var(--neon-cyan);border-radius:3px;
+  transition:width 0.4s;
+}
+.arc-req-fill.done{background:var(--neon-green);}
+.arc-req-val{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);min-width:40px;text-align:right;
+}
+.arc-reward{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-yellow);margin-top:12px;padding:8px 10px;
+  background:rgba(255,221,0,0.05);border:1px solid rgba(255,221,0,0.15);
+  border-radius:4px;
+}
+.arc-complete{
+  text-align:center;padding:20px;
+  font-family:'Orbitron',monospace;font-size:14px;
+  color:var(--neon-green);text-shadow:var(--glow-green);
+}
+.arc-title-badge{
+  display:inline-block;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;padding:3px 10px;border-radius:3px;
+  background:rgba(0,200,255,0.1);border:1px solid rgba(0,200,255,0.25);
+  color:var(--neon-cyan);margin-top:8px;
+}
+
+/* ===== OPERATIVE LOG ===== */
+.oplog-card{
+  background:var(--bg3);
+  border:1px solid rgba(0,200,255,0.2);
+  border-bottom:none;
+  border-radius:12px 12px 0 0;
+  padding:20px 16px 32px;
+  width:100%;max-width:480px;
+  box-shadow:0 -8px 40px rgba(0,0,0,0.8);
+  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+.oplog-title{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;
+  color:var(--neon-cyan);letter-spacing:2px;margin-bottom:6px;
+}
+.oplog-sub{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);margin-bottom:14px;line-height:1.5;
+}
+.oplog-input{
+  width:100%;background:rgba(0,0,0,0.3);
+  border:1px solid rgba(0,200,255,0.2);border-radius:6px;
+  padding:10px 12px;font-family:'Rajdhani',sans-serif;font-size:15px;
+  color:var(--text-bright);outline:none;resize:none;
+  line-height:1.5;margin-bottom:4px;
+}
+.oplog-input:focus{border-color:rgba(0,200,255,0.4);}
+.oplog-count{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);text-align:right;margin-bottom:12px;
+}
+.oplog-actions{display:flex;gap:10px;}
+.oplog-submit{
+  flex:1;padding:12px;font-family:'Orbitron',monospace;font-size:12px;
+  font-weight:700;letter-spacing:2px;color:var(--bg);
+  background:var(--neon-cyan);border:none;border-radius:6px;
+  cursor:pointer;box-shadow:var(--glow-cyan);
+}
+.oplog-skip{
+  padding:12px 16px;font-family:'Rajdhani',sans-serif;font-size:13px;
+  font-weight:600;color:var(--text-dim);background:transparent;
+  border:1px solid rgba(255,255,255,0.07);border-radius:6px;cursor:pointer;
+}
+.oplog-history-entry{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-left:3px solid var(--neon-cyan);border-radius:6px;
+  padding:10px 12px;margin-bottom:8px;
+}
+.oplog-entry-date{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);letter-spacing:1px;margin-bottom:4px;
+}
+.oplog-entry-text{
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;
+  color:#e8f4ff;line-height:1.5;
+}
+.oplog-entry-meta{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);margin-top:3px;
 }</style>
 </head>
 <body>
@@ -2001,6 +2169,7 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
   <button class="nav-btn" onclick="showPanel('discipline')">Discipline</button>
   <button class="nav-btn" onclick="showPanel('corruption')">Corrupt</button>
   <button class="nav-btn" onclick="showPanel('missions')">📋 Missions</button>
+  <button class="nav-btn" onclick="showPanel('seasonal')">🌐 Arc</button>
   <button class="nav-btn" onclick="showPanel('creativity')">Create</button>
   <button class="nav-btn" onclick="showPanel('custom')">Custom</button>
   <button class="nav-btn" onclick="showPanel('trends')">Trends</button>
@@ -2130,6 +2299,14 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
       <button class="submit-btn" onclick="submitCustomAction()">LOG ACTION</button>
     </div>
 
+    <!-- SEASONAL ARC -->
+    <div class="panel" id="panel-seasonal">
+      <div class="panel-title">🌐 Seasonal Arc</div>
+      <div id="seasonal-container"></div>
+      <div class="section-label" style="margin-top:16px">Category Streaks</div>
+      <div id="cat-streaks-container"></div>
+    </div>
+
     <!-- TRENDS -->
     <div class="panel" id="panel-trends">
       <div class="panel-title">📊 Behavioral Trends</div>
@@ -2170,6 +2347,9 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
       <button class="backup-btn danger" onclick="resetData()">🗑️ Reset All Data</button>
 
       <!-- History -->
+      <div class="sep"></div>
+      <div class="section-label">Operative Log</div>
+      <div id="oplog-history-list"></div>
       <div class="sep"></div>
       <div class="section-label">Action Log</div>
       <div class="filter-row">
@@ -2336,6 +2516,20 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
   </div>
 </div>
 
+<!-- OPERATIVE LOG MODAL -->
+<div id="opLogModal" style="display:none;position:fixed;inset:0;z-index:490;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;padding:0;">
+  <div class="oplog-card">
+    <div class="oplog-title">📝 OPERATIVE LOG</div>
+    <div class="oplog-sub" id="opLogSub">Good output today. One line — what happened?</div>
+    <textarea class="oplog-input" id="opLogInput" placeholder="Today I..." maxlength="200" rows="2" oninput="opLogInputCount()"></textarea>
+    <div class="oplog-count"><span id="opLogCount">0</span>/200</div>
+    <div class="oplog-actions">
+      <button class="oplog-submit" onclick="submitOpLog()">Log It</button>
+      <button class="oplog-skip" onclick="skipOpLog()">Skip</button>
+    </div>
+  </div>
+</div>
+
 <!-- RECOVERY MODAL -->
 <div id="recoveryModal">
   <div class="recovery-card">
@@ -2402,11 +2596,24 @@ const DEFAULT_STATE = {
     data: null,
     seen: false,
   },
-  monthlyReports: [],          // array of generated monthly archetype reports
-  lastReportMonth: null,       // month string of last generated report
+  monthlyReports: [],
+  lastReportMonth: null,
   cleanDayBonus: {
-    lastCheckedDate: null,     // date string of last clean-day check
+    lastCheckedDate: null,
   },
+  catStreaks: {
+    // Per-category streak: { current, best, lastDate }
+    body:       { current:0, best:0, lastDate:null },
+    grift:      { current:0, best:0, lastDate:null },
+    creativity: { current:0, best:0, lastDate:null },
+    soul:       { current:0, best:0, lastDate:null },
+    discipline: { current:0, best:0, lastDate:null },
+    recovery:   { current:0, best:0, lastDate:null },
+    family:     { current:0, best:0, lastDate:null },
+  },
+  seasonalArc: null,   // current quarterly arc object
+  opLog: [],           // daily operative log entries [ {date, text, actions} ]
+  opLogPromptShown: null, // date string of last prompt shown
   streakFreeze: {
     tokens: 1,             // available freeze tokens
     lastEarnedMonth: null, // month string of last earned token
@@ -2758,7 +2965,7 @@ function showPanel(id) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   const btns = document.querySelectorAll('.nav-btn');
-  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','missions','creativity','custom','trends','achievements','history'];
+  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','missions','seasonal','creativity','custom','trends','achievements','history'];
   const idx = labels.indexOf(id);
   if (idx >= 0) btns[idx].classList.add('active');
   if (id === 'caffeine') updateCaffeineMeter();
@@ -2964,6 +3171,9 @@ function executeAction(action, source='button') {
   if (!action.negative) {
     checkPersonalRecords();
     checkCleanDayProgress();
+    updateCatStreaks(action.category);
+    updateSeasonalArc(action.category);
+    maybeShowOpLogPrompt();
   }
 }
 
@@ -4700,9 +4910,12 @@ function updateUI() {
   renderBoss();
   renderSkills();
   renderRandomEvent();
+  renderCatStreaks();
+  renderSeasonalArc();
   renderTrends();
   renderMonthlyReportsList();
   renderAchievements();
+  renderOpLogSection();
   renderHistory('today');
 }
 
@@ -6670,6 +6883,381 @@ function renderMonthlyReportPrompt() {
   el.style.display = (S.monthlyReports.length > 0 && S.lastReportMonth) ? 'block' : 'none';
 }
 
+// ==========================================================================
+// CATEGORY STREAKS
+// ==========================================================================
+
+const CAT_STREAK_META = {
+  body:       { label:'Body',       icon:'💪', milestones:[3,7,14,30] },
+  grift:      { label:'Grift',      icon:'📡', milestones:[3,7,14,30] },
+  creativity: { label:'Creativity', icon:'🎨', milestones:[3,7,14,30] },
+  soul:       { label:'Soul',       icon:'🌐', milestones:[3,7,14,30] },
+  discipline: { label:'Discipline', icon:'🔒', milestones:[3,7,14,30] },
+  recovery:   { label:'Recovery',   icon:'🛡️', milestones:[3,7,14,30] },
+  family:     { label:'Family',     icon:'👨‍👦', milestones:[3,5,10,21] },
+};
+
+function ensureCatStreaks() {
+  if (!S.catStreaks) S.catStreaks = {};
+  for (const cat of Object.keys(CAT_STREAK_META)) {
+    if (!S.catStreaks[cat]) S.catStreaks[cat] = { current:0, best:0, lastDate:null };
+  }
+}
+
+function updateCatStreaks(actionCategory) {
+  ensureCatStreaks();
+  const today = todayStr();
+
+  // Map action categories to streak categories
+  const catMap = {
+    body:'body', food:null, caffeine:null, grift:'grift',
+    creativity:'creativity', soul:'soul', discipline:'discipline',
+    recovery:'recovery', family:'family', corruption:null,
+  };
+  // Also track family from soul actions that are family-related
+  const streakCat = catMap[actionCategory] ?? null;
+  if (!streakCat) return;
+
+  const cs = S.catStreaks[streakCat];
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yStr = `${yesterday.getFullYear()}-${yesterday.getMonth()+1}-${yesterday.getDate()}`;
+
+  if (cs.lastDate === today) return; // already counted today
+
+  if (cs.lastDate === yStr) {
+    // Consecutive day — increment
+    cs.current++;
+  } else if (cs.lastDate !== today) {
+    // Gap — reset (unless today was already started)
+    cs.current = 1;
+  }
+
+  cs.lastDate = today;
+  if (cs.current > cs.best) cs.best = cs.current;
+
+  // Check milestones
+  const meta = CAT_STREAK_META[streakCat];
+  if (meta.milestones.includes(cs.current)) {
+    setTimeout(() => {
+      toast(
+        `${meta.icon} ${meta.label.toUpperCase()} STREAK`,
+        `${cs.current}-day ${meta.label} streak`,
+        `Personal best: ${cs.best} days`,
+        'success'
+      );
+      if (!_audioMuted) {
+        playTone({ freq:880, type:'triangle', gain:0.09, attack:0.01, sustain:0.06, decay:0.28 });
+        playTone({ freq:1108, type:'sine', gain:0.06, attack:0.01, sustain:0.05, decay:0.24, startDelay:0.08 });
+      }
+    }, 900);
+  }
+}
+
+function renderCatStreaks() {
+  ensureCatStreaks();
+  const container = document.getElementById('cat-streaks-container');
+  if (!container) return;
+
+  const today = todayStr();
+  const entries = Object.entries(CAT_STREAK_META).map(([cat, meta]) => {
+    const cs = S.catStreaks[cat] || { current:0, best:0, lastDate:null };
+    return { cat, meta, cs };
+  }).sort((a,b) => b.cs.current - a.cs.current); // highest streak first
+
+  container.innerHTML = entries.map(({ cat, meta, cs }) => {
+    const isActive = cs.lastDate === today;
+    const isHot    = cs.current >= 7;
+    const rowClass = isHot ? 'cat-streak-row hot' : isActive ? 'cat-streak-row active' : 'cat-streak-row';
+    const countClass = isHot ? 'cat-streak-count hot' : 'cat-streak-count';
+    const statusText = cs.current === 0 ? 'Not started' :
+      isActive ? `Active today` : `Last: ${cs.lastDate || '—'}`;
+    return `
+      <div class="${rowClass}">
+        <span class="cat-streak-icon">${meta.icon}</span>
+        <div class="cat-streak-body">
+          <div class="cat-streak-name">${meta.label}</div>
+          <div class="cat-streak-meta">${statusText}</div>
+        </div>
+        <div>
+          <div class="${countClass}">${cs.current}d</div>
+          <span class="cat-streak-best">best ${cs.best}d</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ==========================================================================
+// SEASONAL ARC (QUARTERLY BOSS)
+// ==========================================================================
+
+function getQuarterStr() {
+  const d = new Date();
+  const q = Math.floor(d.getMonth() / 3) + 1;
+  return `Q${q}-${d.getFullYear()}`;
+}
+
+function getQuarterLabel() {
+  const d = new Date();
+  const q = Math.floor(d.getMonth() / 3) + 1;
+  return `Q${q} ${d.getFullYear()}`;
+}
+
+function getQuarterStartEnd() {
+  const d   = new Date();
+  const q   = Math.floor(d.getMonth() / 3);
+  const start = new Date(d.getFullYear(), q*3, 1);
+  const end   = new Date(d.getFullYear(), q*3+3, 1);
+  return { start, end };
+}
+
+const SEASONAL_ARCS = [
+  {
+    quarter: 1,
+    name: 'BUILD THE FOUNDATION',
+    theme: 'Systems before results. This quarter is about establishing the infrastructure of discipline, physical momentum, and operational output.',
+    icon: '🏗️',
+    targets: { body:30, discipline:25, grift:20, soul:15 },
+    reward: { xp:500, credits:20, title:'Foundation Operator' },
+  },
+  {
+    quarter: 2,
+    name: 'EXPAND THE SIGNAL',
+    theme: 'The foundation holds. Now amplify. Push into creative territory, expand grift operations, and maintain the discipline that got you here.',
+    icon: '📡',
+    targets: { grift:35, creativity:20, discipline:20, body:25 },
+    reward: { xp:500, credits:20, title:'Signal Expander' },
+  },
+  {
+    quarter: 3,
+    name: 'FORTIFY AND RECOVER',
+    theme: 'Mid-year friction is real. This quarter: shore up the Soul, protect Control, and convert momentum into sustainable systems.',
+    icon: '🛡️',
+    targets: { soul:30, recovery:20, discipline:25, body:25 },
+    reward: { xp:500, credits:20, title:'Ghost Protocol Operator' },
+  },
+  {
+    quarter: 4,
+    name: 'CLOSE THE YEAR STRONG',
+    theme: 'Q4 is for legacy actions. Family, output, finishing what you started. No drift. No avoidance. Close every open loop.',
+    icon: '⚡',
+    targets: { grift:30, discipline:30, family:15, soul:25 },
+    reward: { xp:600, credits:25, title:'Year-End Ascendant' },
+  },
+];
+
+function ensureSeasonalArc() {
+  const qStr  = getQuarterStr();
+  const qNum  = parseInt(qStr.split('-')[0].replace('Q',''));
+  const arcDef = SEASONAL_ARCS[(qNum - 1) % 4];
+
+  if (!S.seasonalArc || S.seasonalArc.quarter !== qStr) {
+    S.seasonalArc = {
+      quarter: qStr,
+      name:    arcDef.name,
+      theme:   arcDef.theme,
+      icon:    arcDef.icon,
+      targets: { ...arcDef.targets },
+      progress: { body:0, grift:0, creativity:0, soul:0, discipline:0, recovery:0, family:0 },
+      reward:   arcDef.reward,
+      completed: false,
+      completedDate: null,
+      earnedTitle: null,
+    };
+    saveState();
+  }
+}
+
+function updateSeasonalArc(category) {
+  if (!S.seasonalArc || S.seasonalArc.completed) return;
+  const trackableCats = Object.keys(S.seasonalArc.targets);
+  if (!trackableCats.includes(category)) return;
+  if (S.seasonalArc.progress[category] === undefined) S.seasonalArc.progress[category] = 0;
+  S.seasonalArc.progress[category]++;
+
+  // Check completion
+  const allDone = Object.entries(S.seasonalArc.targets).every(
+    ([k, v]) => (S.seasonalArc.progress[k] || 0) >= v
+  );
+  if (allDone) {
+    S.seasonalArc.completed    = true;
+    S.seasonalArc.completedDate = todayStr();
+    S.seasonalArc.earnedTitle   = S.seasonalArc.reward.title;
+
+    addXP(S.seasonalArc.reward.xp);
+    S.credits = parseFloat((S.credits + S.seasonalArc.reward.credits).toFixed(2));
+    saveState();
+
+    setTimeout(() => {
+      toast(
+        `🌐 ARC COMPLETE`,
+        S.seasonalArc.name,
+        `+${S.seasonalArc.reward.xp}XP  ₢ +$${S.seasonalArc.reward.credits}  "${S.seasonalArc.reward.title}"`,
+        'success'
+      );
+      sfxBossDefeated();
+    }, 400);
+  }
+}
+
+function getArcProgress() {
+  if (!S.seasonalArc) return 0;
+  const targets  = S.seasonalArc.targets;
+  const progress = S.seasonalArc.progress;
+  const total = Object.values(targets).reduce((s,v) => s+v, 0);
+  const done  = Object.entries(targets).reduce((s,[k,v]) => s + Math.min(progress[k]||0, v), 0);
+  return total > 0 ? Math.round((done/total)*100) : 0;
+}
+
+function renderSeasonalArc() {
+  const container = document.getElementById('seasonal-container');
+  if (!container) return;
+  ensureSeasonalArc();
+  const arc  = S.seasonalArc;
+  const pct  = getArcProgress();
+  const catLabels = {body:'Body',grift:'Grift',creativity:'Creativity',soul:'Soul',discipline:'Discipline',recovery:'Recovery',family:'Family'};
+
+  if (arc.completed) {
+    container.innerHTML = `
+      <div class="arc-card">
+        <div class="arc-quarter">${getQuarterLabel()} // ARC COMPLETE</div>
+        <div class="arc-complete">
+          ${arc.icon}<br>
+          ${arc.name}<br>
+          <span class="arc-title-badge">"${arc.earnedTitle}"</span>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let reqRows = '';
+  for (const [cat, target] of Object.entries(arc.targets)) {
+    const cur   = Math.min(arc.progress[cat]||0, target);
+    const done  = cur >= target;
+    const fillPct = Math.round((cur/target)*100);
+    reqRows += `
+      <div class="arc-req-row">
+        <span class="arc-req-label">${catLabels[cat]||cat}</span>
+        <div class="arc-req-bar"><div class="arc-req-fill ${done?'done':''}" style="width:${fillPct}%"></div></div>
+        <span class="arc-req-val">${cur}/${target}</span>
+      </div>`;
+  }
+
+  container.innerHTML = `
+    <div class="arc-card">
+      <div class="arc-quarter">// ${getQuarterLabel()} SEASONAL ARC //</div>
+      <div class="arc-name">${arc.icon} ${arc.name}</div>
+      <div class="arc-theme">${arc.theme}</div>
+      <div class="arc-hp-wrap">
+        <div class="arc-hp-fill" style="width:${pct}%"></div>
+      </div>
+      ${reqRows}
+      <div class="arc-reward">Victory: +${arc.reward.xp}XP  ₢ +$${arc.reward.credits}  Title: "${arc.reward.title}"</div>
+    </div>`;
+}
+
+// ==========================================================================
+// DAILY OPERATIVE LOG
+// ==========================================================================
+
+function ensureOpLog() {
+  if (!S.opLog) S.opLog = [];
+  if (S.opLogPromptShown === undefined) S.opLogPromptShown = null;
+}
+
+function shouldPromptOpLog() {
+  ensureOpLog();
+  const today = todayStr();
+  if (S.opLogPromptShown === today) return false; // already prompted today
+  const alreadyLogged = S.opLog.some(e => e.date === today);
+  if (alreadyLogged) return false; // already wrote today
+  const todayActions = S.todayActions || 0;
+  return todayActions >= 3;
+}
+
+function maybeShowOpLogPrompt() {
+  if (!shouldPromptOpLog()) return;
+  ensureOpLog();
+  S.opLogPromptShown = todayStr();
+  saveState();
+  // Delay so it doesn't interrupt action toast
+  setTimeout(showOpLogModal, 2000);
+}
+
+function showOpLogModal() {
+  const today = todayStr();
+  const todayCount = S.todayActions || 0;
+  const sub = todayCount >= 8 ? `Strong day — ${todayCount} actions logged. What was the signal?` :
+              todayCount >= 5 ? `${todayCount} actions in. One line — what happened today?` :
+              `3 actions logged. What's the thread of today?`;
+  document.getElementById('opLogSub').textContent = sub;
+  const input = document.getElementById('opLogInput');
+  input.value = '';
+  document.getElementById('opLogCount').textContent = '0';
+  document.getElementById('opLogModal').style.display = 'flex';
+  setTimeout(() => input.focus(), 300);
+}
+
+function submitOpLog() {
+  ensureOpLog();
+  const text = document.getElementById('opLogInput').value.trim();
+  if (!text) { skipOpLog(); return; }
+  const today = todayStr();
+  S.opLog.unshift({
+    date: today,
+    text,
+    actions: S.todayActions || 0,
+    archetype: S.currentArchetype || 'WANDERER',
+    corruption: S.stats.corruption,
+  });
+  if (S.opLog.length > 365) S.opLog = S.opLog.slice(0, 365); // one year max
+  // Also log to history for searchability
+  S.history.unshift({
+    time: new Date().toISOString(),
+    action: `[LOG] ${text}`,
+    category: 'system',
+    effects: '',
+    xp: 2, credits: 0,
+    type: 'system',
+  });
+  addXP(2);
+  saveState();
+  updateUI();
+  document.getElementById('opLogModal').style.display = 'none';
+  toast('📝 LOGGED', 'Operative log saved.', '', 'success');
+  renderOpLogInHistory();
+}
+
+function skipOpLog() {
+  document.getElementById('opLogModal').style.display = 'none';
+}
+
+// Character count wiring (called via inline oninput)
+function opLogInputCount() {
+  const val = document.getElementById('opLogInput').value;
+  document.getElementById('opLogCount').textContent = val.length;
+}
+
+function renderOpLogInHistory() {
+  // Op log entries also live in S.history as [LOG] entries
+  // They'll appear naturally in the history panel — no extra rendering needed
+}
+
+function renderOpLogSection() {
+  // Render recent op log entries inside the history panel if a container exists
+  const container = document.getElementById('oplog-history-list');
+  if (!container) return;
+  ensureOpLog();
+  if (S.opLog.length === 0) {
+    container.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim);text-align:center;padding:16px;border:1px dashed rgba(255,255,255,0.07);border-radius:6px;">No entries yet. Log 3+ actions in a day to be prompted.</div>`;
+    return;
+  }
+  container.innerHTML = S.opLog.slice(0, 30).map(e => `
+    <div class="oplog-history-entry">
+      <div class="oplog-entry-date">${e.date} · ${e.actions} actions · ${e.archetype||''}  corruption:${e.corruption||0}%</div>
+      <div class="oplog-entry-text">${e.text}</div>
+    </div>`).join('');
+}
+
 function init() {
   loadState();
   applyDecay();
@@ -6691,6 +7279,9 @@ function init() {
   ensureRecords();
   ensureQuickLog();
   ensureMonthlyReports();
+  ensureCatStreaks();
+  ensureSeasonalArc();
+  ensureOpLog();
   // Bootstrap records from existing history on first load
   setTimeout(() => checkPersonalRecords(), 800);
   // Check if a new monthly report should be generated
