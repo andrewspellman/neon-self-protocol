@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v3.5</title>
+<title>NEON SELF PROTOCOL v3.6</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -2210,7 +2210,113 @@ input[type=range].music-slider::-moz-range-thumb{
   color:var(--neon-cyan);letter-spacing:0.5px;
   text-align:right;
 }
-</style>
+
+/* ===== WAR ROOM ===== */
+.enemy-card{
+  background:rgba(255,34,68,0.04);
+  border:1px solid rgba(255,34,68,0.2);
+  border-radius:6px;padding:12px 14px;
+  margin-bottom:10px;
+  position:relative;overflow:hidden;
+  transition:border-color 0.3s;
+}
+.enemy-card.weak{border-color:rgba(255,34,68,0.08);opacity:0.6;}
+.enemy-card.critical{
+  border-color:rgba(255,34,68,0.5);
+  box-shadow:0 0 12px rgba(255,34,68,0.12);
+}
+.enemy-card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;
+}
+.enemy-name{
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:700;
+  color:var(--neon-red);letter-spacing:1px;
+}
+.enemy-level{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);
+}
+.enemy-hp-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.enemy-hp-bar{
+  flex:1;height:8px;background:rgba(255,255,255,0.06);
+  border-radius:4px;overflow:hidden;
+}
+.enemy-hp-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,#ff2244,#ff6644);
+  transition:width 0.5s ease;
+  box-shadow:0 0 4px rgba(255,34,68,0.4);
+}
+.enemy-hp-fill.low{background:linear-gradient(90deg,#ff4400,#ff8800);}
+.enemy-hp-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);white-space:nowrap;min-width:60px;text-align:right;
+}
+.enemy-spread-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.enemy-spread-label{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);
+}
+.enemy-spread-dots{
+  display:flex;gap:3px;
+}
+.spread-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,34,68,0.15);border:1px solid rgba(255,34,68,0.2);
+}
+.spread-dot.active{
+  background:rgba(255,34,68,0.7);
+  box-shadow:0 0 4px rgba(255,34,68,0.4);
+}
+.enemy-weak{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:rgba(0,255,136,0.6);letter-spacing:0.5px;
+  margin-top:4px;
+}
+.enemy-passive{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:rgba(255,106,0,0.7);margin-top:2px;
+}
+.enemy-status{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);margin-top:4px;
+}
+.enemy-card.defeated{
+  opacity:0.3;border-color:rgba(255,255,255,0.05);
+}
+.enemy-defeated-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-green);letter-spacing:2px;
+}
+/* War log entries */
+.war-log-entry{
+  padding:7px 10px;
+  background:rgba(255,255,255,0.02);
+  border-left:2px solid rgba(255,34,68,0.3);
+  border-radius:0 4px 4px 0;
+  margin-bottom:5px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text);line-height:1.5;
+}
+.war-log-entry.victory{border-left-color:rgba(0,255,136,0.5);color:var(--neon-green);}
+.war-log-entry.warning{border-left-color:rgba(255,106,0,0.5);color:var(--neon-orange);}
+.war-log-entry.system {border-left-color:rgba(0,200,255,0.3);color:var(--neon-cyan);}
+.war-log-time{
+  font-size:8px;color:var(--text-dim);display:block;margin-bottom:2px;
+}
+/* Glitch intensifier for high-corruption enemies */
+@keyframes enemyGlitch{
+  0%,92%,100%{transform:none;}
+  93%{transform:translateX(2px);filter:hue-rotate(15deg);}
+  95%{transform:translateX(-2px);}
+  97%{transform:none;}
+}
+.enemy-card.critical .enemy-name{animation:enemyGlitch 4s infinite;}</style>
 </head>
 <body>
 
@@ -2347,6 +2453,7 @@ input[type=range].music-slider::-moz-range-thumb{
   <button class="nav-btn" onclick="showPanel('discipline')">Discipline</button>
   <button class="nav-btn" onclick="showPanel('corruption')">Corrupt</button>
   <button class="nav-btn" onclick="showPanel('seasonal')">🌐 Arc</button>
+  <button class="nav-btn" onclick="showPanel('warroom')">☠ War</button>
   <button class="nav-btn" onclick="showPanel('creativity')">Create</button>
   <button class="nav-btn" onclick="showPanel('custom')">Custom</button>
   <button class="nav-btn" onclick="showPanel('trends')">Trends</button>
@@ -2499,6 +2606,15 @@ input[type=range].music-slider::-moz-range-thumb{
     <div class="panel" id="panel-achievements">
       <div class="panel-title">🏆 Achievements</div>
       <div id="achievements-container"></div>
+    </div>
+
+    <!-- WAR ROOM -->
+    <div class="panel" id="panel-warroom">
+      <div class="panel-title" style="color:var(--neon-red);text-shadow:0 0 8px rgba(255,34,68,0.3);">☠ WAR ROOM</div>
+      <div class="section-label">Active Threats</div>
+      <div id="enemyContainer"></div>
+      <div class="section-label" style="margin-top:14px">War Log</div>
+      <div id="warLogContainer"></div>
     </div>
 
     <!-- SETTINGS -->
@@ -2867,6 +2983,7 @@ const DEFAULT_STATE = {
     lastSynergy: null,
   },
   warLog: [],
+  corruptionEnemies: {},
 };
 
 let S = {};
@@ -3307,7 +3424,7 @@ function showPanel(id) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   const btns = document.querySelectorAll('.nav-btn');
-  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','seasonal','creativity','custom','trends','achievements','settings','history'];
+  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','seasonal','warroom','creativity','custom','trends','achievements','settings','history'];
   const idx = labels.indexOf(id);
   if (idx >= 0) btns[idx].classList.add('active');
   if (id === 'caffeine') updateCaffeineMeter();
@@ -3399,13 +3516,22 @@ function executeAction(action, source='button') {
   // === COMBO PROCESSING (before XP so multiplier is ready) ===
   const comboBonuses = processCombo(action);
 
-  // XP — apply state, combo, and archetype multipliers
+  // XP — apply state, combo, and archetype multipliers + enemy passives
   let gainedXP = 0;
   if (action.negative) {
     gainedXP = action.awarenessXp || 0;
   } else {
     const baseXP = Math.round((action.xp || 0) * stateXPMult() * comboXPMult());
-    gainedXP = archetypeXPBonus(action.category, baseXP);
+    let arcXP    = archetypeXPBonus(action.category, baseXP);
+    // Enemy passive penalties (subtle, max 5%)
+    const emods  = getEnemyPassiveMods();
+    const isFocus      = ['grift','creativity'].includes(action.category);
+    const isDisc       = action.category === 'discipline';
+    const isHiEffort   = (action.xp || 0) >= 20;
+    if (isFocus)    arcXP = Math.round(arcXP * emods.focusXPMult);
+    if (isDisc)     arcXP = Math.round(arcXP * emods.disciplineXPMult);
+    if (isHiEffort) arcXP = Math.round(arcXP * emods.effortXPMult);
+    gainedXP = arcXP;
   }
   if (source === 'mission') gainedXP += 10;
 
@@ -3547,8 +3673,13 @@ function executeAction(action, source='button') {
     updateSeasonalArc(action.category);
     maybeShowOpLogPrompt();
   }
-  // War system hook — always fires
-  processWarAction(action, gainedSignal + bonusSignalDrop, energyDelta);
+  // War system hook — fires last, after all state is updated
+  const combatSuffix = processWarAction(action, gainedSignal + bonusSignalDrop, energyDelta);
+  // Append combat result to toast body if present
+  if (combatSuffix) {
+    setTimeout(() => toast('⚔ COMBAT', combatSuffix, '', action.negative ? 'warn' : 'success'), 600);
+  }
+  saveState(); // save after enemy state changes
 }
 
 function updateStreak() {
@@ -4246,6 +4377,9 @@ function applyDecay() {
     else if (noLateNegs)  regenAmt = 10;
     S.energy.current = clamp(S.energy.current + regenAmt, 0, S.energy.max);
   }
+
+  // Enemy daily decay — grows if neglected
+  applyEnemyDecay();
 
   saveState();
 }
@@ -5363,6 +5497,8 @@ function updateUI() {
   renderMonthlyReportPrompt();
   // War Readiness HUD
   renderWarHUD();
+  // War Room panel
+  renderWarRoom();
 
   // Re-render dynamic panels
   renderMissions();
@@ -8000,40 +8136,44 @@ const WAR_FLAVOR = {
 
 function processWarAction(action, gainedSignal, energyDelta) {
   ensureWarLog();
-  const cat = action.category || 'other';
+  ensureEnemies();
+  checkEnemyRespawns();
+
+  let combatSuffix = '';
 
   if (action.negative) {
+    const feedResults = feedEnemies(action);
     addWarLog('corruption',
-      'Corruption vector detected. Enemy ecosystem will adapt.',
-      { category: cat, corruption: S.stats.corruption }
+      'Corruption vector detected. Enemy ecosystem adapting.',
+      { category: action.category, corruption: S.stats.corruption }
     );
-    // Warn if corruption is reaching critical level
     if (S.stats.corruption >= 60) {
       addWarLog('warning',
-        `ALERT: Corruption at ${S.stats.corruption}%. System integrity compromised. Initiate recovery.`,
+        `ALERT: Corruption at ${S.stats.corruption}%. System integrity compromised.`,
         { corruption: S.stats.corruption }
       );
     }
+    combatSuffix = buildCombatToastSuffix([], feedResults);
   } else {
-    const flavor = WAR_FLAVOR[cat] || 'Signal activity logged. System updated.';
-    addWarLog('action', flavor, { category: cat, signal: gainedSignal });
-
-    // Signal surge notification
+    const attackResults = attackEnemies(action);
+    const flavor = WAR_FLAVOR[action.category] || 'Signal activity logged.';
+    addWarLog('action', flavor, { category: action.category, signal: gainedSignal });
     if (gainedSignal >= 25) {
       addWarLog('system',
-        `Signal surge detected (+${gainedSignal}). War readiness increased.`,
+        `Signal surge (+${gainedSignal}). War readiness increased.`,
         { signalGain: gainedSignal }
       );
     }
+    combatSuffix = buildCombatToastSuffix(attackResults, []);
   }
 
-  // Low energy warning
   if ((S.energy?.current ?? 100) < 30) {
-    addWarLog('warning',
-      'Operational Energy low. Recovery action recommended.',
-      { energy: S.energy?.current }
-    );
+    addWarLog('warning', 'Operational Energy low. Recovery recommended.',
+      { energy: S.energy?.current });
   }
+
+  // Return suffix for toast injection (called by executeAction)
+  return combatSuffix;
 }
 
 function renderWarHUD() {
@@ -8042,6 +8182,314 @@ function renderWarHUD() {
   const cs = getCombatStats();
   el.textContent =
     `STR ${cs.strike} · DEF ${cs.defense} · FW ${cs.firewall} · REC ${cs.recoveryPower} · SIG ${cs.signalStrength}`;
+}
+
+// ==========================================================================
+// LIVING CORRUPTION ECOSYSTEM
+// ==========================================================================
+
+const ENEMY_DEFS = {
+  doomscrollParasite: {
+    id: 'doomscrollParasite',
+    name: 'DOOMSCROLL PARASITE',
+    icon: '📱',
+    theme: 'Feeds on passive consumption and late-night instability.',
+    startHp: 60, startMax: 60,
+    feedActions:   ['doomscrolled','stayedUpLate','avoidedTask'],
+    weakActions:   ['noDoomscroll','sleepOnTime','meditate','readPhilosophy','walk'],
+    feedCategories:['corruption'],
+    weakCategories:['discipline','soul'],
+    passiveLabel:  'Focus XP -5% when strong',
+    passiveType:   'focusXP',
+  },
+  entropyBloom: {
+    id: 'entropyBloom',
+    name: 'ENTROPY BLOOM',
+    icon: '🌀',
+    theme: 'Thrives in clutter, disorder, and unfinished systems.',
+    startHp: 75, startMax: 75,
+    feedActions:   ['avoidedTask','junkMeal','junkSnack','overeat','doomscrolled'],
+    weakActions:   ['organizeInventory','purge','upkeepTask','householdTask','cleanArea'],
+    feedCategories:['corruption','food'],
+    weakCategories:['discipline'],
+    passiveLabel:  'Discipline gains -5% when strong',
+    passiveType:   'disciplineXP',
+  },
+  burnoutWraith: {
+    id: 'burnoutWraith',
+    name: 'BURNOUT WRAITH',
+    icon: '👻',
+    theme: 'Grows from overwork without recovery.',
+    startHp: 90, startMax: 90,
+    feedActions:   ['stayedUpLate','lostControl','skippedWorkout'],
+    weakActions:   ['familyTime','realBreak','meditate','sleepOnTime','stretch','spouseTime'],
+    feedCategories:['corruption'],
+    weakCategories:['soul','recovery'],
+    passiveLabel:  'High-effort XP -5% when strong',
+    passiveType:   'effortXP',
+  },
+  deepNightSignal: {
+    id: 'deepNightSignal',
+    name: 'DEEP NIGHT SIGNAL',
+    icon: '🌑',
+    theme: 'Late-night instability. Corrupts sleep routines.',
+    startHp: 80, startMax: 80,
+    feedActions:   ['stayedUpLate','doomscrolled','lateSnack','lateSnack2'],
+    weakActions:   ['sleepOnTime','noDoomscroll','meditate','stretch'],
+    feedCategories:['corruption'],
+    weakCategories:['discipline','recovery'],
+    passiveLabel:  'Night corruption effects stronger',
+    passiveType:   'nightCorrupt',
+  },
+};
+
+const ENEMY_DEFEAT_SIGNAL = 20;
+
+function ensureEnemies() {
+  if (!S.corruptionEnemies) S.corruptionEnemies = {};
+  for (const [id, def] of Object.entries(ENEMY_DEFS)) {
+    if (!S.corruptionEnemies[id]) {
+      S.corruptionEnemies[id] = {
+        id,
+        name:             def.name,
+        level:            1,
+        hp:               def.startHp,
+        maxHp:            def.startMax,
+        spread:           1,
+        active:           true,
+        totalDamageTaken: 0,
+        totalTimesDefeated: 0,
+        lastAffected:     null,
+        respawnAt:        null,
+      };
+    }
+  }
+}
+
+// Passive modifier read by executeAction
+function getEnemyPassiveMods() {
+  ensureEnemies();
+  const mods = { focusXPMult:1.0, disciplineXPMult:1.0, effortXPMult:1.0, nightCorruptMult:1.0 };
+  for (const [id, e] of Object.entries(S.corruptionEnemies)) {
+    if (!e.active || e.hp <= 0) continue;
+    const hpPct = e.hp / e.maxHp;
+    if (hpPct <= 0.70) continue; // only apply passive when above 70% HP
+    const def = ENEMY_DEFS[id];
+    if (!def) continue;
+    switch(def.passiveType) {
+      case 'focusXP':       mods.focusXPMult      = Math.min(mods.focusXPMult, 0.95); break;
+      case 'disciplineXP':  mods.disciplineXPMult = Math.min(mods.disciplineXPMult, 0.95); break;
+      case 'effortXP':      mods.effortXPMult     = Math.min(mods.effortXPMult, 0.95); break;
+      case 'nightCorrupt':  mods.nightCorruptMult = Math.max(mods.nightCorruptMult, 1.10); break;
+    }
+  }
+  return mods;
+}
+
+// Respawn dead enemies if enough time has passed
+function checkEnemyRespawns() {
+  ensureEnemies();
+  const now = Date.now();
+  for (const [id, e] of Object.entries(S.corruptionEnemies)) {
+    if (!e.active && e.respawnAt && now >= e.respawnAt) {
+      e.active  = true;
+      e.hp      = e.maxHp; // respawns at full HP (stronger than before)
+      e.spread  = Math.min(e.spread, 3); // cap spread
+      addWarLog('warning', `${e.name} has respawned. Level ${e.level}.`, { id });
+    }
+  }
+}
+
+// Daily enemy leveling — grows if neglected
+function applyEnemyDecay() {
+  ensureEnemies();
+  for (const [id, e] of Object.entries(S.corruptionEnemies)) {
+    if (!e.active) continue;
+    const hpPct = e.hp / e.maxHp;
+    if (hpPct >= 0.80) {
+      // Neglected — level up slowly
+      e.level   = Math.min(e.level + 1, 10);
+      e.maxHp   = Math.round(e.maxHp * 1.10); // +10% max HP
+      e.hp      = Math.min(e.hp, e.maxHp);
+      e.spread  = Math.min(e.spread + 1, 5);
+      addWarLog('warning', `${e.name} grew stronger. Now Level ${e.level}. HP: ${Math.round(e.maxHp)}.`, { id });
+    }
+  }
+}
+
+// Calculate damage this action deals to enemies
+function calcEnemyDamage(action, enemy) {
+  const cs      = getCombatStats();
+  const isWeak  = ENEMY_DEFS[enemy.id]?.weakActions.includes(action.id) ||
+                  ENEMY_DEFS[enemy.id]?.weakCategories.includes(action.category);
+  const base    = Math.round(cs.strike * 0.15 + (action.xp || 4));
+  const variance= Math.floor(Math.random() * 5);
+  let dmg       = base + variance;
+  if (isWeak) dmg = Math.round(dmg * 1.5); // weakness multiplier
+  return Math.max(1, Math.min(dmg, 60));   // clamp 1–60
+}
+
+// Calculate HP healed when a negative action feeds an enemy
+function calcEnemyHeal(action, enemy) {
+  const base = Math.round(5 + (action.xp || 0) * 0.5 + enemy.spread);
+  return Math.max(2, Math.min(base, 25));
+}
+
+// Process a positive action against all relevant enemies
+function attackEnemies(action) {
+  ensureEnemies();
+  const results = [];
+  for (const [id, e] of Object.entries(S.corruptionEnemies)) {
+    if (!e.active) continue;
+    const def = ENEMY_DEFS[id];
+    if (!def) continue;
+    const isRelevant = def.weakActions.includes(action.id) ||
+                       def.weakCategories.includes(action.category);
+    if (!isRelevant) continue;
+
+    const dmg = calcEnemyDamage(action, e);
+    e.hp = Math.max(0, e.hp - dmg);
+    e.totalDamageTaken += dmg;
+    e.spread = Math.max(1, e.spread - 0.2); // spread reduces slightly on hit
+    e.lastAffected = new Date().toISOString();
+
+    if (e.hp <= 0) {
+      // Enemy defeated
+      e.active    = false;
+      e.hp        = 0;
+      e.totalTimesDefeated++;
+      e.level     = Math.min(e.level + 1, 10); // respawns stronger
+      e.maxHp     = Math.round(e.maxHp * 1.15);
+      e.respawnAt = Date.now() + 24 * 60 * 60 * 1000; // 24h
+      S.signal   += ENEMY_DEFEAT_SIGNAL;
+      S.stats.corruption = Math.max(0, S.stats.corruption - 5); // cleanse
+      addWarLog('victory',
+        `${e.name} DEFEATED. +${ENEMY_DEFEAT_SIGNAL} Signal. Corruption reduced.`,
+        { id, timesDefeated: e.totalTimesDefeated }
+      );
+      results.push({ id, name: e.name, event: 'defeated', dmg });
+    } else {
+      const weakness = def.weakActions.includes(action.id);
+      addWarLog('action',
+        `${action.name} ${weakness ? 'critically ' : ''}struck ${e.name} for ${dmg} damage. HP: ${e.hp}/${e.maxHp}`,
+        { id, dmg, weakness }
+      );
+      results.push({ id, name: e.name, event: 'damaged', dmg, weakness });
+    }
+  }
+  return results;
+}
+
+// Process a negative action feeding relevant enemies
+function feedEnemies(action) {
+  ensureEnemies();
+  const results = [];
+  for (const [id, e] of Object.entries(S.corruptionEnemies)) {
+    if (!e.active) continue;
+    const def = ENEMY_DEFS[id];
+    if (!def) continue;
+    const feedsThis = def.feedActions.includes(action.id) ||
+                      def.feedCategories.includes(action.category);
+    if (!feedsThis) continue;
+
+    const heal   = calcEnemyHeal(action, e);
+    e.hp         = Math.min(e.maxHp, e.hp + heal);
+    e.spread     = Math.min(5, e.spread + 0.3);
+    e.lastAffected = new Date().toISOString();
+
+    addWarLog('corruption',
+      `${e.name} fed on ${action.name}. +${heal} HP. Spread increasing.`,
+      { id, heal }
+    );
+    results.push({ id, name: e.name, heal });
+  }
+  return results;
+}
+
+// Build a short combat suffix for the action toast
+function buildCombatToastSuffix(attackResults, feedResults) {
+  const lines = [];
+  attackResults.forEach(r => {
+    if (r.event === 'defeated') lines.push(`${r.name.split(' ')[0]} defeated!`);
+    else if (r.weakness) lines.push(`${r.name.split(' ')[0]} critically hit (-${r.dmg})`);
+    else lines.push(`${r.name.split(' ')[0]} -${r.dmg}`);
+  });
+  feedResults.forEach(r => {
+    lines.push(`${r.name.split(' ')[0]} fed (+${r.heal})`);
+  });
+  return lines.slice(0, 2).join(' · '); // cap at 2 enemy interactions per toast
+}
+
+// Render War Room panel
+function renderWarRoom() {
+  ensureEnemies();
+  const ec = document.getElementById('enemyContainer');
+  const wl = document.getElementById('warLogContainer');
+  if (!ec || !wl) return;
+
+  const SPREAD_LABELS = ['','Minimal','Low','Moderate','High','Critical'];
+
+  ec.innerHTML = Object.entries(S.corruptionEnemies).map(([id, e]) => {
+    const def     = ENEMY_DEFS[id];
+    if (!def) return '';
+    const hpPct   = Math.round((e.hp / e.maxHp) * 100);
+    const isDefeated = !e.active;
+    const isCrit  = !isDefeated && hpPct >= 80;
+    const isWeak  = !isDefeated && hpPct <= 25;
+    let cardClass = 'enemy-card';
+    if (isDefeated) cardClass += ' defeated';
+    else if (isCrit) cardClass += ' critical';
+    else if (isWeak) cardClass += ' weak';
+
+    const spreadLabel = SPREAD_LABELS[Math.min(5, Math.round(e.spread))] || 'Minimal';
+    const spreadDots  = [1,2,3,4,5].map(i =>
+      `<div class="spread-dot${i <= Math.round(e.spread) ? ' active' : ''}"></div>`
+    ).join('');
+
+    const weakHints = def.weakActions.slice(0,3).join(', ');
+    const passiveTxt = hpPct >= 70 ? `⚠ ${def.passiveLabel}` : '';
+    const statusTxt  = isDefeated
+      ? `Respawning in ~${Math.max(0,Math.round((e.respawnAt - Date.now())/3600000))}h`
+      : hpPct >= 80 ? 'Thriving — priority target'
+      : hpPct >= 50 ? 'Active'
+      : hpPct >= 25 ? 'Weakened'
+      : 'Near defeat';
+
+    return `<div class="${cardClass}">
+      <div class="enemy-card-header">
+        <span class="enemy-name">${def.icon} ${e.name}</span>
+        <span class="enemy-level">LVL ${e.level}</span>
+      </div>
+      ${isDefeated
+        ? `<div class="enemy-defeated-label">✓ DEFEATED</div><div class="enemy-status">${statusTxt}</div>`
+        : `<div class="enemy-hp-row">
+            <div class="enemy-hp-bar"><div class="enemy-hp-fill${hpPct<=30?' low':''}" style="width:${hpPct}%"></div></div>
+            <span class="enemy-hp-label">HP ${e.hp}/${e.maxHp}</span>
+           </div>
+           <div class="enemy-spread-row">
+             <span class="enemy-spread-label">SPREAD:</span>
+             <div class="enemy-spread-dots">${spreadDots}</div>
+             <span class="enemy-spread-label" style="margin-left:4px">${spreadLabel}</span>
+           </div>
+           ${passiveTxt ? `<div class="enemy-passive">${passiveTxt}</div>` : ''}
+           <div class="enemy-weak">◈ Weak to: ${weakHints}</div>
+           <div class="enemy-status">${statusTxt}</div>`
+      }
+    </div>`;
+  }).join('');
+
+  // War log — last 12 entries
+  const recentLog = (S.warLog || []).slice(0, 12);
+  if (recentLog.length === 0) {
+    wl.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim);text-align:center;padding:12px;">No war log entries yet.</div>`;
+  } else {
+    wl.innerHTML = recentLog.map(entry => {
+      const t   = new Date(entry.timestamp);
+      const ts  = `${t.toLocaleDateString()} ${t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+      const cls = `war-log-entry ${entry.type === 'victory' ? 'victory' : entry.type === 'warning' ? 'warning' : entry.type === 'system' ? 'system' : ''}`;
+      return `<div class="${cls}"><span class="war-log-time">${ts}</span>${entry.message}</div>`;
+    }).join('');
+  }
 }
 
 function init() {
@@ -8060,6 +8508,8 @@ function init() {
   if (!S.triggerLog) S.triggerLog = [];
   ensureSignalEnergy();
   ensureWarLog();
+  ensureEnemies();
+  checkEnemyRespawns();
   ensureAchievements();
   ensureCombo();
   ensureStreakFreeze();
