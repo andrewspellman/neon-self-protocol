@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v2.7</title>
+<title>NEON SELF PROTOCOL v2.8</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -210,14 +210,14 @@ body[class*="phase-"]::after{
 
 /* ===== META ROW ===== */
 .meta-row{
-  display:flex;gap:8px;margin-bottom:12px;
+  display:flex;gap:6px;margin-bottom:12px;
   font-family:'Share Tech Mono',monospace;font-size:10px;
 }
 .meta-pill{
   flex:1;text-align:center;
   background:rgba(255,255,255,0.03);
   border:1px solid rgba(255,255,255,0.06);
-  border-radius:var(--radius);padding:5px 4px;
+  border-radius:var(--radius);padding:5px 2px;
 }
 .meta-pill .val{font-size:14px;font-weight:700;display:block}
 .meta-pill .lbl{color:var(--text-dim);letter-spacing:1px;font-size:9px}
@@ -516,6 +516,13 @@ body[class*="phase-"]::after{
 .history-entry .h-effects{font-size:10px;color:var(--text-dim)}
 .history-entry .h-credits{color:var(--neon-green)}
 .history-entry .h-withdrawal{color:var(--neon-red)}
+.h-delete-btn{
+  background:transparent;border:none;
+  color:rgba(255,34,68,0.35);font-size:13px;
+  cursor:pointer;padding:0 2px;line-height:1;
+  transition:color 0.15s;flex-shrink:0;
+}
+.h-delete-btn:hover{color:var(--neon-red);}
 
 /* ===== BACKUP / CREDITS ===== */
 .backup-btn{
@@ -2115,6 +2122,7 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
     <div class="meta-row">
       <div class="meta-pill actions"><span class="val" id="todayCount">0</span><span class="lbl">ACTIONS</span></div>
       <div class="meta-pill"><span class="val" id="totalXPLabel" style="color:var(--neon-yellow)">0</span><span class="lbl">TOTAL XP</span></div>
+      <div class="meta-pill" onclick="openMissionsModal()" style="cursor:pointer" title="Daily Missions"><span class="val" id="missionsPct" style="color:var(--neon-green)">0%</span><span class="lbl">📋 MISSIONS</span></div>
       <div class="meta-pill boss" onclick="openEventsModal()" style="cursor:pointer" title="View Events & Skills"><span class="val" id="bossProgress">0%</span><span class="lbl">⚡ EVENT</span></div>
     </div>
     <!-- Streak Freeze Token -->
@@ -2168,7 +2176,6 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
   <button class="nav-btn" onclick="showPanel('soul')">Soul</button>
   <button class="nav-btn" onclick="showPanel('discipline')">Discipline</button>
   <button class="nav-btn" onclick="showPanel('corruption')">Corrupt</button>
-  <button class="nav-btn" onclick="showPanel('missions')">📋 Missions</button>
   <button class="nav-btn" onclick="showPanel('seasonal')">🌐 Arc</button>
   <button class="nav-btn" onclick="showPanel('creativity')">Create</button>
   <button class="nav-btn" onclick="showPanel('custom')">Custom</button>
@@ -2421,6 +2428,17 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
     <div class="toast-action" id="toastTitle"></div>
     <div class="toast-rewards" id="toastRewards"></div>
     <div class="toast-effects" id="toastEffects"></div>
+  </div>
+</div>
+
+<!-- MISSIONS MODAL -->
+<div id="missionsModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);overflow-y:auto;">
+  <div style="max-width:480px;margin:0 auto;padding:16px 14px 80px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:var(--neon-green);letter-spacing:2px;text-shadow:0 0 8px rgba(0,255,136,0.3);">📋 DAILY MISSIONS</div>
+      <button onclick="closeMissionsModal()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text-dim);padding:6px 12px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;">CLOSE</button>
+    </div>
+    <div id="missionsModalContent"></div>
   </div>
 </div>
 
@@ -2741,6 +2759,9 @@ const ACTIONS = {
     {id:'lateSnack', name:'Late Night Snack', icon:'🌙',
      negative:true, fx:{health:-2,focus:-1,corruption:2}, xp:0, awarenessXp:1,
      skillXp:{}, credit:null},
+    {id:'overeat', name:'Overeat', icon:'😮',
+     negative:true, fx:{health:-6,control:-3,corruption:5}, xp:0, awarenessXp:2,
+     skillXp:{}, credit:null, recovery:true},
   ],
   caffeine: [
     {id:'caff60', name:'60mg Caffeine', icon:'🍵', caffeineMg:60,
@@ -2804,6 +2825,9 @@ const ACTIONS = {
     {id:'realBreak', name:'Take Actual Break', icon:'☕',
      fx:{soul:4,focus:2,corruption:-2}, xp:10, skillXp:{recovery:10},
      credit:null},
+    {id:'spouseTime', name:'Spend Time with Spouse', icon:'💙',
+     fx:{soul:7,control:4,corruption:-3}, xp:22, skillXp:{family:20, recovery:5},
+     credit:{chance:0.25, amt:0.50}},
   ],
   discipline: [
     {id:'upkeepTask', name:'Complete Upkeep Task', icon:'🔧',
@@ -2827,6 +2851,12 @@ const ACTIONS = {
     {id:'noDoomscroll', name:'No Doomscroll Block', icon:'📵',
      fx:{focus:4,control:4}, xp:15, skillXp:{discipline:15},
      credit:{chance:0.25, amt:0.50}},
+    {id:'workBlock30', name:'30 Min Work Block', icon:'⏱️',
+     fx:{focus:6,control:4}, xp:18, skillXp:{discipline:18, grift:6},
+     credit:{chance:0.3, amt:0.75}},
+    {id:'brushTeeth', name:'Brush Teeth', icon:'🪥',
+     fx:{control:1,health:1}, xp:3, skillXp:{discipline:4},
+     credit:null},
   ],
   corruption: [
     {id:'lostControl', name:'Lost Control / Yelled', icon:'😤',
@@ -2856,6 +2886,9 @@ const ACTIONS = {
     {id:'lateSnack2', name:'Late Night Snack', icon:'🌙',
      negative:true, fx:{health:-2,focus:-1,corruption:2}, xp:0, awarenessXp:1,
      skillXp:{}, credit:null},
+    {id:'overeat2', name:'Overeat', icon:'😮',
+     negative:true, fx:{health:-6,control:-3,corruption:5}, xp:0, awarenessXp:2,
+     skillXp:{}, credit:null, recovery:true},
   ]
 };
 
@@ -2965,7 +2998,7 @@ function showPanel(id) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   const btns = document.querySelectorAll('.nav-btn');
-  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','missions','seasonal','creativity','custom','trends','achievements','history'];
+  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','seasonal','creativity','custom','trends','achievements','history'];
   const idx = labels.indexOf(id);
   if (idx >= 0) btns[idx].classList.add('active');
   if (id === 'caffeine') updateCaffeineMeter();
@@ -4187,31 +4220,141 @@ function withdrawCredits() {
 // ==========================================================================
 // HISTORY RENDER
 // ==========================================================================
+function getMissionsPct() {
+  if (!S.missions || S.missions.length === 0) return 0;
+  const done = S.missions.filter(m => m.completed).length;
+  return Math.round((done / S.missions.length) * 100);
+}
+
+function openMissionsModal() {
+  generateMissions();
+  renderMissionsModalContent();
+  document.getElementById('missionsModal').style.display = 'block';
+}
+
+function closeMissionsModal() {
+  document.getElementById('missionsModal').style.display = 'none';
+}
+
+function renderMissionsModalContent() {
+  const container = document.getElementById('missionsModalContent');
+  if (!container) return;
+  generateMissions();
+  const missions = S.missions || [];
+  if (missions.length === 0) { container.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-family:\'Share Tech Mono\',monospace;font-size:11px;padding:20px;">No missions generated yet.</div>'; return; }
+
+  container.innerHTML = missions.map((m, i) => {
+    const rewardStr = m.credit ? `+${m.xpBonus}XP + ₢ chance` : `+${m.xpBonus}XP`;
+    return `<div class="mission-card${m.completed ? ' completed' : ''}" style="margin-bottom:10px;">
+      <div class="mission-header">
+        <div>
+          <div class="mission-name">${m.name}</div>
+          <div class="mission-cat">${m.cat}</div>
+        </div>
+        <div class="mission-reward">${rewardStr}</div>
+      </div>
+      ${m.completed
+        ? '<div class="mission-done-label">✓ COMPLETE</div>'
+        : `<button class="mission-complete-btn" onclick="completeMissionFromModal(${i})">Mark Complete</button>`}
+    </div>`;
+  }).join('');
+}
+
+function completeMissionFromModal(idx) {
+  completeMission(idx);
+  renderMissionsModalContent();
+  const el = document.getElementById('missionsPct');
+  if (el) el.textContent = getMissionsPct() + '%';
+}
+
 function renderHistory(filter='today') {
   const list = document.getElementById('historyList');
   const now = new Date();
   const todayS = todayStr();
   const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate()-7);
 
-  const filtered = S.history.filter(h => {
-    if (filter === 'today') return h.time.startsWith(todayS.replace(/-(\d+)-(\d+)$/, (_, m, d) => `-${m.padStart(2,'0')}-${d.padStart(2,'0')}`)) || new Date(h.time).toDateString() === now.toDateString();
-    if (filter === 'week') return new Date(h.time) >= weekAgo;
+  // Build index map for deletion (index into full S.history)
+  const allIndexed = S.history.map((h, i) => ({ ...h, _idx: i }));
+  const filtered = allIndexed.filter(h => {
+    if (filter === 'today') return new Date(h.time).toDateString() === now.toDateString();
+    if (filter === 'week')  return new Date(h.time) >= weekAgo;
     return true;
   });
 
-  if (!filtered.length) { list.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-family:\'Share Tech Mono\',monospace;font-size:11px">NO ENTRIES</div>'; return; }
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-family:\'Share Tech Mono\',monospace;font-size:11px">NO ENTRIES</div>';
+    return;
+  }
 
   list.innerHTML = filtered.map(h => {
     const d = new Date(h.time);
     const timeStr = `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
-    const xpStr = h.xp ? `+${h.xp}XP` : '';
-    const credStr = h.credits > 0 ? `<span class="h-credits">+₢$${h.credits.toFixed(2)}</span>` : h.credits < 0 ? `<span class="h-withdrawal">₢$${h.credits.toFixed(2)}</span>` : '';
-    return `<div class="history-entry">
-      <div class="h-time">${timeStr}</div>
+    const xpStr   = h.xp    ? `+${h.xp}XP` : '';
+    const credStr = h.credits > 0
+      ? `<span class="h-credits">+₢$${h.credits.toFixed(2)}</span>`
+      : h.credits < 0 ? `<span class="h-withdrawal">₢$${h.credits.toFixed(2)}</span>` : '';
+    // Only show delete for non-system entries logged in the last 24 hours
+    const canDelete = h.type !== 'system' && (now - d) < 24 * 60 * 60 * 1000;
+    const deleteBtn = canDelete
+      ? `<button onclick="deleteHistoryEntry(${h._idx})" class="h-delete-btn" title="Remove entry and reverse stats">✕</button>`
+      : '';
+    return `<div class="history-entry" id="hentry-${h._idx}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div class="h-time">${timeStr}</div>
+        ${deleteBtn}
+      </div>
       <div class="h-action">${h.action}</div>
       <div class="h-effects">${h.effects ? h.effects + '  ' : ''}${xpStr} ${credStr}</div>
     </div>`;
   }).join('');
+}
+
+function deleteHistoryEntry(idx) {
+  const entry = S.history[idx];
+  if (!entry) return;
+  if (!confirm(`Remove "${entry.action}"?\n\nStats and XP will be reversed.`)) return;
+
+  // Reverse stat effects by parsing the effects string
+  if (entry.effects) {
+    const parts = entry.effects.split(/\s+/).filter(Boolean);
+    for (const part of parts) {
+      const match = part.match(/^([a-zA-Z]+)([+-]\d+)$/);
+      if (!match) continue;
+      const [, key, valStr] = match;
+      const val = parseInt(valStr, 10);
+      if (key === 'corruption') S.stats.corruption = clamp(S.stats.corruption - val, 0, 100);
+      else if (key in S.stats) S.stats[key] = clamp(S.stats[key] - val, 0, 100);
+    }
+  }
+
+  // Reverse XP
+  if (entry.xp > 0) {
+    S.xp = Math.max(0, S.xp - entry.xp);
+    // Reverse level if needed
+    while (S.level > 1 && S.xp < 0) {
+      S.level--;
+      S.xp += xpForLevel(S.level);
+    }
+    S.xp = Math.max(0, S.xp);
+  }
+
+  // Reverse credits
+  if (entry.credits && entry.credits > 0) {
+    S.credits = parseFloat(Math.max(0, S.credits - entry.credits).toFixed(2));
+  }
+
+  // Adjust today action count if it was today
+  const isToday = new Date(entry.time).toDateString() === new Date().toDateString();
+  if (isToday && (entry.type === 'positive' || entry.type === 'mission')) {
+    S.todayActions = Math.max(0, (S.todayActions || 1) - 1);
+  }
+
+  // Remove from history
+  S.history.splice(idx, 1);
+
+  saveState();
+  updateUI();
+  toast('✕ REMOVED', entry.action.substring(0,40), 'Stats reversed.', 'warn');
 }
 
 // ==========================================================================
@@ -4887,8 +5030,10 @@ function updateUI() {
   document.getElementById('creditsDisplay').textContent = `₢ ${S.credits.toFixed(2)}`;
   document.getElementById('totalXPLabel').textContent = S.xp;
 
-  // Boss progress
+  // Boss progress + missions progress
   document.getElementById('bossProgress').textContent = getBossProgress()+'%';
+  const mpctEl = document.getElementById('missionsPct');
+  if (mpctEl) mpctEl.textContent = getMissionsPct()+'%';
 
   // System State UI
   renderSystemStateUI();
