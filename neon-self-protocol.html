@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v3.1</title>
+<title>NEON SELF PROTOCOL v3.2</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -2158,9 +2158,47 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
   box-shadow:0 0 4px rgba(0,255,136,0.3);
 }
 .energy-bar-fill.low   { background:linear-gradient(90deg,var(--neon-orange),#ff9a00); box-shadow:0 0 4px rgba(255,106,0,0.3); }
-.energy-bar-fill.critical { background:linear-gradient(90deg,var(--neon-red),#cc2244); box-shadow:0 0 4px rgba(255,34,68,0.4); }</style>
+.energy-bar-fill.critical { background:linear-gradient(90deg,var(--neon-red),#cc2244); box-shadow:0 0 4px rgba(255,34,68,0.4); }
+
+/* ===== MUSIC CONTROLS ===== */
+.music-row{
+  display:flex;align-items:center;gap:10px;
+}
+.music-vol-wrap{
+  flex:1;display:flex;flex-direction:column;gap:6px;
+}
+.music-vol-label{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);letter-spacing:1px;
+  display:flex;justify-content:space-between;
+}
+/* Range slider — cyberpunk style */
+input[type=range].music-slider{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:4px;
+  background:rgba(255,255,255,0.07);
+  border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range].music-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--neon-cyan);
+  box-shadow:0 0 6px rgba(0,200,255,0.5);
+  cursor:pointer;
+  border:2px solid rgba(0,200,255,0.3);
+}
+input[type=range].music-slider::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;
+  background:var(--neon-cyan);
+  box-shadow:0 0 6px rgba(0,200,255,0.4);
+  cursor:pointer;border:none;
+}</style>
 </head>
 <body>
+
+<audio id="bgMusic" loop preload="none"
+  src="https://raw.githubusercontent.com/andrewspellman/neon-self-protocol/refs/heads/main/ProximaLoop.mp3">
+</audio>
 
 <div id="app">
   <div id="stickyTop">
@@ -2442,10 +2480,28 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
     <!-- SETTINGS -->
     <div class="panel" id="panel-settings">
       <div class="panel-title">⚙ Settings</div>
-      <div class="section-label">Audio</div>
+      <div class="section-label">Background Music</div>
+      <!-- Music controls -->
+      <div style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:14px 16px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div>
+            <div style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#e8f4ff;">Proxima Loop</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:2px;">Ambient background track · loops continuously</div>
+          </div>
+          <button id="musicToggle" onclick="toggleMusic()" style="font-family:'Share Tech Mono',monospace;font-size:12px;padding:7px 14px;border-radius:4px;cursor:pointer;background:rgba(170,68,255,0.08);border:1px solid rgba(170,68,255,0.3);color:var(--neon-purple);letter-spacing:1px;">▶ PLAY</button>
+        </div>
+        <div class="music-vol-wrap">
+          <div class="music-vol-label">
+            <span>VOLUME</span>
+            <span id="musicVolLabel">60%</span>
+          </div>
+          <input type="range" class="music-slider" id="musicVolSlider" min="0" max="100" value="60" oninput="setMusicVolume(this.value)">
+        </div>
+      </div>
+      <div class="section-label" style="margin-top:12px;">Sound Effects</div>
       <div style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
         <div>
-          <div style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#e8f4ff;">Sound Effects</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#e8f4ff;">Action SFX</div>
           <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:2px;">Action feedback, level-up chimes, warnings</div>
         </div>
         <button id="audioToggle" onclick="toggleAudio()" style="font-family:'Share Tech Mono',monospace;font-size:12px;padding:7px 14px;border-radius:4px;cursor:pointer;background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.25);color:var(--neon-cyan);letter-spacing:1px;">🔊 ON</button>
@@ -7772,6 +7828,114 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// ==========================================================================
+// BACKGROUND MUSIC ENGINE
+// ==========================================================================
+
+let _musicPlaying  = false;
+let _musicVolume   = 0.6; // default 60%
+let _musicMuted    = false;
+
+function getBgAudio() {
+  return document.getElementById('bgMusic');
+}
+
+function initMusic() {
+  const audio = getBgAudio();
+  if (!audio) return;
+
+  // Restore prefs from localStorage
+  try {
+    const savedVol    = localStorage.getItem('nsp_music_vol');
+    const savedMuted  = localStorage.getItem('nsp_music_muted');
+    const savedPlaying = localStorage.getItem('nsp_music_playing');
+    if (savedVol   !== null) _musicVolume  = parseFloat(savedVol);
+    if (savedMuted !== null) _musicMuted   = savedMuted === '1';
+    if (savedPlaying === '1') {
+      // Was playing last session — try to resume (will work on iOS after first tap)
+      _musicPlaying = true;
+    }
+  } catch(e) {}
+
+  audio.volume = _musicMuted ? 0 : _musicVolume;
+
+  // Sync slider and label
+  const slider = document.getElementById('musicVolSlider');
+  if (slider) slider.value = Math.round(_musicVolume * 100);
+  updateMusicVolLabel();
+  updateMusicToggleBtn();
+
+  // Autoplay: browsers require a user gesture. We attempt immediately,
+  // then fall back to a one-time tap listener.
+  if (_musicPlaying) {
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Autoplay blocked — try on first user interaction
+        const resume = () => {
+          if (_musicPlaying) audio.play().catch(()=>{});
+          document.removeEventListener('touchstart', resume, true);
+          document.removeEventListener('click', resume, true);
+        };
+        document.addEventListener('touchstart', resume, { once:true, capture:true });
+        document.addEventListener('click', resume, { once:true, capture:true });
+      });
+    }
+  }
+}
+
+function toggleMusic() {
+  const audio = getBgAudio();
+  if (!audio) return;
+  if (_musicPlaying) {
+    audio.pause();
+    _musicPlaying = false;
+  } else {
+    audio.volume = _musicMuted ? 0 : _musicVolume;
+    audio.play().catch(()=>{});
+    _musicPlaying = true;
+  }
+  saveMusicPrefs();
+  updateMusicToggleBtn();
+}
+
+function setMusicVolume(val) {
+  _musicVolume = parseInt(val, 10) / 100;
+  const audio = getBgAudio();
+  if (audio && !_musicMuted) audio.volume = _musicVolume;
+  updateMusicVolLabel();
+  saveMusicPrefs();
+}
+
+function updateMusicVolLabel() {
+  const el = document.getElementById('musicVolLabel');
+  if (el) el.textContent = Math.round(_musicVolume * 100) + '%';
+}
+
+function updateMusicToggleBtn() {
+  const btn = document.getElementById('musicToggle');
+  if (!btn) return;
+  if (_musicPlaying) {
+    btn.textContent = '⏸ PAUSE';
+    btn.style.background    = 'rgba(170,68,255,0.14)';
+    btn.style.borderColor   = 'rgba(170,68,255,0.45)';
+    btn.style.color         = 'var(--neon-purple)';
+  } else {
+    btn.textContent = '▶ PLAY';
+    btn.style.background    = 'rgba(170,68,255,0.08)';
+    btn.style.borderColor   = 'rgba(170,68,255,0.3)';
+    btn.style.color         = 'var(--neon-purple)';
+  }
+}
+
+function saveMusicPrefs() {
+  try {
+    localStorage.setItem('nsp_music_vol',     _musicVolume.toString());
+    localStorage.setItem('nsp_music_muted',   _musicMuted ? '1' : '0');
+    localStorage.setItem('nsp_music_playing', _musicPlaying ? '1' : '0');
+  } catch(e) {}
+}
+
 function init() {
   loadState();
   applyDecay();
@@ -7820,6 +7984,7 @@ function init() {
   applyVisualVibe();
   updateCaffeineMeter();
   loadAudioPref();
+  initMusic();
   _briefingPhaseCache = getTimePhase().id;
   generateBriefing();
   startBriefingClock();
