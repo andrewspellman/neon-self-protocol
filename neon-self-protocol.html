@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v2.8</title>
+<title>NEON SELF PROTOCOL v2.9</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -50,7 +50,7 @@ body{
   min-height:100vh;
   overflow-x:hidden;
   padding-top:env(safe-area-inset-top, 16px);
-  padding-bottom:calc(100px + env(safe-area-inset-bottom, 16px));
+  padding-bottom:calc(72px + env(safe-area-inset-bottom, 16px));
 }
 
 /* Scanline overlay */
@@ -226,16 +226,18 @@ body[class*="phase-"]::after{
 
 /* ===== NAV TABS ===== */
 #nav{
-  position:sticky;top:0;z-index:99;
-  width:100%;
+  position:fixed;
+  bottom:0;left:50%;
+  transform:translateX(-50%);
+  width:100%;max-width:480px;
+  z-index:200;
   background:rgba(5,8,16,0.97);
-  border-bottom:1px solid rgba(0,200,255,0.15);
-  border-top:1px solid rgba(0,200,255,0.08);
-  backdrop-filter:blur(10px);
+  border-top:1px solid rgba(0,200,255,0.15);
+  backdrop-filter:blur(12px);
   display:flex;overflow-x:auto;
   scrollbar-width:none;
-  padding:4px 6px 6px;gap:2px;
-  margin-bottom:12px;
+  padding:4px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+  gap:2px;
 }
 #nav::-webkit-scrollbar{display:none}
 .nav-btn{
@@ -2049,6 +2051,43 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
 .oplog-entry-meta{
   font-family:'Share Tech Mono',monospace;font-size:9px;
   color:var(--text-dim);margin-top:3px;
+}
+
+/* ===== STAT DETAIL POPUP ===== */
+.stat-popup-card{
+  background:rgba(4,12,26,0.98);
+  border:1px solid rgba(0,200,255,0.3);
+  border-radius:8px;
+  padding:12px 16px;
+  min-width:140px;
+  box-shadow:0 0 16px rgba(0,200,255,0.15), 0 8px 32px rgba(0,0,0,0.9);
+  backdrop-filter:blur(12px);
+  animation:fadePopIn 0.15s ease;
+}
+@keyframes fadePopIn{
+  from{opacity:0;transform:scale(0.9) translateY(4px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+.stat-popup-name{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:2px;color:var(--text-dim);
+  margin-bottom:6px;text-transform:uppercase;
+}
+.stat-popup-value{
+  font-family:'Orbitron',monospace;font-size:22px;font-weight:900;
+  color:var(--neon-cyan);line-height:1;margin-bottom:8px;
+}
+.stat-popup-bar-wrap{
+  height:4px;background:rgba(255,255,255,0.07);
+  border-radius:2px;overflow:hidden;margin-bottom:6px;
+}
+.stat-popup-bar-fill{
+  height:100%;border-radius:2px;
+  transition:width 0.3s ease;
+}
+.stat-popup-sub{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);
 }</style>
 </head>
 <body>
@@ -2097,24 +2136,24 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
     </div>
     <!-- Stats -->
     <div class="stats-grid">
-      <div class="stat-row s-health">
-        <div class="stat-header"><span class="stat-label">HEALTH</span><span class="stat-val" id="statHealth">50%</span></div>
+      <div class="stat-row s-health" oncontextmenu="showStatPopup(event,'health');return false;" ontouchstart="startStatHold(event,'health')" ontouchend="clearStatHold()" ontouchmove="clearStatHold()">
+        <div class="stat-header"><span class="stat-label">HEALTH</span></div>
         <div class="stat-bar"><div class="stat-fill" id="barHealth" style="width:50%"></div></div>
       </div>
-      <div class="stat-row s-focus">
-        <div class="stat-header"><span class="stat-label">FOCUS</span><span class="stat-val" id="statFocus">50%</span></div>
+      <div class="stat-row s-focus" oncontextmenu="showStatPopup(event,'focus');return false;" ontouchstart="startStatHold(event,'focus')" ontouchend="clearStatHold()" ontouchmove="clearStatHold()">
+        <div class="stat-header"><span class="stat-label">FOCUS</span></div>
         <div class="stat-bar"><div class="stat-fill" id="barFocus" style="width:50%"></div></div>
       </div>
-      <div class="stat-row s-control">
-        <div class="stat-header"><span class="stat-label">CONTROL</span><span class="stat-val" id="statControl">50%</span></div>
+      <div class="stat-row s-control" oncontextmenu="showStatPopup(event,'control');return false;" ontouchstart="startStatHold(event,'control')" ontouchend="clearStatHold()" ontouchmove="clearStatHold()">
+        <div class="stat-header"><span class="stat-label">CONTROL</span></div>
         <div class="stat-bar"><div class="stat-fill" id="barControl" style="width:50%"></div></div>
       </div>
-      <div class="stat-row s-soul">
-        <div class="stat-header"><span class="stat-label">SOUL</span><span class="stat-val" id="statSoul">50%</span></div>
+      <div class="stat-row s-soul" oncontextmenu="showStatPopup(event,'soul');return false;" ontouchstart="startStatHold(event,'soul')" ontouchend="clearStatHold()" ontouchmove="clearStatHold()">
+        <div class="stat-header"><span class="stat-label">SOUL</span></div>
         <div class="stat-bar"><div class="stat-fill" id="barSoul" style="width:50%"></div></div>
       </div>
-      <div class="stat-row s-corrupt">
-        <div class="stat-header"><span class="stat-label">CORRUPTION</span><span class="stat-val" id="statCorrupt">0%</span></div>
+      <div class="stat-row s-corrupt" oncontextmenu="showStatPopup(event,'corruption');return false;" ontouchstart="startStatHold(event,'corruption')" ontouchend="clearStatHold()" ontouchmove="clearStatHold()">
+        <div class="stat-header"><span class="stat-label">CORRUPTION</span></div>
         <div class="stat-bar"><div class="stat-fill" id="barCorrupt" style="width:0%"></div></div>
       </div>
     </div>
@@ -2419,6 +2458,18 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
   <div class="synergy-name" id="synergyName"></div>
   <div class="synergy-desc" id="synergyDesc"></div>
   <div class="synergy-bonus" id="synergyBonus"></div>
+</div>
+
+<!-- STAT DETAIL POPUP -->
+<div id="statPopup" style="display:none;position:fixed;z-index:9500;pointer-events:none;">
+  <div class="stat-popup-card">
+    <div class="stat-popup-name" id="statPopupName"></div>
+    <div class="stat-popup-value" id="statPopupValue"></div>
+    <div class="stat-popup-bar-wrap">
+      <div class="stat-popup-bar-fill" id="statPopupBar"></div>
+    </div>
+    <div class="stat-popup-sub" id="statPopupSub"></div>
+  </div>
 </div>
 
 <!-- TOAST -->
@@ -5000,15 +5051,12 @@ function applyVisualVibe() {
 function updateUI() {
   const {health,focus,control,soul,corruption} = S.stats;
 
-  // Stats — update fill width and bar label
+  // Stats — update fill width only (values shown via long-press popup)
   ['health','focus','control','soul'].forEach(k => {
     const cap = k.charAt(0).toUpperCase()+k.slice(1);
-    const val = S.stats[k];
-    document.getElementById('bar'+cap).style.width = val+'%';
-    document.getElementById('stat'+cap).textContent = val+'%';
+    document.getElementById('bar'+cap).style.width = S.stats[k]+'%';
   });
   document.getElementById('barCorrupt').style.width = corruption+'%';
-  document.getElementById('statCorrupt').textContent = corruption+'%';
 
   // Corruption pulse
   const corruptRow = document.querySelector('.s-corrupt');
@@ -7402,6 +7450,95 @@ function renderOpLogSection() {
       <div class="oplog-entry-text">${e.text}</div>
     </div>`).join('');
 }
+
+// ==========================================================================
+// STAT DETAIL POPUP (long-press on mobile, right-click/long-press desktop)
+// ==========================================================================
+
+const STAT_META = {
+  health:    { label:'HEALTH',     color:'#00ff88', desc:'Physical system integrity.' },
+  focus:     { label:'FOCUS',      color:'#00c8ff', desc:'Output clarity and drive.' },
+  control:   { label:'CONTROL',    color:'#aa44ff', desc:'Discipline and self-regulation.' },
+  soul:      { label:'SOUL',       color:'#ff44aa', desc:'Inner energy and meaning.' },
+  corruption:{ label:'CORRUPTION', color:'#ff2244', desc:'Negative pattern accumulation.' },
+};
+
+let _statHoldTimer = null;
+let _popupDismissTimer = null;
+
+function startStatHold(e, statKey) {
+  clearStatHold();
+  _statHoldTimer = setTimeout(() => {
+    const touch = e.touches?.[0];
+    const x = touch?.clientX ?? e.clientX ?? 80;
+    const y = touch?.clientY ?? e.clientY ?? 200;
+    showStatPopup({ clientX:x, clientY:y }, statKey);
+    // Prevent context menu on long-press mobile
+    e.preventDefault?.();
+  }, 500); // 500ms hold
+}
+
+function clearStatHold() {
+  if (_statHoldTimer) { clearTimeout(_statHoldTimer); _statHoldTimer = null; }
+}
+
+function showStatPopup(e, statKey) {
+  const meta = STAT_META[statKey];
+  if (!meta) return;
+
+  const val   = statKey === 'corruption' ? S.stats.corruption : S.stats[statKey];
+  const popup = document.getElementById('statPopup');
+  const card  = popup.querySelector('.stat-popup-card');
+
+  // Update content
+  document.getElementById('statPopupName').textContent  = meta.label;
+  document.getElementById('statPopupValue').textContent = `${val} / 100`;
+  document.getElementById('statPopupSub').textContent   = meta.desc;
+
+  const bar = document.getElementById('statPopupBar');
+  bar.style.background = meta.color;
+  bar.style.boxShadow  = `0 0 6px ${meta.color}66`;
+  bar.style.width      = val + '%';
+
+  // Colour the card border to match stat
+  card.style.borderColor = meta.color + '55';
+  card.style.boxShadow   = `0 0 16px ${meta.color}22, 0 8px 32px rgba(0,0,0,0.9)`;
+  document.getElementById('statPopupValue').style.color = meta.color;
+
+  // Position near the tap/click, keeping within viewport
+  popup.style.display = 'block';
+  const pw = 160, ph = 90;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let left = (e.clientX || 80) - pw/2;
+  let top  = (e.clientY || 200) - ph - 12;
+  left = Math.max(8, Math.min(left, vw - pw - 8));
+  top  = Math.max(8, Math.min(top,  vh - ph - 8));
+  popup.style.left = left + 'px';
+  popup.style.top  = top  + 'px';
+
+  // Auto-dismiss after 2.5s
+  clearTimeout(_popupDismissTimer);
+  _popupDismissTimer = setTimeout(hideStatPopup, 2500);
+}
+
+function hideStatPopup() {
+  document.getElementById('statPopup').style.display = 'none';
+}
+
+// Dismiss on tap anywhere else
+document.addEventListener('touchstart', (e) => {
+  const popup = document.getElementById('statPopup');
+  if (popup && popup.style.display !== 'none') {
+    if (!popup.contains(e.target)) hideStatPopup();
+  }
+}, { passive:true });
+
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('statPopup');
+  if (popup && popup.style.display !== 'none') {
+    if (!popup.contains(e.target)) hideStatPopup();
+  }
+});
 
 function init() {
   loadState();
