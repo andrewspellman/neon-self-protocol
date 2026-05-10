@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v2.2</title>
+<title>NEON SELF PROTOCOL v2.3</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -1540,6 +1540,19 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
 .section-label::after{
   content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);
 }
+/* ===== AUDIO MUTE TOGGLE ===== */
+#audioToggle{
+  display:flex;align-items:center;gap:5px;
+  padding:2px 8px;border-radius:3px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);
+  cursor:pointer;transition:all 0.15s;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);
+  user-select:none;
+}
+#audioToggle:hover{border-color:rgba(0,200,255,0.2);color:var(--neon-cyan);}
+#audioToggle.muted{color:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.04);}
 </style>
 </head>
 <body>
@@ -1550,6 +1563,7 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
     <div class="header-top">
       <div class="logo">NSP // ANDREW</div>
       <div class="header-right">
+        <div id="audioToggle" onclick="toggleAudio()" title="Toggle sound">🔊 SFX</div>
         <div class="streak-badge" id="streakBadge">🔥 0d</div>
         <div class="credits-badge" id="creditsBadge" onclick="showPanel('history')">₢ 0.00</div>
       </div>
@@ -2347,6 +2361,7 @@ function addXP(amount) {
       S.xp -= needed;
       S.level++;
       toast('LEVEL UP', `You are now Level ${S.level}`, getRank(S.level), 'success');
+      setTimeout(sfxLevelUp, 100);
     } else break;
   }
 }
@@ -2478,6 +2493,19 @@ function executeAction(action, source='button') {
 
   const toastType = action.negative ? 'warn' : (gainedCredits > 0 ? 'success' : '');
   toast(action.negative ? '⚠ LOGGED' : '✓ LOGGED', action.name, fxParts.join('  '), toastType);
+
+  // Audio feedback
+  if (action.negative) {
+    sfxNegative();
+  } else {
+    sfxActionPositive();
+    if (gainedXP > 0) setTimeout(sfxXPGain, 80);
+    if (gainedCredits > 0) setTimeout(sfxCreditDrop, 160);
+  }
+  // Corruption warning audio
+  if (S.stats.corruption >= 40 && (action.fx?.corruption > 0 || action.negative)) {
+    setTimeout(sfxCorruptionWarning, 300);
+  }
 
   // Recovery Protocol
   if (action.recovery || S.stats.corruption >= 40) {
@@ -2769,6 +2797,7 @@ function completeMission(idx) {
   updateUI();
   renderMissions();
   toast('🎯 MISSION COMPLETE', m.name, `+${m.xpBonus} bonus XP`, 'success');
+  sfxMissionComplete();
 }
 
 // ==========================================================================
@@ -2815,7 +2844,7 @@ function checkBossCompletion() {
     });
     saveState();
     updateUI();
-    setTimeout(() => toast('☠️ BOSS DEFEATED', S.boss.name, '+200XP  ₢ +$5.00', 'success'), 200);
+    setTimeout(() => { toast('☠️ BOSS DEFEATED', S.boss.name, '+200XP  ₢ +$5.00', 'success'); sfxBossDefeated(); }, 200);
   }
 }
 
@@ -2981,6 +3010,7 @@ function showRecovery(reason) {
       updateUI();
       dismissRecovery();
       toast('🛡 RECOVERY COMPLETE', opt.name, Object.entries(opt.fx).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' '), 'success');
+      sfxRecovery();
     };
     container.appendChild(el);
   }
@@ -3806,14 +3836,18 @@ function fireSynergyToast(syn) {
 function handleComboBonusMessages(messages) {
   for (const msg of messages) {
     if (msg.type==='comboThreshold') {
-      setTimeout(()=>toast(`${msg.tier.icon} ${msg.tier.label}`,`${S.combo.count} consecutive actions`,`+${msg.bonusXP}XP  ×${msg.tier.mult} multiplier active`,'success'),400);
+      setTimeout(()=>{ toast(`${msg.tier.icon} ${msg.tier.label}`,`${S.combo.count} consecutive actions`,`+${msg.bonusXP}XP  ×${msg.tier.mult} multiplier active`,'success'); sfxComboThreshold(msg.tier); },400);
     } else if (msg.type==='synergy') {
-      setTimeout(()=>fireSynergyToast(msg.syn),600);
+      setTimeout(()=>{ fireSynergyToast(msg.syn); sfxSynergy(); },600);
     } else if (msg.type==='balancedMind') {
-      setTimeout(()=>toast('🧠 BALANCED MIND',`${BALANCED_MIND_CATS}+ categories today`,`+${BALANCED_MIND_XP}XP  ₢ +$${BALANCED_MIND_CRED.toFixed(2)}`,'success'),800);
+      setTimeout(()=>{ toast('🧠 BALANCED MIND',`${BALANCED_MIND_CATS}+ categories today`,`+${BALANCED_MIND_XP}XP  ₢ +$${BALANCED_MIND_CRED.toFixed(2)}`,'success'); sfxBalancedMind(); },800);
     } else if (msg.type==='comboBreak') {
-      setTimeout(()=>toast('💥 COMBO BROKEN',`${msg.count}-chain ended`,'Major negative action','warn'),300);
+      setTimeout(()=>{ toast('💥 COMBO BROKEN',`${msg.count}-chain ended`,'Major negative action','warn'); sfxComboBreak(); },300);
     }
+  }
+  // Per-action combo tick (only if already in a combo)
+  if (messages.length === 0 && (S.combo?.count || 0) >= 3) {
+    sfxComboHit();
   }
 }
 
@@ -4931,7 +4965,7 @@ function showAchievementNotif(achievement) {
   inner.className = `achieve-notif ${achievement.rarity||''}`;
   // Show
   notif.style.display = 'block';
-  requestAnimationFrame(()=>requestAnimationFrame(()=> inner.classList.add('show')));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ inner.classList.add('show'); sfxAchievement(achievement.rarity); }));
   clearTimeout(_achNotifTimer);
   _achNotifTimer = setTimeout(()=>{
     inner.classList.add('hiding');
@@ -5011,6 +5045,207 @@ function renderAchievements() {
   container.innerHTML = html;
 }
 
+// ==========================================================================
+// AUDIO ENGINE — Web Audio API synthesis (no external files)
+// ==========================================================================
+
+let _audioCtx = null;
+let _audioMuted = false;
+
+function getAudioCtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { return null; }
+  }
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+function toggleAudio() {
+  _audioMuted = !_audioMuted;
+  const el = document.getElementById('audioToggle');
+  if (_audioMuted) { el.textContent = '🔇 SFX'; el.classList.add('muted'); }
+  else             { el.textContent = '🔊 SFX'; el.classList.remove('muted'); }
+  // Persist preference
+  try { localStorage.setItem('nsp_audio_muted', _audioMuted ? '1' : '0'); } catch(e) {}
+}
+
+function loadAudioPref() {
+  try { _audioMuted = localStorage.getItem('nsp_audio_muted') === '1'; }
+  catch(e) { _audioMuted = false; }
+  const el = document.getElementById('audioToggle');
+  if (el) {
+    if (_audioMuted) { el.textContent = '🔇 SFX'; el.classList.add('muted'); }
+    else             { el.textContent = '🔊 SFX'; el.classList.remove('muted'); }
+  }
+}
+
+// ── Core synthesis primitives ──────────────────────────────────────────────
+
+// Envelope helper: attack → sustain → decay
+function playTone({ freq=440, type='sine', gain=0.15, attack=0.01, sustain=0.06, decay=0.18, detune=0, startDelay=0 } = {}) {
+  if (_audioMuted) return;
+  const ctx = getAudioCtx(); if (!ctx) return;
+  const t = ctx.currentTime + startDelay;
+  const osc = ctx.createOscillator();
+  const env = ctx.createGain();
+  osc.connect(env); env.connect(ctx.destination);
+  osc.type    = type;
+  osc.frequency.setValueAtTime(freq, t);
+  osc.detune.setValueAtTime(detune, t);
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(gain, t + attack);
+  env.gain.setValueAtTime(gain, t + attack + sustain);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + attack + sustain + decay);
+  osc.start(t);
+  osc.stop(t + attack + sustain + decay + 0.05);
+}
+
+// Noise burst — for glitch / corruption effects
+function playNoise({ duration=0.08, gain=0.06, startDelay=0, highpass=800 } = {}) {
+  if (_audioMuted) return;
+  const ctx = getAudioCtx(); if (!ctx) return;
+  const t = ctx.currentTime + startDelay;
+  const bufSize = Math.ceil(ctx.sampleRate * duration);
+  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'highpass'; filter.frequency.value = highpass;
+  const env = ctx.createGain();
+  src.connect(filter); filter.connect(env); env.connect(ctx.destination);
+  env.gain.setValueAtTime(gain, t);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+  src.start(t); src.stop(t + duration + 0.02);
+}
+
+// ── Sound definitions ──────────────────────────────────────────────────────
+
+// Positive action tap — clean digital click + soft tone
+function sfxActionPositive() {
+  playTone({ freq:880,  type:'sine',     gain:0.08, attack:0.005, sustain:0.02, decay:0.12 });
+  playTone({ freq:1320, type:'sine',     gain:0.04, attack:0.005, sustain:0.01, decay:0.10, startDelay:0.03 });
+}
+
+// XP gain — ascending two-note chime
+function sfxXPGain() {
+  playTone({ freq:660,  type:'triangle', gain:0.10, attack:0.008, sustain:0.04, decay:0.20 });
+  playTone({ freq:990,  type:'triangle', gain:0.06, attack:0.008, sustain:0.03, decay:0.18, startDelay:0.07 });
+}
+
+// Credit drop — bright coin-like ding
+function sfxCreditDrop() {
+  playTone({ freq:1108, type:'sine',     gain:0.12, attack:0.003, sustain:0.05, decay:0.30 });
+  playTone({ freq:1480, type:'sine',     gain:0.07, attack:0.003, sustain:0.03, decay:0.25, startDelay:0.04 });
+  playTone({ freq:1760, type:'sine',     gain:0.04, attack:0.003, sustain:0.02, decay:0.20, startDelay:0.09 });
+}
+
+// Level up — rising 4-note fanfare, subtle but satisfying
+function sfxLevelUp() {
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((freq, i) => {
+    playTone({ freq, type:'triangle', gain:0.11, attack:0.01, sustain:0.06, decay:0.25, startDelay: i * 0.09 });
+  });
+  // Soft shimmer layer
+  playTone({ freq:2093, type:'sine', gain:0.04, attack:0.02, sustain:0.15, decay:0.4, startDelay:0.28 });
+}
+
+// Mission complete — warm resolution chord
+function sfxMissionComplete() {
+  playTone({ freq:523,  type:'triangle', gain:0.09, attack:0.01, sustain:0.08, decay:0.3 });
+  playTone({ freq:659,  type:'triangle', gain:0.07, attack:0.01, sustain:0.07, decay:0.28, startDelay:0.05 });
+  playTone({ freq:784,  type:'triangle', gain:0.06, attack:0.01, sustain:0.06, decay:0.25, startDelay:0.10 });
+  playTone({ freq:1047, type:'sine',     gain:0.04, attack:0.01, sustain:0.05, decay:0.22, startDelay:0.15 });
+}
+
+// Combo hit — sharp rising tick
+function sfxComboHit() {
+  playTone({ freq:740,  type:'square',   gain:0.05, attack:0.003, sustain:0.01, decay:0.08 });
+  playTone({ freq:1100, type:'sine',     gain:0.07, attack:0.003, sustain:0.02, decay:0.12, startDelay:0.04 });
+}
+
+// Combo threshold — layered ascending burst
+function sfxComboThreshold(tier) {
+  const baseFreqs = { max:[392,494,587,740,880], hot:[440,554,660,880], default:[523,659,784] };
+  const freqs = baseFreqs[tier?.cls || 'default'] || baseFreqs.default;
+  freqs.forEach((freq, i) => {
+    playTone({ freq, type:'triangle', gain:0.10, attack:0.008, sustain:0.04, decay:0.22, startDelay: i*0.055 });
+  });
+}
+
+// Synergy — ethereal twin-tone shimmer
+function sfxSynergy() {
+  playTone({ freq:880,  type:'sine', gain:0.08, attack:0.02, sustain:0.12, decay:0.5,  detune:-4 });
+  playTone({ freq:1108, type:'sine', gain:0.06, attack:0.02, sustain:0.10, decay:0.45, detune:+4, startDelay:0.06 });
+  playTone({ freq:1320, type:'sine', gain:0.04, attack:0.03, sustain:0.08, decay:0.40, startDelay:0.12 });
+}
+
+// Balanced mind — soft full chord bloom
+function sfxBalancedMind() {
+  [261, 329, 392, 523].forEach((freq, i) => {
+    playTone({ freq, type:'sine', gain:0.08, attack:0.02, sustain:0.15, decay:0.5, startDelay: i*0.04 });
+  });
+}
+
+// Negative action — low thud + static burst
+function sfxNegative() {
+  playTone({ freq:120,  type:'sawtooth', gain:0.10, attack:0.005, sustain:0.02, decay:0.15 });
+  playNoise({ duration:0.06, gain:0.04, highpass:1200 });
+}
+
+// Corruption warning — tense descending tone + noise
+function sfxCorruptionWarning() {
+  playTone({ freq:440,  type:'sawtooth', gain:0.08, attack:0.005, sustain:0.03, decay:0.20 });
+  playTone({ freq:330,  type:'sawtooth', gain:0.07, attack:0.005, sustain:0.02, decay:0.18, startDelay:0.07 });
+  playTone({ freq:220,  type:'sawtooth', gain:0.06, attack:0.005, sustain:0.02, decay:0.16, startDelay:0.14 });
+  playNoise({ duration:0.10, gain:0.05, highpass:600, startDelay:0.08 });
+}
+
+// Boss defeated — dramatic rising resolution
+function sfxBossDefeated() {
+  const seq = [262, 330, 392, 523, 659, 784, 1047];
+  seq.forEach((freq, i) => {
+    playTone({ freq, type:'triangle', gain:0.10, attack:0.01, sustain:0.07, decay:0.30, startDelay: i*0.07 });
+  });
+  // Big hit at end
+  playTone({ freq:523, type:'sine', gain:0.12, attack:0.02, sustain:0.25, decay:0.6, startDelay:0.55 });
+  playTone({ freq:784, type:'sine', gain:0.09, attack:0.02, sustain:0.20, decay:0.5, startDelay:0.57 });
+}
+
+// Achievement — distinctive unlock sound
+function sfxAchievement(rarity) {
+  if (rarity === 'legendary' || rarity === 'hidden') {
+    // Grand — more elaborate
+    [392, 523, 659, 784, 1047, 784].forEach((freq, i) => {
+      playTone({ freq, type:'triangle', gain:0.09, attack:0.01, sustain:0.06, decay:0.28, startDelay: i*0.07 });
+    });
+    playTone({ freq:1319, type:'sine', gain:0.05, attack:0.02, sustain:0.2, decay:0.5, startDelay:0.45 });
+  } else if (rarity === 'rare') {
+    [523, 659, 784, 1047].forEach((freq, i) => {
+      playTone({ freq, type:'triangle', gain:0.09, attack:0.01, sustain:0.05, decay:0.24, startDelay: i*0.07 });
+    });
+  } else {
+    // Common/uncommon — single clean unlock chime
+    playTone({ freq:880,  type:'triangle', gain:0.10, attack:0.008, sustain:0.05, decay:0.25 });
+    playTone({ freq:1108, type:'sine',     gain:0.06, attack:0.008, sustain:0.04, decay:0.20, startDelay:0.07 });
+  }
+}
+
+// Recovery complete — gentle settling tones
+function sfxRecovery() {
+  playTone({ freq:396, type:'sine', gain:0.07, attack:0.02, sustain:0.10, decay:0.40 });
+  playTone({ freq:528, type:'sine', gain:0.05, attack:0.02, sustain:0.08, decay:0.35, startDelay:0.08 });
+}
+
+// Combo break — short descending clunk
+function sfxComboBreak() {
+  playTone({ freq:300, type:'sawtooth', gain:0.09, attack:0.003, sustain:0.02, decay:0.15 });
+  playTone({ freq:200, type:'sawtooth', gain:0.08, attack:0.003, sustain:0.02, decay:0.12, startDelay:0.05 });
+  playNoise({ duration:0.05, gain:0.04, highpass:400, startDelay:0.03 });
+}
+
 function init() {
   loadState();
   applyDecay();
@@ -5045,6 +5280,7 @@ function init() {
   updateUI();
   applyVisualVibe();
   updateCaffeineMeter();
+  loadAudioPref();
   _briefingPhaseCache = getTimePhase().id;
   generateBriefing();
   startBriefingClock();
