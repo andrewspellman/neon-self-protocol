@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v2.5</title>
+<title>NEON SELF PROTOCOL v2.6</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -1804,7 +1804,77 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
 }
 #audioToggle:hover{border-color:rgba(0,200,255,0.2);color:var(--neon-cyan);}
 #audioToggle.muted{color:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.04);}
-</style>
+
+/* ===== MISSION URGENCY BADGE ===== */
+.mission-urgent-tag{
+  display:inline-block;
+  font-family:'Share Tech Mono',monospace;font-size:8px;
+  letter-spacing:1px;padding:1px 5px;border-radius:2px;
+  background:rgba(255,106,0,0.12);
+  border:1px solid rgba(255,106,0,0.25);
+  color:var(--neon-orange);
+  margin-left:6px;vertical-align:middle;
+  text-transform:uppercase;
+}
+
+/* ===== MONTHLY ARCHETYPE REPORT ===== */
+.monthly-report-card{
+  background:var(--panel);
+  border:1px solid rgba(170,68,255,0.2);
+  border-radius:6px;padding:12px 14px;
+  margin-bottom:8px;cursor:pointer;
+  transition:all 0.15s;
+}
+.monthly-report-card:hover{
+  border-color:rgba(170,68,255,0.35);
+  background:rgba(170,68,255,0.04);
+}
+.monthly-report-month{
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:700;
+  color:var(--neon-purple);letter-spacing:1px;margin-bottom:3px;
+}
+.monthly-report-archetype{
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  color:#e8f4ff;
+}
+.monthly-report-summary{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:3px;line-height:1.5;
+}
+/* Report detail sections */
+.report-detail-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.report-detail-row:last-child{border-bottom:none;}
+.report-detail-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);
+}
+.report-detail-val{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-bright);font-weight:700;
+}
+.report-cat-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.report-cat-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text);width:100px;flex-shrink:0;
+}
+.report-cat-bar{
+  flex:1;height:6px;background:rgba(255,255,255,0.05);
+  border-radius:3px;overflow:hidden;
+}
+.report-cat-fill{
+  height:100%;background:var(--neon-purple);border-radius:3px;
+  transition:width 0.4s;
+}
+.report-cat-pct{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);min-width:32px;text-align:right;
+}</style>
 </head>
 <body>
 
@@ -1899,6 +1969,17 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
           <span class="review-prompt-sub">Tap to view your week — takes 10 seconds</span>
         </div>
         <span class="review-prompt-arrow">›</span>
+      </div>
+    </div>
+    <!-- Monthly Report Prompt -->
+    <div id="monthlyReportPrompt" style="display:none">
+      <div class="review-prompt" style="border-color:rgba(170,68,255,0.25);background:rgba(170,68,255,0.04);" onclick="openMonthlyReport()">
+        <span class="review-prompt-icon">◈</span>
+        <div class="review-prompt-body">
+          <span class="review-prompt-label" style="color:var(--neon-purple);">MONTHLY ARCHETYPE REPORT</span>
+          <span class="review-prompt-sub">Your behavioral identity for last month</span>
+        </div>
+        <span class="review-prompt-arrow" style="color:var(--neon-purple);">›</span>
       </div>
     </div>
     <!-- Combo Bar -->
@@ -2053,6 +2134,8 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
     <div class="panel" id="panel-trends">
       <div class="panel-title">📊 Behavioral Trends</div>
       <div id="trends-container"></div>
+      <div class="section-label" style="margin-top:16px">Monthly Archetype Reports</div>
+      <div id="monthly-reports-list"></div>
     </div>
 
     <!-- ACHIEVEMENTS -->
@@ -2231,7 +2314,16 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
   </div>
 </div>
 
-<!-- STREAK FREEZE CONFIRM MODAL -->
+<!-- MONTHLY ARCHETYPE REPORT MODAL -->
+<div id="monthlyReportModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);overflow-y:auto;">
+  <div style="max-width:480px;margin:0 auto;padding:16px 14px 80px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--neon-purple);letter-spacing:2px;text-shadow:var(--glow-purple);">◈ ARCHETYPE REPORT</div>
+      <button onclick="closeMonthlyReport()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text-dim);padding:6px 12px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;">CLOSE</button>
+    </div>
+    <div id="monthlyReportContent"></div>
+  </div>
+</div>
 <div id="freezeModal" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#0d1525;border:1px solid rgba(100,180,255,0.3);border-radius:8px;padding:22px 20px;max-width:380px;width:100%;box-shadow:0 0 24px rgba(100,180,255,0.1);">
     <div style="font-family:'Orbitron',monospace;font-size:14px;color:#88ccff;margin-bottom:8px;letter-spacing:1px;">🧊 USE STREAK FREEZE?</div>
@@ -2306,9 +2398,14 @@ const DEFAULT_STATE = {
     recent: [],   // last 5 unique action IDs used, most recent first
   },
   weeklyReview: {
-    lastGenerated: null,   // week string of last generated review
-    data: null,            // the generated review object
-    seen: false,           // has user opened it this week
+    lastGenerated: null,
+    data: null,
+    seen: false,
+  },
+  monthlyReports: [],          // array of generated monthly archetype reports
+  lastReportMonth: null,       // month string of last generated report
+  cleanDayBonus: {
+    lastCheckedDate: null,     // date string of last clean-day check
   },
   streakFreeze: {
     tokens: 1,             // available freeze tokens
@@ -2864,7 +2961,10 @@ function executeAction(action, source='button') {
   checkAchievements({ action });
   // Track quick log recents + check personal records
   trackQuickLogAction(action);
-  if (!action.negative) checkPersonalRecords();
+  if (!action.negative) {
+    checkPersonalRecords();
+    checkCleanDayProgress();
+  }
 }
 
 function updateStreak() {
@@ -3037,7 +3137,7 @@ function generateMissions() {
 
   const phase = getTimePhase().id;
 
-  // Time-of-day category boosts
+  // ── Time-of-day category boosts ──
   const phaseBoosts = {
     morning:   { body:3, discipline:2, grift:1 },
     afternoon: { grift:3, discipline:2, creativity:1 },
@@ -3047,24 +3147,89 @@ function generateMissions() {
   };
   const timeBoost = phaseBoosts[phase] || {};
 
-  // Weight toward weak stats + time of day
+  // ── Behavior-aware urgency signals ──
+  // How many days since last action in each category?
+  const now = Date.now();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const catLastSeen = {}; // category → days since last positive action
+  const SKILL_CATS = ['body','grift','creativity','soul','discipline','recovery','family'];
+  SKILL_CATS.forEach(cat => {
+    const last = S.history.find(h =>
+      (h.type === 'positive' || h.type === 'mission') &&
+      (h.category === cat || (cat === 'family' && h.action?.includes('Family')))
+    );
+    catLastSeen[cat] = last
+      ? Math.floor((now - new Date(last.time).getTime()) / dayMs)
+      : 99; // never logged
+  });
+
+  // Skill XP stagnation: days since any XP was gained in a skill
+  // (approximate via history — check if skill XP has a recent entry)
+  const skillCatMap = { body:'body', grift:'grift', creativity:'creativity',
+    discipline:'discipline', mindSoul:'soul', family:'soul', recovery:'recovery' };
+
+  // ── Build weights ──
   const weights = [];
   for (const m of MISSION_POOL) {
     let w = 1;
     const cat = m.cat.toLowerCase();
-    // Stat-based weights
+
+    // Stat-based weights (existing)
     if (cat === 'body'       && S.stats.health  < 50) w += 2;
     if (cat === 'grift'      && S.stats.focus   < 50) w += 2;
     if (cat === 'soul'       && S.stats.soul    < 50) w += 2;
     if (cat === 'discipline' && S.stats.control < 50) w += 2;
     if (S.stats.corruption > 30) w += (cat === 'soul' || cat === 'discipline') ? 1 : 0;
+
     // Time-of-day boost
     if (timeBoost[cat]) w += timeBoost[cat];
+
+    // ── Behavior-aware urgency boosts ──
+    const daysSince = catLastSeen[cat] ?? 0;
+
+    // Family Time not logged in 5+ days → strong push
+    if (cat === 'soul' && catLastSeen['family'] >= 5) w += 4;
+
+    // Any category not touched in 3+ days → escalating weight
+    if (daysSince >= 3)  w += 2;
+    if (daysSince >= 5)  w += 3;  // stacks — total +5 at 5 days
+    if (daysSince >= 7)  w += 4;  // stacks — total +9 at 7 days
+
+    // Grift skill stagnant (level hasn't moved, low XP in recent history)
+    const griftRecent = S.history.filter(h =>
+      h.category === 'grift' &&
+      (h.type === 'positive' || h.type === 'mission') &&
+      (now - new Date(h.time).getTime()) < 3 * dayMs
+    ).length;
+    if (cat === 'grift' && griftRecent === 0) w += 3;
+
+    // Recovery urgency — high corruption pushes recovery hard
+    if (cat === 'soul' && S.stats.corruption >= 40) w += 3;
+    if (cat === 'discipline' && S.stats.corruption >= 40) w += 2;
+
     weights.push(w);
   }
 
+  // ── Select 3 missions ──
+  // Guarantee at least one "urgent" mission if any category is ≥5 days stale
+  const urgentCats = SKILL_CATS.filter(c => (catLastSeen[c] || 0) >= 5);
   const selected = [];
   const pool = [...MISSION_POOL.map((m,i) => ({...m, w:weights[i]}))];
+
+  // If there's an urgent category, force one mission from it
+  if (urgentCats.length > 0 && selected.length === 0) {
+    const urgentCat = urgentCats[0]; // take most neglected
+    const urgentPool = pool.filter(m => m.cat.toLowerCase() === urgentCat ||
+      (urgentCat === 'family' && m.cat.toLowerCase() === 'soul'));
+    if (urgentPool.length > 0) {
+      const pick = urgentPool[Math.floor(Math.random() * urgentPool.length)];
+      selected.push({...pick, completed:false});
+      const idx = pool.findIndex(m => m.name === pick.name);
+      if (idx >= 0) pool.splice(idx, 1);
+    }
+  }
+
+  // Fill remaining slots with weighted random selection
   while (selected.length < 3 && pool.length > 0) {
     const total = pool.reduce((s,m) => s+m.w, 0);
     let r = Math.random() * total, cum = 0;
@@ -3454,17 +3619,64 @@ function applyDecay() {
   const yHistory = S.history.filter(h => h.time.startsWith(ydStr));
   const cats = yHistory.map(h => h.category);
 
-  const hasBody = cats.some(c => c==='body');
-  const hasSoul = cats.some(c => c==='soul'||c==='recovery');
-  const hasFocus = cats.some(c => c==='grift'||c==='discipline');
+  const hasBody     = cats.some(c => c==='body');
+  const hasSoul     = cats.some(c => c==='soul'||c==='recovery');
+  const hasFocus    = cats.some(c => c==='grift'||c==='discipline');
   const hasPositive = yHistory.some(h => h.type==='positive'||h.type==='mission');
+  const hasNegative = yHistory.some(h => h.type==='negative');
 
-  if (!hasBody) S.stats.health = clamp(S.stats.health - 1);
-  if (!hasSoul) S.stats.soul = clamp(S.stats.soul - 1);
-  if (!hasFocus) S.stats.focus = clamp(S.stats.focus - 1);
+  // Standard decay
+  if (!hasBody)     S.stats.health = clamp(S.stats.health - 1);
+  if (!hasSoul)     S.stats.soul   = clamp(S.stats.soul   - 1);
+  if (!hasFocus)    S.stats.focus  = clamp(S.stats.focus  - 1);
   if (!hasPositive) S.stats.corruption = clamp(S.stats.corruption + 1, 0, 100);
 
+  // ── Clean Day Bonus ──
+  // If yesterday had zero negatives AND at least one positive action,
+  // reduce corruption by 3 extra points as a reward for a clean day.
+  if (!hasNegative && hasPositive && yHistory.length > 0 && S.stats.corruption > 0) {
+    const bonus = Math.min(3, S.stats.corruption);
+    S.stats.corruption = clamp(S.stats.corruption - bonus, 0, 100);
+    // Log it silently in history so it's visible in trends
+    S.history.unshift({
+      time: new Date(yesterday).toISOString(),
+      action: `[CLEAN DAY BONUS] Corruption -${bonus}`,
+      category: 'system',
+      effects: `corruption-${bonus}`,
+      xp: 0, credits: 0,
+      type: 'system'
+    });
+  }
+
   saveState();
+}
+
+// Check clean day bonus at end of day (called from init and on action log)
+// This is a secondary check — the primary runs in applyDecay at next-day open.
+// We use this to show a toast if the user logs their last action before midnight.
+function checkCleanDayProgress() {
+  if (!S.cleanDayBonus) S.cleanDayBonus = { lastCheckedDate: null };
+  const today = todayStr();
+  if (S.cleanDayBonus.lastCheckedDate === today) return;
+
+  const todayHist = S.history.filter(h => new Date(h.time).toDateString() === new Date().toDateString());
+  const hasNeg   = todayHist.some(h => h.type === 'negative');
+  const hasPos   = todayHist.some(h => h.type === 'positive' || h.type === 'mission');
+  const phase    = getTimePhase().id;
+
+  // Only surface this as a nudge in evening/night phases when it's still achievable
+  if (!hasNeg && hasPos && (phase === 'evening' || phase === 'night') && S.stats.corruption > 0) {
+    // Don't repeat this nudge — mark as checked for today
+    S.cleanDayBonus.lastCheckedDate = today;
+    saveState();
+    // Subtle notification that a clean day bonus is on track
+    setTimeout(() => toast(
+      '🌿 CLEAN DAY ACTIVE',
+      'No negatives logged today.',
+      'Corruption -3 bonus applies at midnight.',
+      ''
+    ), 1500);
+  }
 }
 
 // ==========================================================================
@@ -4480,6 +4692,8 @@ function updateUI() {
   renderFreezeBadge();
   // Weekly review prompt
   renderReviewPrompt();
+  // Monthly report prompt
+  renderMonthlyReportPrompt();
 
   // Re-render dynamic panels
   renderMissions();
@@ -4487,6 +4701,7 @@ function updateUI() {
   renderSkills();
   renderRandomEvent();
   renderTrends();
+  renderMonthlyReportsList();
   renderAchievements();
   renderHistory('today');
 }
@@ -6174,6 +6389,287 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// ==========================================================================
+// MONTHLY ARCHETYPE REPORT
+// ==========================================================================
+
+function getMonthLabel(dateStr) {
+  // dateStr format: "2025-1" → "January 2025"
+  if (!dateStr) return 'Unknown Month';
+  const [yr, mo] = dateStr.split('-').map(Number);
+  const names = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${names[mo] || mo} ${yr}`;
+}
+
+function ensureMonthlyReports() {
+  if (!S.monthlyReports)    S.monthlyReports = [];
+  if (!S.lastReportMonth)   S.lastReportMonth = null;
+  if (!S.cleanDayBonus)     S.cleanDayBonus   = { lastCheckedDate: null };
+}
+
+function shouldGenerateMonthlyReport() {
+  ensureMonthlyReports();
+  const now      = new Date();
+  const thisMonth = getMonthStr(); // "2025-6"
+  // We generate a report for the PREVIOUS month, once per month,
+  // on the 1st of the new month or any day after.
+  const lastMonth = (() => {
+    const d = new Date(now);
+    d.setDate(1);
+    d.setMonth(d.getMonth() - 1);
+    return `${d.getFullYear()}-${d.getMonth()+1}`;
+  })();
+
+  // Already generated this month's report for last month?
+  if (S.lastReportMonth === lastMonth) return false;
+
+  // Need enough history (at least 10 entries in last month)
+  const lastMonthStart = new Date(now); lastMonthStart.setDate(1); lastMonthStart.setMonth(lastMonthStart.getMonth()-1); lastMonthStart.setHours(0,0,0,0);
+  const lastMonthEnd   = new Date(now); lastMonthEnd.setDate(1); lastMonthEnd.setHours(0,0,0,0);
+  const lastMonthHist  = S.history.filter(h => {
+    const t = new Date(h.time);
+    return t >= lastMonthStart && t < lastMonthEnd;
+  });
+
+  return lastMonthHist.length >= 5;
+}
+
+function generateMonthlyReport() {
+  ensureMonthlyReports();
+  const now       = new Date();
+  const lastMonthStart = new Date(now); lastMonthStart.setDate(1); lastMonthStart.setMonth(lastMonthStart.getMonth()-1); lastMonthStart.setHours(0,0,0,0);
+  const lastMonthEnd   = new Date(now); lastMonthEnd.setDate(1); lastMonthEnd.setHours(0,0,0,0);
+  const monthStr  = `${lastMonthStart.getFullYear()}-${lastMonthStart.getMonth()+1}`;
+
+  const monthHist = S.history.filter(h => {
+    const t = new Date(h.time);
+    return t >= lastMonthStart && t < lastMonthEnd;
+  });
+
+  const posHist = monthHist.filter(h => h.type === 'positive' || h.type === 'mission');
+  const negHist = monthHist.filter(h => h.type === 'negative');
+
+  // Category breakdown
+  const catCounts = {};
+  posHist.forEach(h => { catCounts[h.category] = (catCounts[h.category]||0)+1; });
+  const totalPos   = posHist.length || 1;
+  const catSorted  = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]);
+  const topCat     = catSorted[0];
+  const bottomCat  = catSorted[catSorted.length-1];
+
+  // Dominant archetype — build a simple scoring pass over the month
+  // Reuse evaluateArchetype logic but scoped to month history
+  const skillLabels = {body:'Body',grift:'Grift',creativity:'Creativity',discipline:'Discipline',mindSoul:'Mind',family:'Family',recovery:'Recovery',soul:'Soul',caffeine:'Caffeine'};
+
+  // Approximate archetype from category counts
+  const c = catCounts;
+  const archetypeScores = {
+    WARRIOR:    ((c.body||0)*1.2 + (c.discipline||0)),
+    BUILDER:    ((c.grift||0)*1.2 + (c.discipline||0)),
+    MONK:       ((c.soul||0)*1.2 + (c.recovery||0)*1.2),
+    CREATOR:    ((c.creativity||0)*1.5 + (c.soul||0)*0.5),
+    MERCHANT:   ((c.grift||0)*1.8),
+    FATHER:     ((c.family||0)*2.0 + (c.soul||0)*0.5),
+    STRATEGIST: ((c.discipline||0)*1.5 + (c.mindSoul||0)),
+  };
+  const dominantArch = Object.entries(archetypeScores).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'WANDERER';
+  const archObj      = (typeof ARCHETYPES !== 'undefined') ? ARCHETYPES[dominantArch] : null;
+
+  // Corruption peak day
+  const monthTriggers = (S.triggerLog||[]).filter(t => {
+    const d = new Date(t.time);
+    return d >= lastMonthStart && d < lastMonthEnd;
+  });
+  let corruptPeak = null;
+  const dayCorrupt = {};
+  monthHist.forEach(h => {
+    if (h.stats?.corruption !== undefined) {
+      const d = new Date(h.time).toDateString();
+      if (!dayCorrupt[d] || h.stats.corruption > dayCorrupt[d].val) {
+        dayCorrupt[d] = { val:h.stats.corruption, time:h.time };
+      }
+    }
+  });
+  const peakEntry = Object.entries(dayCorrupt).sort((a,b)=>b[1].val-a[1].val)[0];
+  if (peakEntry) {
+    const peakDay    = peakEntry[0];
+    const peakVal    = peakEntry[1].val;
+    const dayTrigger = monthTriggers.find(t => new Date(t.time).toDateString() === peakDay);
+    corruptPeak      = { day:peakDay, val:peakVal, trigger:dayTrigger?.triggerLabel || null };
+  }
+
+  // Clean days count (days with zero negatives + at least one positive)
+  const dayMap = {};
+  monthHist.forEach(h => {
+    const d = new Date(h.time).toDateString();
+    if (!dayMap[d]) dayMap[d] = { pos:0, neg:0 };
+    if (h.type==='positive'||h.type==='mission') dayMap[d].pos++;
+    if (h.type==='negative') dayMap[d].neg++;
+  });
+  const cleanDays = Object.values(dayMap).filter(d => d.neg===0&&d.pos>0).length;
+  const activeDays= Object.keys(dayMap).length;
+
+  // Top 3 dominant categories with percentages
+  const catBreakdown = catSorted.slice(0,5).map(([cat,count])=>({
+    cat, count, label:skillLabels[cat]||cat, pct:Math.round((count/totalPos)*100)
+  }));
+
+  // Summary line
+  const topCatName  = topCat ? (skillLabels[topCat[0]]||topCat[0]) : 'Mixed';
+  const topCatPct   = topCat ? Math.round((topCat[1]/totalPos)*100) : 0;
+  const bottomName  = bottomCat ? (skillLabels[bottomCat[0]]||bottomCat[0]) : null;
+  const bottomCount = bottomCat ? bottomCat[1] : 0;
+
+  const report = {
+    month: monthStr,
+    generatedAt: new Date().toISOString(),
+    dominantArchetype: dominantArch,
+    archName: archObj?.name || `THE ${dominantArch}`,
+    archIcon: archObj?.icon || '◈',
+    totalActions: monthHist.filter(h=>h.type!=='system').length,
+    posCount: posHist.length,
+    negCount: negHist.length,
+    topCatName, topCatPct,
+    bottomName, bottomCount,
+    catBreakdown,
+    corruptPeak,
+    cleanDays, activeDays,
+    triggerCount: monthTriggers.length,
+    topTrigger: (() => {
+      const tc = {}; monthTriggers.forEach(t=>{ tc[t.triggerLabel]=(tc[t.triggerLabel]||0)+1; });
+      return Object.entries(tc).sort((a,b)=>b[1]-a[1])[0] || null;
+    })(),
+  };
+
+  S.monthlyReports.unshift(report);
+  if (S.monthlyReports.length > 12) S.monthlyReports = S.monthlyReports.slice(0,12); // keep 12 months
+  S.lastReportMonth = monthStr;
+  saveState();
+  return report;
+}
+
+function openMonthlyReport(monthStr) {
+  ensureMonthlyReports();
+  // If no monthStr, open the most recent
+  const report = monthStr
+    ? S.monthlyReports.find(r=>r.month===monthStr)
+    : S.monthlyReports[0];
+  if (!report) return;
+  renderMonthlyReportContent(report);
+  document.getElementById('monthlyReportModal').style.display = 'block';
+  document.getElementById('monthlyReportPrompt').style.display = 'none';
+}
+
+function closeMonthlyReport() {
+  document.getElementById('monthlyReportModal').style.display = 'none';
+}
+
+function renderMonthlyReportContent(r) {
+  const container = document.getElementById('monthlyReportContent');
+  const monthLabel = getMonthLabel(r.month);
+  const archColor  = {WARRIOR:'#00ff88',BUILDER:'#00c8ff',MONK:'#ff44aa',CREATOR:'#aa44ff',MERCHANT:'#ffdd00',FATHER:'#ff44aa',STRATEGIST:'#aa44ff',GHOST:'#ff2244',SURVIVOR:'#ff6a00',WANDERER:'#4a6080'}[r.dominantArchetype] || 'var(--neon-purple)';
+
+  let html = `
+    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:14px;">${monthLabel.toUpperCase()}</div>
+
+    <!-- Archetype Hero -->
+    <div style="background:rgba(170,68,255,0.05);border:1px solid rgba(170,68,255,0.2);border-radius:8px;padding:16px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:6px;">${r.archIcon}</div>
+      <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:${archColor};letter-spacing:2px;">${r.archName}</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:6px;line-height:1.6;">
+        ${r.topCatPct}% of actions concentrated in ${r.topCatName}.
+        ${r.bottomName ? `${r.bottomName} was your quietest category (${r.bottomCount} action${r.bottomCount!==1?'s':''}).` : ''}
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px;">
+      <div style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:8px;text-align:center;">
+        <div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--neon-cyan);">${r.totalActions}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;">ACTIONS</div>
+      </div>
+      <div style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:8px;text-align:center;">
+        <div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--neon-green);">${r.cleanDays}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;">CLEAN DAYS</div>
+      </div>
+      <div style="background:var(--panel);border:1px solid var(--panel-border);border-radius:6px;padding:8px;text-align:center;">
+        <div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--neon-red);">${r.negCount}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;">NEGATIVES</div>
+      </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="review-section-title">Category Breakdown</div>`;
+
+  r.catBreakdown.forEach(item => {
+    html += `
+    <div class="report-cat-row">
+      <span class="report-cat-label">${item.label}</span>
+      <div class="report-cat-bar"><div class="report-cat-fill" style="width:${item.pct}%"></div></div>
+      <span class="report-cat-pct">${item.pct}%</span>
+    </div>`;
+  });
+
+  // Corruption peak
+  if (r.corruptPeak) {
+    html += `<div class="review-section-title">Corruption Peak</div>
+    <div class="review-insight ${r.corruptPeak.val>=60?'critical':r.corruptPeak.val>=35?'warn':'neutral'}">
+      Peak: ${r.corruptPeak.val}% on ${r.corruptPeak.day}.
+      ${r.corruptPeak.trigger ? `Trigger logged: ${r.corruptPeak.trigger}.` : 'No trigger logged for that day.'}
+    </div>`;
+  }
+
+  // Top trigger
+  if (r.topTrigger) {
+    html += `<div class="review-section-title">Top Trigger</div>
+    <div class="review-insight warn">
+      Most common: <strong style="color:var(--neon-orange)">${r.topTrigger[0]}</strong> — logged ${r.topTrigger[1]} time${r.topTrigger[1]!==1?'s':''} this month.
+    </div>`;
+  }
+
+  // Balance summary
+  const balance = r.posCount - r.negCount;
+  const balanceClass = balance >= 10 ? 'positive' : balance < 0 ? 'critical' : 'neutral';
+  html += `<div class="review-section-title">Month Summary</div>
+    <div class="review-insight ${balanceClass}">
+      ${r.posCount} positive, ${r.negCount} negative across ${r.activeDays} active days.
+      ${balance >= 10 ? 'Strong month. Positive behavior dominated.' : balance < 0 ? 'Challenging month. Patterns to review.' : 'Mixed month. Look at what triggered the negatives.'}
+    </div>`;
+
+  container.innerHTML = html;
+}
+
+function renderMonthlyReportsList() {
+  const container = document.getElementById('monthly-reports-list');
+  if (!container) return;
+  ensureMonthlyReports();
+  if (S.monthlyReports.length === 0) {
+    container.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim);text-align:center;padding:16px;border:1px dashed rgba(255,255,255,0.07);border-radius:6px;">First report generates at the start of next month.</div>`;
+    return;
+  }
+  container.innerHTML = S.monthlyReports.map(r => `
+    <div class="monthly-report-card" onclick="openMonthlyReport('${r.month}')">
+      <div class="monthly-report-month">${getMonthLabel(r.month).toUpperCase()}</div>
+      <div class="monthly-report-archetype">${r.archIcon} ${r.archName}</div>
+      <div class="monthly-report-summary">${r.topCatPct}% ${r.topCatName} · ${r.cleanDays} clean days · ${r.negCount} negatives</div>
+    </div>`).join('');
+}
+
+function checkAndGenerateMonthlyReport() {
+  if (shouldGenerateMonthlyReport()) {
+    generateMonthlyReport();
+    document.getElementById('monthlyReportPrompt').style.display = 'block';
+  }
+}
+
+function renderMonthlyReportPrompt() {
+  ensureMonthlyReports();
+  const el = document.getElementById('monthlyReportPrompt');
+  if (!el) return;
+  // Show if we have a report that hasn't been dismissed this session
+  el.style.display = (S.monthlyReports.length > 0 && S.lastReportMonth) ? 'block' : 'none';
+}
+
 function init() {
   loadState();
   applyDecay();
@@ -6194,8 +6690,11 @@ function init() {
   ensureWeeklyReview();
   ensureRecords();
   ensureQuickLog();
+  ensureMonthlyReports();
   // Bootstrap records from existing history on first load
   setTimeout(() => checkPersonalRecords(), 800);
+  // Check if a new monthly report should be generated
+  setTimeout(() => checkAndGenerateMonthlyReport(), 1200);
   applySystemState(evaluateSystemState());
   applyArchetype(evaluateArchetype());
   // Init MVD check on load
