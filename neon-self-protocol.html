@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v2.9</title>
+<title>NEON SELF PROTOCOL v3.0</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -2088,7 +2088,49 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
 .stat-popup-sub{
   font-family:'Share Tech Mono',monospace;font-size:10px;
   color:var(--text-dim);
-}</style>
+/* ===== SIGNAL + ENERGY HUD ===== */
+.signal-energy-row{
+  display:flex;gap:8px;margin-bottom:10px;
+}
+.signal-hud{
+  display:flex;align-items:center;gap:8px;
+  flex:0 0 auto;
+  padding:5px 12px;
+  background:rgba(0,200,255,0.05);
+  border:1px solid rgba(0,200,255,0.18);
+  border-radius:var(--radius);
+}
+.energy-hud{
+  flex:1;
+  padding:5px 12px;
+  background:rgba(0,255,136,0.04);
+  border:1px solid rgba(0,255,136,0.15);
+  border-radius:var(--radius);
+}
+.energy-hud-top{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:4px;
+}
+.hud-label{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:2px;color:var(--text-dim);
+}
+.hud-val{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+  color:var(--neon-cyan);
+}
+.energy-bar-outer{
+  height:4px;background:rgba(255,255,255,0.06);
+  border-radius:2px;overflow:hidden;
+}
+.energy-bar-fill{
+  height:100%;border-radius:2px;
+  background:linear-gradient(90deg,var(--neon-green),#00e8aa);
+  transition:width 0.4s ease, background 0.4s ease;
+  box-shadow:0 0 4px rgba(0,255,136,0.3);
+}
+.energy-bar-fill.low   { background:linear-gradient(90deg,var(--neon-orange),#ff9a00); box-shadow:0 0 4px rgba(255,106,0,0.3); }
+.energy-bar-fill.critical { background:linear-gradient(90deg,var(--neon-red),#cc2244); box-shadow:0 0 4px rgba(255,34,68,0.4); }</style>
 </head>
 <body>
 
@@ -2163,6 +2205,22 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
       <div class="meta-pill"><span class="val" id="totalXPLabel" style="color:var(--neon-yellow)">0</span><span class="lbl">TOTAL XP</span></div>
       <div class="meta-pill" onclick="openMissionsModal()" style="cursor:pointer" title="Daily Missions"><span class="val" id="missionsPct" style="color:var(--neon-green)">0%</span><span class="lbl">📋 MISSIONS</span></div>
       <div class="meta-pill boss" onclick="openEventsModal()" style="cursor:pointer" title="View Events & Skills"><span class="val" id="bossProgress">0%</span><span class="lbl">⚡ EVENT</span></div>
+    </div>
+    <!-- Signal + Energy HUD -->
+    <div class="signal-energy-row">
+      <div class="signal-hud">
+        <span class="hud-label">📶 SIGNAL</span>
+        <span class="hud-val" id="signalVal">0</span>
+      </div>
+      <div class="energy-hud">
+        <div class="energy-hud-top">
+          <span class="hud-label">⚡ ENERGY</span>
+          <span class="hud-val" id="energyVal">70%</span>
+        </div>
+        <div class="energy-bar-outer">
+          <div class="energy-bar-fill" id="energyBar" style="width:70%"></div>
+        </div>
+      </div>
     </div>
     <!-- Streak Freeze Token -->
     <div id="freezeBar" style="display:none">
@@ -2618,6 +2676,8 @@ const DEFAULT_STATE = {
   credits: 0,
   xp: 0,
   level: 1,
+  signal: 0,
+  energy: { current:70, max:100, lastRegenDate:null },
   skills: {
     body:{xp:0,level:1},
     grift:{xp:0,level:1},
@@ -2768,50 +2828,96 @@ function getWeekStr() {
 }
 
 // ==========================================================================
+// SIGNAL + ENERGY HELPERS
+// ==========================================================================
+
+function ensureSignalEnergy() {
+  if (S.signal === undefined || S.signal === null) S.signal = 0;
+  if (!S.energy) S.energy = { current:70, max:100, lastRegenDate:null };
+  if (S.energy.current === undefined) S.energy.current = 70;
+  if (S.energy.max     === undefined) S.energy.max     = 100;
+  if (S.energy.lastRegenDate === undefined) S.energy.lastRegenDate = null;
+  // Clamp in case of data corruption
+  S.energy.current = clamp(S.energy.current, 0, S.energy.max);
+}
+
+// Infer signal if not explicitly set on action
+function inferSignal(action) {
+  if (action.negative) return 0;
+  const xp = action.xp || 0;
+  if (xp >= 25) return Math.round(xp * 0.8);  // large
+  if (xp >= 12) return Math.round(xp * 0.7);  // medium
+  return Math.max(2, Math.round(xp * 0.6));    // small/tiny
+}
+
+// Infer energy if not explicitly set on action
+function inferEnergy(action) {
+  if (action.negative) return -4;
+  if (action.recovery) return  6;
+  const xp = action.xp || 0;
+  if (xp >= 25) return -10;
+  if (xp >= 12) return  -5;
+  return 2; // tiny actions are neutral/slightly restorative
+}
+
+// ==========================================================================
 // ACTIONS DEFINITION
 // ==========================================================================
 const ACTIONS = {
   body: [
     {id:'pushups', name:'10 Exercises', icon:'💪',
      fx:{health:2,control:1}, xp:4, skillXp:{body:4},
+     signal:4, energy:-3,
      credit:{chance:0.4, amt:0.25}},
     {id:'walk', name:'Walk', icon:'🚶',
      fx:{health:4,soul:2}, xp:10, skillXp:{body:10},
+     signal:8, energy:2,
      credit:{chance:0.4, amt:0.50}},
     {id:'run', name:'Run', icon:'🏃',
      fx:{health:7,control:2}, xp:18, skillXp:{body:18},
+     signal:14, energy:-12,
      credit:{guaranteed:1}},
     {id:'bjj', name:'BJJ', icon:'🥋',
      fx:{health:10,control:5,soul:3}, xp:35, skillXp:{body:35},
+     signal:30, energy:-20,
      credit:{guaranteed:3, bonusChance:0.5, bonusAmt:2}},
     {id:'lift', name:'Lift Weights', icon:'🏋️',
      fx:{health:8,control:3}, xp:25, skillXp:{body:25},
+     signal:22, energy:-15,
      credit:{guaranteed:2}},
     {id:'stretch', name:'Stretch', icon:'🧘',
      fx:{health:3,soul:1}, xp:8, skillXp:{body:8},
+     signal:6, energy:3,
      credit:{chance:0.25, amt:0.25}},
   ],
   food: [
     {id:'cleanMeal', name:'Clean Meal', icon:'🥗',
      fx:{health:5,control:2}, xp:10, skillXp:{discipline:8},
+     signal:10, energy:5,
      credit:{chance:0.3, amt:0.50}},
     {id:'proteinHit', name:'Protein Hit', icon:'🥩',
      fx:{health:3}, xp:5, skillXp:{body:5},
+     signal:6, energy:3,
      credit:{chance:0.2, amt:0.25}},
     {id:'water', name:'Drink Water', icon:'💧',
      fx:{health:1,control:1}, xp:2, skillXp:{},
+     signal:2, energy:2,
      credit:null},
     {id:'junkMeal', name:'Junk Meal', icon:'🍔',
      negative:true, fx:{health:-5,control:-2,corruption:6}, xp:0, awarenessXp:2,
+     signal:0, energy:-6,
      skillXp:{}, credit:null, recovery:true},
     {id:'junkSnack', name:'Junk Snack', icon:'🍟',
      negative:true, fx:{health:-3,control:-1,corruption:3}, xp:0, awarenessXp:1,
+     signal:0, energy:-3,
      skillXp:{}, credit:null, recovery:true},
     {id:'lateSnack', name:'Late Night Snack', icon:'🌙',
      negative:true, fx:{health:-2,focus:-1,corruption:2}, xp:0, awarenessXp:1,
+     signal:0, energy:-4,
      skillXp:{}, credit:null},
     {id:'overeat', name:'Overeat', icon:'😮',
      negative:true, fx:{health:-6,control:-3,corruption:5}, xp:0, awarenessXp:2,
+     signal:0, energy:-8,
      skillXp:{}, credit:null, recovery:true},
   ],
   caffeine: [
@@ -2823,122 +2929,159 @@ const ACTIONS = {
   grift: [
     {id:'list1', name:'List 1 Item', icon:'📦',
      fx:{focus:2,control:2}, xp:10, skillXp:{grift:10},
+     signal:10, energy:-4,
      credit:{chance:0.35, amt:0.50}},
     {id:'list10', name:'List 10 Items', icon:'📋',
      fx:{focus:8,control:5}, xp:35, skillXp:{grift:35},
+     signal:30, energy:-12,
      credit:{guaranteed:2, bonusChance:0.3, bonusAmt:1}},
     {id:'shipOrders', name:'Ship Orders', icon:'📬',
      fx:{focus:5,control:3}, xp:20, skillXp:{grift:20},
+     signal:18, energy:-8,
      credit:{chance:0.4, amt:1}},
     {id:'sourceProduct', name:'Source Product', icon:'🔍',
      fx:{focus:4}, xp:15, skillXp:{grift:15},
+     signal:15, energy:-8,
      credit:{chance:0.25, amt:1}},
     {id:'updateSite', name:'Update Website', icon:'🌐',
      fx:{focus:6}, xp:25, skillXp:{grift:25},
+     signal:22, energy:-10,
      credit:{chance:0.35, amt:1}},
     {id:'recordContent', name:'Record Content', icon:'🎥',
      fx:{focus:5}, xp:25, skillXp:{grift:10, creativity:20},
+     signal:22, energy:-10,
      credit:{chance:0.4, amt:1}},
     {id:'organizeInventory', name:'Organize Inventory', icon:'🗃️',
      fx:{focus:3,control:4}, xp:15, skillXp:{grift:12, discipline:5},
+     signal:18, energy:-8,
      credit:{chance:0.3, amt:0.50}},
     {id:'adminWork', name:'Admin Work', icon:'🧾',
      fx:{focus:4,control:3}, xp:18, skillXp:{grift:15, discipline:10},
+     signal:20, energy:-10,
      credit:{chance:0.3, amt:0.75}},
   ],
   creativity: [
     {id:'makeMusic', name:'Make Music', icon:'🎵',
      fx:{soul:5,focus:4}, xp:25, skillXp:{creativity:25},
+     signal:20, energy:-8,
      credit:{chance:0.25, amt:1}},
     {id:'creativeProject', name:'Work on Creative Project', icon:'🎨',
      fx:{focus:6,soul:3}, xp:25, skillXp:{creativity:25},
+     signal:22, energy:-10,
      credit:{chance:0.3, amt:1}},
     {id:'brainstorm', name:'Brainstorm Ideas', icon:'💡',
      fx:{soul:2,focus:2}, xp:10, skillXp:{creativity:10},
+     signal:8, energy:-4,
      credit:{chance:0.2, amt:0.50}},
     {id:'workManga', name:'Work on Manga', icon:'🖊️',
      fx:{soul:4,focus:5}, xp:25, skillXp:{creativity:30},
+     signal:24, energy:-10,
      credit:{chance:0.25, amt:1}},
   ],
   soul: [
     {id:'familyTime', name:'Family Time', icon:'👨‍👦',
      fx:{soul:8,control:3}, xp:25, skillXp:{family:25},
+     signal:18, energy:4,
      credit:{chance:0.3, amt:1}},
     {id:'apologize', name:'Apologize / Repair', icon:'🤝',
      fx:{soul:6,control:6,corruption:-8}, xp:20, skillXp:{recovery:20},
+     signal:20, energy:6,
      credit:{chance:0.25, amt:0.50}},
     {id:'readPhilosophy', name:'Study Philosophy', icon:'📖',
      fx:{soul:5,focus:3}, xp:20, skillXp:{mindSoul:20},
+     signal:14, energy:4,
      credit:{chance:0.25, amt:0.50}},
     {id:'meditate', name:'Meditate', icon:'🧠',
      fx:{soul:5,control:5,corruption:-4}, xp:20, skillXp:{mindSoul:15, recovery:10},
+     signal:16, energy:8,
      credit:{chance:0.2, amt:0.50}},
     {id:'realBreak', name:'Take Actual Break', icon:'☕',
      fx:{soul:4,focus:2,corruption:-2}, xp:10, skillXp:{recovery:10},
+     signal:10, energy:10,
      credit:null},
     {id:'spouseTime', name:'Spend Time with Spouse', icon:'💙',
      fx:{soul:7,control:4,corruption:-3}, xp:22, skillXp:{family:20, recovery:5},
+     signal:18, energy:5,
      credit:{chance:0.25, amt:0.50}},
   ],
   discipline: [
     {id:'upkeepTask', name:'Complete Upkeep Task', icon:'🔧',
      fx:{control:3,focus:3}, xp:12, skillXp:{discipline:14},
+     signal:14, energy:-5,
      credit:{chance:0.25, amt:0.50}},
     {id:'backlogTask', name:'Complete Backlog Task', icon:'✅',
      fx:{control:7,focus:3,soul:2}, xp:28, skillXp:{discipline:22},
+     signal:26, energy:-10,
      credit:{chance:0.4, amt:1}},
     {id:'householdTask', name:'Household Progress Task', icon:'🏠',
      fx:{focus:4,soul:2}, xp:22, skillXp:{discipline:20, family:8},
+     signal:28, energy:-12,
      credit:{chance:0.35, amt:1}},
     {id:'purge', name:'Purge Possessions', icon:'🗑️',
      fx:{soul:4,focus:3,control:3,corruption:-3}, xp:18, skillXp:{discipline:15, recovery:6},
+     signal:22, energy:-8,
      credit:{chance:0.2, amt:0.50}},
     {id:'cleanArea', name:'Clean One Area', icon:'🧹',
      fx:{focus:3,control:3}, xp:12, skillXp:{discipline:12},
+     signal:12, energy:-5,
      credit:{chance:0.25, amt:0.50}},
     {id:'sleepOnTime', name:'Sleep On Time', icon:'😴',
      fx:{health:5,focus:4,control:3}, xp:20, skillXp:{discipline:20},
+     signal:25, energy:20,
      credit:{chance:0.25, amt:0.50}},
     {id:'noDoomscroll', name:'No Doomscroll Block', icon:'📵',
      fx:{focus:4,control:4}, xp:15, skillXp:{discipline:15},
+     signal:14, energy:4,
      credit:{chance:0.25, amt:0.50}},
     {id:'workBlock30', name:'30 Min Work Block', icon:'⏱️',
      fx:{focus:6,control:4}, xp:18, skillXp:{discipline:18, grift:6},
+     signal:18, energy:-8,
      credit:{chance:0.3, amt:0.75}},
     {id:'brushTeeth', name:'Brush Teeth', icon:'🪥',
      fx:{control:1,health:1}, xp:3, skillXp:{discipline:4},
+     signal:3, energy:1,
      credit:null},
   ],
   corruption: [
     {id:'lostControl', name:'Lost Control / Yelled', icon:'😤',
      negative:true, fx:{control:-8,soul:-4,corruption:10}, xp:0, awarenessXp:2,
+     signal:0, energy:-10,
      skillXp:{}, credit:null, recovery:true},
     {id:'doomscrolled', name:'Doomscrolled', icon:'📱',
      negative:true, fx:{focus:-5,control:-3,corruption:5}, xp:0, awarenessXp:1,
+     signal:0, energy:-8,
      skillXp:{}, credit:null},
     {id:'skippedWorkout', name:'Skipped Planned Workout', icon:'🚫',
      negative:true, fx:{health:-4,control:-3,corruption:4}, xp:0, awarenessXp:1,
+     signal:0, energy:-5,
      skillXp:{}, credit:null},
     {id:'avoidedTask', name:'Avoided Important Task', icon:'🙈',
      negative:true, fx:{focus:-5,control:-4,corruption:6}, xp:0, awarenessXp:1,
+     signal:0, energy:-6,
      skillXp:{}, credit:null},
     {id:'triedOverspend', name:'Tried to Overspend', icon:'💸',
      negative:true, fx:{control:-3,corruption:5}, xp:0, awarenessXp:1,
+     signal:0, energy:-4,
      skillXp:{}, credit:null},
     {id:'stayedUpLate', name:'Stayed Up Too Late', icon:'🌙',
      negative:true, fx:{health:-4,focus:-4,control:-2,corruption:5}, xp:0, awarenessXp:1,
+     signal:0, energy:-15,
      skillXp:{}, credit:null},
     {id:'junkMeal2', name:'Junk Meal', icon:'🍔',
      negative:true, fx:{health:-5,control:-2,corruption:6}, xp:0, awarenessXp:2,
+     signal:0, energy:-6,
      skillXp:{}, credit:null, recovery:true},
     {id:'junkSnack2', name:'Junk Snack', icon:'🍟',
      negative:true, fx:{health:-3,control:-1,corruption:3}, xp:0, awarenessXp:1,
+     signal:0, energy:-3,
      skillXp:{}, credit:null},
     {id:'lateSnack2', name:'Late Night Snack', icon:'🌙',
      negative:true, fx:{health:-2,focus:-1,corruption:2}, xp:0, awarenessXp:1,
+     signal:0, energy:-4,
      skillXp:{}, credit:null},
     {id:'overeat2', name:'Overeat', icon:'😮',
      negative:true, fx:{health:-6,control:-3,corruption:5}, xp:0, awarenessXp:2,
+     signal:0, energy:-8,
      skillXp:{}, credit:null, recovery:true},
   ]
 };
@@ -3164,6 +3307,28 @@ function executeAction(action, source='button') {
   }
   S.credits = parseFloat((S.credits + gainedCredits).toFixed(2));
 
+  // ── Signal & Operational Energy ──
+  ensureSignalEnergy();
+  const energyCurrent = S.energy.current;
+  const isRecovery    = !!(action.recovery || action.category === 'recovery');
+
+  // Energy modifier based on current level
+  let energyMod = 1.0;
+  let signalMod = 1.0;
+  if (energyCurrent < 10 && !isRecovery) { energyMod = 1.0; signalMod = 0.80; }
+  else if (energyCurrent < 30 && !isRecovery) { signalMod = 0.90; }
+  if (energyCurrent < 10 && isRecovery)  { signalMod = 1.20; }
+
+  // Infer signal/energy if not explicitly defined
+  const rawSignal  = action.signal  ?? inferSignal(action);
+  const rawEnergy  = action.energy  ?? inferEnergy(action);
+
+  const gainedSignal = action.negative ? 0 : Math.round(rawSignal * signalMod);
+  const energyDelta  = Math.round(rawEnergy * (rawEnergy < 0 ? energyMod : 1.0));
+
+  S.signal += gainedSignal;
+  S.energy.current = clamp(S.energy.current + energyDelta, 0, S.energy.max);
+
   // Evaluate system state and archetype after action
   const newState = evaluateSystemState();
   applySystemState(newState);
@@ -3192,6 +3357,8 @@ function executeAction(action, source='button') {
     effects: effectsStr,
     xp: gainedXP,
     credits: gainedCredits,
+    signal: gainedSignal,
+    energyDelta,
     type: action.negative ? 'negative' : 'positive'
   });
   if (S.history.length > 500) S.history = S.history.slice(0,500);
@@ -3215,11 +3382,20 @@ function executeAction(action, source='button') {
     const icons = {health:'❤️',focus:'🧿',control:'⚔️',soul:'🌐',corruption:'☠️'};
     fxParts.push(`${icons[k]||''}${k} ${v>0?'+':''}${v}`);
   }
-  if (gainedXP > 0) fxParts.push(`✨ +${gainedXP}XP`);
+  if (gainedXP > 0)      fxParts.push(`✨ +${gainedXP}XP`);
   if (gainedCredits > 0) fxParts.push(`₢ +$${gainedCredits.toFixed(2)}`);
+  if (gainedSignal > 0)  fxParts.push(`📶 +${gainedSignal}`);
+  if (energyDelta !== 0) fxParts.push(`⚡ ${energyDelta > 0 ? '+' : ''}${energyDelta}`);
 
   const toastType = action.negative ? 'warn' : (gainedCredits > 0 ? 'success' : '');
   toast(action.negative ? '⚠ LOGGED' : '✓ LOGGED', action.name, fxParts.join('  '), toastType);
+
+  // Low energy warnings (fire once per threshold crossing, not every action)
+  if (S.energy.current < 10 && energyCurrent >= 10) {
+    setTimeout(() => toast('⚡ CRITICAL ENERGY', 'Capacity at critical low.', 'Shift to Recovery Protocol now.', 'warn'), 1200);
+  } else if (S.energy.current < 30 && energyCurrent >= 30) {
+    setTimeout(() => toast('⚡ ENERGY LOW', 'Operational Energy below 30%.', 'Recovery recommended.', ''), 1200);
+  }
 
   // Audio feedback
   if (action.negative) {
@@ -3942,6 +4118,20 @@ function applyDecay() {
     });
   }
 
+  // ── Daily Energy Regen ──
+  ensureSignalEnergy();
+  if (S.energy.lastRegenDate !== today) {
+    S.energy.lastRegenDate = today;
+    const sleptOnTime  = yHistory.some(h => h.action?.includes('Sleep On Time') || h.actionId === 'sleepOnTime');
+    const noLateNegs   = !yHistory.some(h =>
+      (h.type === 'negative') && (h.action?.includes('Stayed Up') || h.action?.includes('Late Night'))
+    );
+    let regenAmt = 5;
+    if (sleptOnTime)      regenAmt = 25;
+    else if (noLateNegs)  regenAmt = 10;
+    S.energy.current = clamp(S.energy.current + regenAmt, 0, S.energy.max);
+  }
+
   saveState();
 }
 
@@ -4344,6 +4534,8 @@ function renderHistory(filter='today') {
     const credStr = h.credits > 0
       ? `<span class="h-credits">+₢$${h.credits.toFixed(2)}</span>`
       : h.credits < 0 ? `<span class="h-withdrawal">₢$${h.credits.toFixed(2)}</span>` : '';
+    const sigStr  = h.signal > 0  ? `<span style="color:var(--neon-cyan)">📶 +${h.signal}</span>` : '';
+    const engStr  = h.energyDelta ? `<span style="color:${h.energyDelta>0?'var(--neon-green)':'var(--text-dim)'}">⚡${h.energyDelta>0?'+':''}${h.energyDelta}</span>` : '';
     // Only show delete for non-system entries logged in the last 24 hours
     const canDelete = h.type !== 'system' && (now - d) < 24 * 60 * 60 * 1000;
     const deleteBtn = canDelete
@@ -4355,7 +4547,7 @@ function renderHistory(filter='today') {
         ${deleteBtn}
       </div>
       <div class="h-action">${h.action}</div>
-      <div class="h-effects">${h.effects ? h.effects + '  ' : ''}${xpStr} ${credStr}</div>
+      <div class="h-effects">${h.effects ? h.effects + '  ' : ''}${xpStr} ${credStr} ${sigStr} ${engStr}</div>
     </div>`;
   }).join('');
 }
@@ -5082,6 +5274,16 @@ function updateUI() {
   document.getElementById('bossProgress').textContent = getBossProgress()+'%';
   const mpctEl = document.getElementById('missionsPct');
   if (mpctEl) mpctEl.textContent = getMissionsPct()+'%';
+
+  // Signal + Energy HUD
+  ensureSignalEnergy();
+  document.getElementById('signalVal').textContent = S.signal;
+  const energyPct = Math.round((S.energy.current / S.energy.max) * 100);
+  document.getElementById('energyVal').textContent  = energyPct + '%';
+  const energyBarEl = document.getElementById('energyBar');
+  energyBarEl.style.width = energyPct + '%';
+  energyBarEl.className = 'energy-bar-fill' +
+    (S.energy.current < 10 ? ' critical' : S.energy.current < 30 ? ' low' : '');
 
   // System State UI
   renderSystemStateUI();
@@ -7554,6 +7756,7 @@ function init() {
   if (!S.currentArchetype) S.currentArchetype = 'WANDERER';
   if (!S.mvd) S.mvd = null;
   if (!S.triggerLog) S.triggerLog = [];
+  ensureSignalEnergy();
   ensureAchievements();
   ensureCombo();
   ensureStreakFreeze();
