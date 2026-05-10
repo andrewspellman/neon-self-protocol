@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v2.1</title>
+<title>NEON SELF PROTOCOL v2.2</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -102,7 +102,7 @@ body::before{
 .briefing{
   background:var(--panel);
   border:1px solid var(--panel-border);
-  border-left:3px solid var(--neon-cyan);
+  border-left:3px solid var(--briefing-accent, var(--neon-cyan));
   border-radius:var(--radius);
   padding:10px 12px;
   margin-bottom:10px;
@@ -112,12 +112,39 @@ body::before{
   line-height:1.6;
   position:relative;
   overflow:hidden;
+  transition:border-left-color 1.2s ease, background 1.2s ease;
 }
-.briefing::before{
-  content:'> DAILY BRIEF';
-  display:block;font-size:10px;
-  color:var(--neon-cyan);margin-bottom:6px;
-  letter-spacing:2px;
+.briefing-phase{
+  display:block;font-size:9px;
+  letter-spacing:3px;margin-bottom:6px;
+  font-weight:700;text-transform:uppercase;
+  color:var(--briefing-accent, var(--neon-cyan));
+  transition:color 1.2s ease;
+}
+.briefing-text{
+  display:block;
+  transition:opacity 0.4s ease;
+}
+.briefing-text.fading{opacity:0;}
+
+/* Phase-specific briefing accents (applied via JS on #briefing) */
+.briefing.phase-morning { --briefing-accent:#00c8ff; }
+.briefing.phase-afternoon{ --briefing-accent:#00aaff; }
+.briefing.phase-evening { --briefing-accent:#aa66ff; }
+.briefing.phase-night   { --briefing-accent:#3355cc; }
+.briefing.phase-deepnight{ --briefing-accent:#aa2266; }
+
+/* Phase ambient background tint on body */
+body.phase-morning   { --phase-tint: rgba(0,200,255,0.012); }
+body.phase-afternoon { --phase-tint: rgba(0,170,255,0.01); }
+body.phase-evening   { --phase-tint: rgba(170,80,255,0.018); }
+body.phase-night     { --phase-tint: rgba(20,40,120,0.025); }
+body.phase-deepnight { --phase-tint: rgba(120,0,80,0.03); }
+body[class*="phase-"]::after{
+  content:'';position:fixed;inset:0;pointer-events:none;
+  background:var(--phase-tint, transparent);
+  z-index:0;
+  transition:background 2s ease;
 }
 
 /* ===== LEVEL / XP ===== */
@@ -1527,7 +1554,10 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
         <div class="credits-badge" id="creditsBadge" onclick="showPanel('history')">₢ 0.00</div>
       </div>
     </div>
-    <div class="briefing" id="briefing">Initializing system...</div>
+    <div class="briefing" id="briefing">
+      <span class="briefing-phase" id="briefingPhase">&gt; MORNING BRIEFING</span>
+      <span class="briefing-text" id="briefingText">Initializing system...</span>
+    </div>
     <!-- System State Indicator -->
     <div id="systemStateBar" class="system-state-bar">
       <span class="state-dot" id="stateDot"></span>
@@ -2426,6 +2456,7 @@ function executeAction(action, source='button') {
 
   saveState();
   updateUI();
+  generateBriefing();
 
   // Apply combo bonuses (XP + credits) and fire notifications
   if (comboBonuses.xp > 0 || comboBonuses.credits > 0) {
@@ -2634,16 +2665,31 @@ function generateMissions() {
   const today = todayStr();
   if (S.missionsDate === today && S.missions.length === 3) return;
 
-  // Weight toward weak stats
+  const phase = getTimePhase().id;
+
+  // Time-of-day category boosts
+  const phaseBoosts = {
+    morning:   { body:3, discipline:2, grift:1 },
+    afternoon: { grift:3, discipline:2, creativity:1 },
+    evening:   { soul:3, recovery:2, family:2 },
+    night:     { discipline:2, recovery:3, soul:1 },
+    deepnight: { recovery:4, soul:2 },
+  };
+  const timeBoost = phaseBoosts[phase] || {};
+
+  // Weight toward weak stats + time of day
   const weights = [];
   for (const m of MISSION_POOL) {
     let w = 1;
     const cat = m.cat.toLowerCase();
-    if (cat === 'body' && S.stats.health < 50) w += 2;
-    if (cat === 'grift' && S.stats.focus < 50) w += 2;
-    if (cat === 'soul' && S.stats.soul < 50) w += 2;
+    // Stat-based weights
+    if (cat === 'body'       && S.stats.health  < 50) w += 2;
+    if (cat === 'grift'      && S.stats.focus   < 50) w += 2;
+    if (cat === 'soul'       && S.stats.soul    < 50) w += 2;
     if (cat === 'discipline' && S.stats.control < 50) w += 2;
     if (S.stats.corruption > 30) w += (cat === 'soul' || cat === 'discipline') ? 1 : 0;
+    // Time-of-day boost
+    if (timeBoost[cat]) w += timeBoost[cat];
     weights.push(w);
   }
 
@@ -3050,49 +3096,275 @@ function applyDecay() {
 }
 
 // ==========================================================================
-// BRIEFING GENERATOR
+// TIME-OF-DAY BRIEFING SYSTEM
 // ==========================================================================
-function generateBriefing() {
-  const {health,focus,control,soul,corruption} = S.stats;
 
-  // Use state-specific briefing override 50% of the time when in a non-nominal state
-  const state = S.currentSystemState || 'NOMINAL';
-  const cfg = STATE_CONFIG[state];
-  if (cfg && cfg.briefingOverride && Math.random() < 0.5) {
-    const overrides = cfg.briefingOverride;
-    document.getElementById('briefing').textContent = overrides[Math.floor(Math.random()*overrides.length)];
-    return;
-  }
-
-  const lines = [];
-  const statList = [{n:'health',v:health},{n:'focus',v:focus},{n:'control',v:control},{n:'soul',v:soul}];
-  const weakest = statList.sort((a,b)=>a.v-b.v)[0];
-  const openers = [`System online, Andrew.`,`Andrew. Logged in.`,`Protocol engaged, Andrew.`,`Status check complete.`];
-  lines.push(openers[Math.floor(Math.random()*openers.length)]);
-  if (corruption >= 50) {
-    lines.push(`Corruption is critical at ${corruption}. Recovery Protocol required.`);
-  } else if (corruption >= 30) {
-    lines.push(`Corruption elevated at ${corruption}. Watch your patterns.`);
-  } else if (health >= 70 && focus >= 70) {
-    lines.push(`Vitals strong. Momentum is building.`);
-  } else {
-    lines.push(`${weakest.n.charAt(0).toUpperCase()+weakest.n.slice(1)} is lagging at ${weakest.v}. Address it first.`);
-  }
-  const skills = Object.entries(S.skills);
-  const neglected = skills.sort((a,b) => a[1].xp - b[1].xp)[0];
-  const skillNames = {body:'Body',grift:'Grift',creativity:'Creativity',discipline:'Discipline',mindSoul:'Mind',family:'Family',recovery:'Recovery'};
-  const neglectedName = skillNames[neglected[0]] || neglected[0];
-  const directives = [
-    `Today's directive: move your body, list one item, keep corruption contained.`,
-    `Priority: ${neglectedName} skill is dormant. Activate it.`,
-    `Focus on one small win. Build the chain.`,
-    `The protocol is simple: act, log, recover. Repeat.`,
-    `One action forward. That's enough for now.`,
-  ];
-  lines.push(directives[Math.floor(Math.random()*directives.length)]);
-  if (S.streak > 2) lines.push(`Streak: ${S.streak} days. Don't break it.`);
-  document.getElementById('briefing').textContent = lines.join(' ');
+// Returns the current time phase object
+function getTimePhase() {
+  const h = new Date().getHours();
+  if (h >= 5  && h < 12) return { id:'morning',   label:'MORNING BRIEFING',        accent:'#00c8ff' };
+  if (h >= 12 && h < 17) return { id:'afternoon',  label:'AFTERNOON CYCLE',          accent:'#00aaff' };
+  if (h >= 17 && h < 21) return { id:'evening',    label:'EVENING PROTOCOL',         accent:'#aa66ff' };
+  if (h >= 21 && h < 24) return { id:'night',      label:'NIGHT PROTOCOL',           accent:'#3355cc' };
+  return                         { id:'deepnight',  label:'DEEP NIGHT — SYSTEM STATE', accent:'#aa2266' };
 }
+
+// Pick a random item from an array
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Build a contextual dynamic segment based on current stats
+function buildContextSegment(phase) {
+  const { health, focus, control, soul, corruption } = S.stats;
+  const state  = S.currentSystemState || 'NOMINAL';
+  const combo  = S.combo?.count || 0;
+  const streak = S.streak || 0;
+
+  // Find weakest stat
+  const statList = [{n:'Health',v:health},{n:'Focus',v:focus},{n:'Control',v:control},{n:'Soul',v:soul}];
+  const weakest  = [...statList].sort((a,b) => a.v - b.v)[0];
+
+  // Find most neglected skill (fewest total XP)
+  const skillLabels = {body:'Body',grift:'Grift',creativity:'Creativity',discipline:'Discipline',mindSoul:'Mind',family:'Family',recovery:'Recovery'};
+  const neglectedSkill = Object.entries(S.skills).sort((a,b) => (a[1].xp + a[1].level*50) - (b[1].xp + b[1].level*50))[0];
+  const neglectedName  = skillLabels[neglectedSkill[0]] || neglectedSkill[0];
+
+  // Find most active category in last 7 days
+  const week = new Date(); week.setDate(week.getDate() - 7);
+  const weekHist = (S.history||[]).filter(h => h.type==='positive' && new Date(h.time) >= week);
+  const catCounts = {};
+  weekHist.forEach(h => { catCounts[h.category] = (catCounts[h.category]||0)+1; });
+  const strongCat  = Object.entries(catCounts).sort((a,b)=>b[1]-a[1])[0]?.[0] || null;
+  const strongName = strongCat ? (skillLabels[strongCat] || strongCat) : null;
+
+  const bossProgress = getBossProgress();
+  const segments = [];
+
+  // ── Corruption — highest priority ──
+  if (corruption >= 60) {
+    segments.push(pick([
+      `Corruption critical at ${corruption}%. Immediate stabilization required.`,
+      `System integrity compromised. Corruption at ${corruption}%. Run recovery protocol now.`,
+      `${corruption}% corruption detected. This is the only priority right now.`,
+    ]));
+  } else if (corruption >= 35) {
+    segments.push(pick([
+      `Corruption elevated at ${corruption}%. Monitor patterns.`,
+      `${corruption}% corruption. Keep it contained before it compounds.`,
+      `Warning: corruption trending upward at ${corruption}%. Intervene now or later — your choice.`,
+    ]));
+  }
+
+  // ── Burnout / state ──
+  else if (state === 'BURNOUT') {
+    segments.push(pick([
+      `Burnout pattern detected. Output quality declining. Ease the load.`,
+      `You've been grinding without recovery. The signal is degrading. Slow down.`,
+      `Burnout is an output problem, not a discipline problem. Recover first.`,
+    ]));
+  }
+
+  // ── Flow state ──
+  else if (state === 'FLOW' && combo >= 5) {
+    segments.push(pick([
+      `Flow State active. ${combo}-action chain. Keep the system moving.`,
+      `Momentum is real right now. Don't interrupt it — this is the window.`,
+      `System running hot. Flow State + ${combo}-action streak. Lock in.`,
+    ]));
+  }
+
+  // ── Stat-based ──
+  else if (weakest.v < 35) {
+    segments.push(pick([
+      `${weakest.n} at ${weakest.v}%. This is your priority signal.`,
+      `${weakest.n} is critically low at ${weakest.v}. Address it before other systems.`,
+      `Weakest link: ${weakest.n} at ${weakest.v}%. The chain is only as strong as this.`,
+    ]));
+  } else if (soul < 45 && phase.id !== 'morning') {
+    segments.push(pick([
+      `Soul depleted at ${soul}%. Recovery actions take priority.`,
+      `${soul}% Soul. Internal resources are low. Recovery before output.`,
+      `The signal is quiet. Soul at ${soul}%. Replenish before you push further.`,
+    ]));
+  } else if (health < 45) {
+    segments.push(pick([
+      `Health at ${health}%. Physical systems need attention.`,
+      `Body is lagging at ${health}%. Movement is medicine.`,
+      `${health}% Health. Physical grounding is underutilized.`,
+    ]));
+  } else if (focus < 45) {
+    segments.push(pick([
+      `Focus at ${focus}%. Grift and Discipline systems may be stalling.`,
+      `${focus}% Focus. Eliminate distractions before executing.`,
+      `Scattered signal. Focus at ${focus}% — simplify your next action.`,
+    ]));
+  }
+
+  // ── Positive momentum ──
+  else if (streak >= 7 && corruption < 25) {
+    segments.push(pick([
+      `${streak}-day streak. Corruption contained. The protocol is working.`,
+      `Consistent. ${streak} days logged. Systems stable.`,
+      `${streak}-day chain. Low corruption. This is what discipline looks like.`,
+    ]));
+  } else if (strongName) {
+    segments.push(pick([
+      `${strongName} is your strongest signal this week. Build on it.`,
+      `Momentum concentrated in ${strongName}. Good. Maintain and balance.`,
+      `${strongName} leading this week. Now expand the pattern.`,
+    ]));
+  }
+
+  // ── Neglected skill ──
+  if (neglectedName && corruption < 40 && state !== 'BURNOUT') {
+    segments.push(pick([
+      `${neglectedName} skill is dormant. One action today changes that.`,
+      `${neglectedName} has been quiet. The system notices.`,
+    ]));
+  }
+
+  // ── Boss progress ──
+  if (bossProgress >= 60 && bossProgress < 100) {
+    segments.push(`Weekly boss at ${bossProgress}%. Close.`);
+  } else if (bossProgress === 100) {
+    segments.push(`Weekly boss defeated. New cycle incoming.`);
+  }
+
+  return segments.slice(0, 2).join(' ');
+}
+
+// Phase-specific openers
+const PHASE_OPENERS = {
+  morning: [
+    'Morning systems online, Andrew.',
+    'Andrew. Morning cycle active.',
+    'System boot complete.',
+    'Uplink established. Morning protocol.',
+    'Online. 0600 cycle active.',
+  ],
+  afternoon: [
+    'Afternoon cycle active.',
+    'Midday status check, Andrew.',
+    'System running. Afternoon phase.',
+    'Andrew. Afternoon uplink.',
+    'Midday signal stable.',
+  ],
+  evening: [
+    'Evening protocol active.',
+    'Day cycle winding. Evening phase.',
+    'Andrew. Evening systems online.',
+    'Shift mode: evening.',
+    'Output phase closing. Evening active.',
+  ],
+  night: [
+    'Night protocol active.',
+    'Andrew. Night cycle engaged.',
+    'Late-cycle systems online.',
+    'Night uplink. Protect tomorrow.',
+    'Night protocol. Minimal output mode.',
+  ],
+  deepnight: [
+    'Deep Night detected.',
+    'Andrew. Operating outside optimal window.',
+    'System clock: deep night.',
+    '0-dark-hundred. System strain elevated.',
+    'Anomalous session time detected.',
+  ],
+};
+
+// Phase-specific directives (time-aware)
+const PHASE_DIRECTIVES = {
+  morning: [
+    'Establish momentum before the noise begins.',
+    'Execute one meaningful action before noon.',
+    'Body and Discipline first. Everything else follows.',
+    'Set trajectory now. The morning dictates the day.',
+    'Move before you think too much.',
+    'One Grift action and one Body action. That is a winning morning.',
+  ],
+  afternoon: [
+    'Avoid passive scrolling. One focused action.',
+    'Afternoon drift is the enemy. Stay deliberate.',
+    'Midday is execution time, not planning time.',
+    'One backlog task cleared is a productive afternoon.',
+    'Avoid the 3pm collapse. Move if focus is dropping.',
+    'Maintain. Do not coast.',
+  ],
+  evening: [
+    'Soul and Recovery take priority over raw output.',
+    'The work is done or it waits. Shift to restoration.',
+    'Family, recovery, reflection. In that order.',
+    'Avoid overstimulation tonight.',
+    'Evening is for recharging, not catching up.',
+    'Close the loops that need closing. Let the rest go.',
+  ],
+  night: [
+    'Protect tomorrow\'s operating capacity.',
+    'Sleep is the highest ROI action available right now.',
+    'Avoid passive consumption loops.',
+    'Put the phone down. That is an action.',
+    'Wind down with intention. Not passively.',
+    'Tomorrow starts with how you end tonight.',
+  ],
+  deepnight: [
+    'Prioritize system shutdown and recovery.',
+    'Minimal protocol recommended. Rest now.',
+    'Control degradation risk is elevated. Shut down.',
+    'The system does not perform well past this hour. Stop.',
+    'Deep night is for sleep, not decisions.',
+  ],
+};
+
+function generateBriefing() {
+  const phase = getTimePhase();
+  const { id } = phase;
+
+  // Apply phase class to body and briefing element
+  const PHASE_IDS = ['morning','afternoon','evening','night','deepnight'];
+  const body = document.body;
+  const briefingEl = document.getElementById('briefing');
+  PHASE_IDS.forEach(p => { body.classList.remove(`phase-${p}`); briefingEl.classList.remove(`phase-${p}`); });
+  body.classList.add(`phase-${id}`);
+  briefingEl.classList.add(`phase-${id}`);
+
+  // Update phase label
+  document.getElementById('briefingPhase').textContent = `> ${phase.label}`;
+
+  // Check for system state override (40% chance when in non-nominal state)
+  const state = S.currentSystemState || 'NOMINAL';
+  const cfg   = STATE_CONFIG[state];
+  let contextText = '';
+
+  if (cfg?.briefingOverride && Math.random() < 0.4) {
+    contextText = pick(cfg.briefingOverride);
+  } else {
+    const opener    = pick(PHASE_OPENERS[id]   || PHASE_OPENERS.morning);
+    const directive = pick(PHASE_DIRECTIVES[id] || PHASE_DIRECTIVES.morning);
+    const context   = buildContextSegment(phase);
+    contextText = [opener, context, directive].filter(Boolean).join(' ');
+  }
+
+  // Fade transition
+  const textEl = document.getElementById('briefingText');
+  textEl.classList.add('fading');
+  setTimeout(() => {
+    textEl.textContent = contextText;
+    textEl.classList.remove('fading');
+  }, 380);
+}
+
+// Auto-refresh briefing when phase changes (check every minute)
+let _briefingPhaseCache = null;
+function startBriefingClock() {
+  setInterval(() => {
+    const currentPhase = getTimePhase().id;
+    if (currentPhase !== _briefingPhaseCache) {
+      _briefingPhaseCache = currentPhase;
+      generateBriefing();
+    }
+  }, 60000);
+}
+
+
 
 // ==========================================================================
 // WITHDRAW
@@ -4773,7 +5045,9 @@ function init() {
   updateUI();
   applyVisualVibe();
   updateCaffeineMeter();
+  _briefingPhaseCache = getTimePhase().id;
   generateBriefing();
+  startBriefingClock();
   // Restore MVD calm UI if still active
   if (S.mvd && S.mvd.active && S.mvd.date === todayStr() && !S.mvd.allDone && S.mvd.dismissed !== todayStr()) {
     document.body.classList.add('mvd-active');
