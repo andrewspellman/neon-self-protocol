@@ -1,0 +1,4787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NEON SELF PROTOCOL v2.1</title>
+<style>
+/* ===== FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
+
+/* ===== VARIABLES ===== */
+:root {
+  --bg: #050810;
+  --bg2: #080d18;
+  --bg3: #0d1525;
+  --panel: rgba(10, 20, 40, 0.85);
+  --panel-border: rgba(0, 200, 255, 0.15);
+  --neon-cyan: #00c8ff;
+  --neon-green: #00ff88;
+  --neon-red: #ff2244;
+  --neon-orange: #ff6a00;
+  --neon-purple: #aa44ff;
+  --neon-yellow: #ffdd00;
+  --neon-pink: #ff44aa;
+  --text: #c8e0f0;
+  --text-dim: #4a6080;
+  --text-bright: #e8f4ff;
+  --health-color: #00ff88;
+  --focus-color: #00c8ff;
+  --control-color: #aa44ff;
+  --soul-color: #ff44aa;
+  --corrupt-color: #ff2244;
+  --xp-color: #ffdd00;
+  --glow-cyan: 0 0 8px rgba(0,200,255,0.6), 0 0 20px rgba(0,200,255,0.2);
+  --glow-green: 0 0 8px rgba(0,255,136,0.6), 0 0 20px rgba(0,255,136,0.2);
+  --glow-red: 0 0 8px rgba(255,34,68,0.6), 0 0 20px rgba(255,34,68,0.2);
+  --glow-purple: 0 0 8px rgba(170,68,255,0.6), 0 0 20px rgba(170,68,255,0.2);
+  --radius: 6px;
+  --transition: 0.15s ease;
+}
+
+/* ===== RESET ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  font-size:16px;
+  min-height:100vh;
+  overflow-x:hidden;
+  padding-top:env(safe-area-inset-top, 16px);
+  padding-bottom:calc(100px + env(safe-area-inset-bottom, 16px));
+}
+
+/* Scanline overlay */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);
+  pointer-events:none;z-index:9999;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--neon-cyan);border-radius:2px}
+
+/* ===== LAYOUT ===== */
+#app{max-width:480px;margin:0 auto;padding:0 12px}
+
+/* ===== HEADER ===== */
+#header{
+  position:sticky;top:0;z-index:100;
+  background:linear-gradient(180deg,var(--bg) 80%,transparent);
+  padding:16px 14px 6px;
+}
+.header-top{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;
+}
+.logo{
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:900;
+  letter-spacing:3px;color:var(--neon-cyan);
+  text-shadow:var(--glow-cyan);
+}
+.header-right{display:flex;gap:8px;align-items:center}
+.streak-badge{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-yellow);border:1px solid rgba(255,221,0,0.3);
+  padding:2px 8px;border-radius:3px;
+  background:rgba(255,221,0,0.05);
+}
+.credits-badge{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-green);border:1px solid rgba(0,255,136,0.3);
+  padding:2px 8px;border-radius:3px;
+  background:rgba(0,255,136,0.05);
+  cursor:pointer;
+}
+
+/* ===== BRIEFING ===== */
+.briefing{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-left:3px solid var(--neon-cyan);
+  border-radius:var(--radius);
+  padding:10px 12px;
+  margin-bottom:10px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px;
+  color:var(--text);
+  line-height:1.6;
+  position:relative;
+  overflow:hidden;
+}
+.briefing::before{
+  content:'> DAILY BRIEF';
+  display:block;font-size:10px;
+  color:var(--neon-cyan);margin-bottom:6px;
+  letter-spacing:2px;
+}
+
+/* ===== LEVEL / XP ===== */
+.level-row{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:8px;
+}
+.level-badge{
+  font-family:'Orbitron',monospace;font-size:20px;font-weight:900;
+  color:var(--neon-yellow);text-shadow:0 0 12px rgba(255,221,0,0.5);
+  min-width:50px;
+}
+.level-info{flex:1}
+.rank-name{
+  font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;
+  color:var(--neon-cyan);letter-spacing:1px;
+}
+.xp-row{
+  display:flex;align-items:center;gap:6px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);
+}
+.xp-bar-wrap{
+  flex:1;height:6px;background:rgba(255,255,255,0.05);
+  border-radius:3px;overflow:hidden;
+}
+.xp-bar-fill{
+  height:100%;background:linear-gradient(90deg,var(--neon-yellow),#ff8800);
+  border-radius:3px;transition:width 0.4s ease;
+  box-shadow:0 0 6px rgba(255,221,0,0.4);
+}
+
+/* ===== STAT BARS ===== */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.stat-row{
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:var(--radius);padding:6px 8px;
+}
+.stat-header{display:flex;justify-content:space-between;
+  font-size:11px;font-weight:600;letter-spacing:1px;margin-bottom:4px;}
+.stat-label{color:var(--text-dim)}
+.stat-val{font-family:'Share Tech Mono',monospace}
+.stat-pct{font-size:9px;opacity:0.6;margin-left:1px}
+.stat-bar{
+  height:6px;
+  background:rgba(255,255,255,0.05);
+  border-radius:3px;
+  overflow:hidden;
+}
+.stat-fill{
+  height:100%;
+  border-radius:3px;
+  transition:width 0.4s ease;
+}
+.stat-bar-label{ display:none; } /* replaced by stat-val in header */
+.s-health .stat-val,.s-health .stat-fill{color:var(--health-color);background:var(--health-color);box-shadow:0 0 4px rgba(0,255,136,0.4)}
+.s-focus .stat-val,.s-focus .stat-fill{color:var(--focus-color);background:var(--focus-color);box-shadow:0 0 4px rgba(0,200,255,0.4)}
+.s-control .stat-val,.s-control .stat-fill{color:var(--control-color);background:var(--control-color);box-shadow:0 0 4px rgba(170,68,255,0.4)}
+.s-soul .stat-val,.s-soul .stat-fill{color:var(--soul-color);background:var(--soul-color);box-shadow:0 0 4px rgba(255,68,170,0.4)}
+.s-corrupt{grid-column:1/-1}
+.s-corrupt .stat-val,.s-corrupt .stat-fill{color:var(--corrupt-color);background:var(--corrupt-color);box-shadow:0 0 4px rgba(255,34,68,0.4)}
+.s-corrupt .stat-header{color:var(--neon-red)}
+
+/* ===== META ROW ===== */
+.meta-row{
+  display:flex;gap:8px;margin-bottom:12px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+}
+.meta-pill{
+  flex:1;text-align:center;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--radius);padding:5px 4px;
+}
+.meta-pill .val{font-size:14px;font-weight:700;display:block}
+.meta-pill .lbl{color:var(--text-dim);letter-spacing:1px;font-size:9px}
+.meta-pill.actions .val{color:var(--neon-cyan)}
+.meta-pill.boss .val{color:var(--neon-purple)}
+
+/* ===== NAV TABS ===== */
+#nav{
+  position:sticky;top:0;z-index:99;
+  width:100%;
+  background:rgba(5,8,16,0.97);
+  border-bottom:1px solid rgba(0,200,255,0.15);
+  border-top:1px solid rgba(0,200,255,0.08);
+  backdrop-filter:blur(10px);
+  display:flex;overflow-x:auto;
+  scrollbar-width:none;
+  padding:4px 6px 6px;gap:2px;
+  margin-bottom:12px;
+}
+#nav::-webkit-scrollbar{display:none}
+.nav-btn{
+  flex:0 0 auto;
+  padding:6px 10px;
+  font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-dim);background:transparent;
+  border:1px solid transparent;border-radius:4px;
+  cursor:pointer;transition:all var(--transition);
+  white-space:nowrap;
+}
+.nav-btn:hover{color:var(--neon-cyan);border-color:rgba(0,200,255,0.2)}
+.nav-btn.active{
+  color:var(--neon-cyan);
+  background:rgba(0,200,255,0.08);
+  border-color:rgba(0,200,255,0.3);
+  text-shadow:var(--glow-cyan);
+}
+
+/* ===== PANELS ===== */
+.panel{display:none;padding:0 2px;}
+.panel.active{display:block;}
+.panel-title{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+  letter-spacing:2px;color:var(--neon-cyan);
+  padding:12px 0 8px;text-transform:uppercase;
+  border-bottom:1px solid rgba(0,200,255,0.1);
+  margin-bottom:12px;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.actions-grid{display:flex;flex-direction:column;gap:8px}
+.action-btn{
+  display:flex;alignItems:center;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius);
+  padding:14px 16px;cursor:pointer;
+  transition:all var(--transition);
+  text-align:left;width:100%;
+  position:relative;overflow:hidden;
+  margin-bottom:10px;
+}
+.action-btn::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+}
+.action-btn:active{transform:scale(0.98);filter:brightness(1.2)}
+.action-btn .btn-icon{font-size:22px;margin-right:12px;flex-shrink:0}
+.action-btn .btn-body{flex:1}
+.action-btn .btn-name{
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;
+  color:var(--text-bright);letter-spacing:0.5px;
+}
+.action-btn .btn-fx{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:2px;
+}
+.action-btn .btn-reward{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-yellow);
+  background:rgba(255,221,0,0.07);
+  border:1px solid rgba(255,221,0,0.2);
+  border-radius:3px;padding:2px 6px;
+  flex-shrink:0;margin-left:8px;
+}
+
+/* Category colors */
+.cat-body::before{background:var(--health-color)}
+.cat-body:hover{border-color:rgba(0,255,136,0.3);box-shadow:0 0 12px rgba(0,255,136,0.05)}
+.cat-food::before{background:var(--neon-orange)}
+.cat-food:hover{border-color:rgba(255,106,0,0.3)}
+.cat-grift::before{background:var(--focus-color)}
+.cat-grift:hover{border-color:rgba(0,200,255,0.3)}
+.cat-creativity::before{background:var(--neon-purple)}
+.cat-creativity:hover{border-color:rgba(170,68,255,0.3)}
+.cat-soul::before{background:var(--soul-color)}
+.cat-soul:hover{border-color:rgba(255,68,170,0.3)}
+.cat-discipline::before{background:var(--neon-yellow)}
+.cat-discipline:hover{border-color:rgba(255,221,0,0.3)}
+.cat-corrupt::before{background:var(--corrupt-color)}
+.cat-corrupt:hover{border-color:rgba(255,34,68,0.3)}
+.cat-negative::before{background:var(--corrupt-color)}
+.cat-negative:hover{border-color:rgba(255,34,68,0.3)}
+
+/* ===== MISSIONS ===== */
+.mission-card{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius);
+  padding:12px 14px;margin-bottom:8px;
+  transition:all var(--transition);
+}
+.mission-card.completed{
+  opacity:0.5;border-color:rgba(0,255,136,0.2);
+}
+.mission-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.mission-name{
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;
+  color:var(--text-bright);
+}
+.mission-cat{
+  font-size:10px;font-family:'Share Tech Mono',monospace;
+  color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;
+  margin-top:3px;
+}
+.mission-reward{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-yellow);white-space:nowrap;
+}
+.mission-complete-btn{
+  display:block;width:100%;margin-top:10px;
+  padding:8px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  color:var(--neon-green);background:rgba(0,255,136,0.07);
+  border:1px solid rgba(0,255,136,0.25);border-radius:4px;
+  cursor:pointer;transition:all var(--transition);
+}
+.mission-complete-btn:hover{background:rgba(0,255,136,0.12);box-shadow:var(--glow-green)}
+.mission-done-label{
+  display:block;width:100%;margin-top:10px;
+  padding:8px;font-family:'Share Tech Mono',monospace;font-size:11px;
+  text-align:center;color:var(--text-dim);
+  letter-spacing:2px;
+}
+
+/* ===== BOSS PANEL ===== */
+.boss-card{
+  background:var(--panel);
+  border:1px solid rgba(255,34,68,0.2);
+  border-radius:var(--radius);padding:16px;
+  margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.boss-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,34,68,0.05) 0%,transparent 70%);
+  pointer-events:none;
+}
+.boss-name{
+  font-family:'Orbitron',monospace;font-size:16px;font-weight:900;
+  color:var(--neon-red);text-shadow:var(--glow-red);
+  margin-bottom:4px;
+}
+.boss-week{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);letter-spacing:2px;margin-bottom:14px;
+}
+.boss-req{margin-bottom:10px}
+.boss-req-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.boss-req-label{
+  font-size:12px;font-weight:600;letter-spacing:0.5px;
+  color:var(--text);width:110px;flex-shrink:0;
+}
+.boss-req-bar{
+  flex:1;height:8px;background:rgba(255,255,255,0.05);
+  border-radius:4px;overflow:hidden;
+}
+.boss-req-fill{
+  height:100%;border-radius:4px;
+  background:var(--neon-cyan);
+  transition:width 0.4s ease;
+  box-shadow:0 0 4px rgba(0,200,255,0.3);
+}
+.boss-req-val{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);min-width:36px;text-align:right;
+}
+.boss-reward-info{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-yellow);margin-top:12px;
+  padding:8px;background:rgba(255,221,0,0.05);
+  border:1px solid rgba(255,221,0,0.15);border-radius:4px;
+}
+.boss-complete-msg{
+  text-align:center;padding:20px;
+  font-family:'Orbitron',monospace;font-size:14px;
+  color:var(--neon-green);text-shadow:var(--glow-green);
+}
+
+/* ===== SKILLS GRID ===== */
+.skills-section{margin-bottom:16px}
+.skills-section-title{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--text-dim);
+  margin-bottom:8px;
+  text-transform:uppercase;
+}
+.skills-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.skill-card{
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:var(--radius);padding:8px 10px;
+}
+.skill-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.skill-level{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-cyan);margin-bottom:4px;
+}
+.skill-xp-bar{height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
+.skill-xp-fill{height:100%;background:var(--neon-cyan);border-radius:2px;transition:width 0.4s}
+
+/* ===== CUSTOM ACTION ===== */
+.form-group{margin-bottom:12px}
+.form-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--neon-cyan);
+  display:block;margin-bottom:6px;text-transform:uppercase;
+}
+.form-input,.form-select,.form-textarea{
+  width:100%;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(0,200,255,0.2);
+  border-radius:var(--radius);
+  padding:10px 12px;
+  font-family:'Rajdhani',sans-serif;font-size:14px;
+  color:var(--text-bright);
+  outline:none;
+  transition:border-color var(--transition);
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{
+  border-color:rgba(0,200,255,0.5);
+  box-shadow:0 0 0 2px rgba(0,200,255,0.05);
+}
+.form-select option{background:var(--bg3);color:var(--text-bright)}
+.effort-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.effort-btn{
+  padding:8px 4px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;
+  text-align:center;background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);border-radius:4px;
+  cursor:pointer;transition:all var(--transition);color:var(--text-dim);
+}
+.effort-btn.active{
+  background:rgba(0,200,255,0.1);border-color:rgba(0,200,255,0.4);
+  color:var(--neon-cyan);
+}
+.polarity-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.polarity-btn{
+  padding:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;
+  text-align:center;background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);border-radius:4px;
+  cursor:pointer;transition:all var(--transition);color:var(--text-dim);
+}
+.polarity-btn.active-pos{background:rgba(0,255,136,0.1);border-color:rgba(0,255,136,0.4);color:var(--neon-green)}
+.polarity-btn.active-neg{background:rgba(255,34,68,0.1);border-color:rgba(255,34,68,0.4);color:var(--neon-red)}
+.submit-btn{
+  width:100%;padding:14px;
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--bg);background:var(--neon-cyan);
+  border:none;border-radius:var(--radius);
+  cursor:pointer;transition:all var(--transition);
+  box-shadow:var(--glow-cyan);
+}
+.submit-btn:hover{filter:brightness(1.1)}
+.submit-btn:active{transform:scale(0.98)}
+
+/* ===== HISTORY ===== */
+.filter-row{display:flex;gap:6px;margin-bottom:12px}
+.filter-btn{
+  flex:1;padding:7px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:1px;text-align:center;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  border-radius:4px;cursor:pointer;color:var(--text-dim);
+  transition:all var(--transition);
+}
+.filter-btn.active{background:rgba(0,200,255,0.08);border-color:rgba(0,200,255,0.3);color:var(--neon-cyan)}
+.history-list{max-height:400px;overflow-y:auto}
+.history-entry{
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  padding:8px 4px;
+  font-family:'Share Tech Mono',monospace;
+}
+.history-entry .h-time{font-size:9px;color:var(--text-dim)}
+.history-entry .h-action{font-size:12px;color:var(--text-bright);margin:2px 0}
+.history-entry .h-effects{font-size:10px;color:var(--text-dim)}
+.history-entry .h-credits{color:var(--neon-green)}
+.history-entry .h-withdrawal{color:var(--neon-red)}
+
+/* ===== BACKUP / CREDITS ===== */
+.backup-btn{
+  display:block;width:100%;padding:12px;
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:var(--radius);
+  cursor:pointer;color:var(--text);
+  transition:all var(--transition);
+  margin-bottom:8px;text-align:center;
+}
+.backup-btn:hover{background:rgba(255,255,255,0.06)}
+.backup-btn.danger{color:var(--neon-red);border-color:rgba(255,34,68,0.2)}
+.backup-btn.danger:hover{background:rgba(255,34,68,0.07)}
+.withdraw-section{
+  background:var(--panel);
+  border:1px solid rgba(0,255,136,0.15);
+  border-radius:var(--radius);
+  padding:14px;margin-bottom:16px;
+}
+.withdraw-title{
+  font-family:'Orbitron',monospace;font-size:12px;
+  color:var(--neon-green);margin-bottom:12px;letter-spacing:1px;
+}
+.credits-big{
+  font-family:'Orbitron',monospace;font-size:28px;font-weight:900;
+  color:var(--neon-green);text-shadow:var(--glow-green);
+  margin-bottom:12px;
+}
+.inline-input{
+  display:flex;gap:8px;
+}
+.inline-input input{
+  flex:1;background:rgba(255,255,255,0.03);
+  border:1px solid rgba(0,255,136,0.2);border-radius:4px;
+  padding:8px 10px;color:var(--text-bright);
+  font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;
+}
+.inline-input input:focus{border-color:rgba(0,255,136,0.4)}
+.withdraw-btn{
+  padding:8px 14px;
+  font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;
+  color:var(--bg);background:var(--neon-green);
+  border:none;border-radius:4px;cursor:pointer;
+  transition:all var(--transition);
+}
+.withdraw-btn:hover{filter:brightness(1.1)}
+
+/* ===== NOTIFICATION TOAST ===== */
+#toast{
+  position:fixed;top:16px;left:50%;
+  transform:translateX(-50%) translateY(-120px);
+  max-width:360px;width:92%;z-index:9998;
+  background:rgba(4,12,26,0.96);
+  backdrop-filter:blur(12px);
+  border:1px solid var(--neon-cyan);
+  border-radius:8px;
+  padding:0;
+  box-shadow:var(--glow-cyan),0 12px 40px rgba(0,0,0,0.9);
+  transition:transform 0.28s cubic-bezier(0.22,1,0.36,1), opacity 0.28s ease;
+  pointer-events:none;
+  opacity:0;
+  overflow:hidden;
+}
+#toast.show{
+  transform:translateX(-50%) translateY(0);
+  opacity:1;
+}
+#toast.hiding{
+  opacity:0;
+  transform:translateX(-50%) translateY(-16px);
+  transition:opacity 0.4s ease, transform 0.4s ease;
+}
+#toast .toast-inner{
+  padding:12px 14px 11px;
+}
+#toast .toast-bar{
+  height:2px;
+  background:var(--neon-cyan);
+  box-shadow:var(--glow-cyan);
+  animation:toastBar 3.5s linear forwards;
+}
+#toast .toast-action{
+  font-family:'Orbitron',monospace;font-size:12px;font-weight:700;
+  letter-spacing:1.5px;color:var(--text-bright);
+  margin-bottom:6px;
+}
+#toast .toast-rewards{
+  display:flex;flex-wrap:wrap;gap:6px;
+  margin-bottom:4px;
+}
+#toast .toast-chip{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  padding:2px 8px;border-radius:3px;
+  background:rgba(0,200,255,0.1);
+  border:1px solid rgba(0,200,255,0.25);
+  color:var(--neon-cyan);
+}
+#toast .toast-chip.xp{background:rgba(255,221,0,0.1);border-color:rgba(255,221,0,0.25);color:var(--neon-yellow);}
+#toast .toast-chip.credit{background:rgba(0,255,136,0.1);border-color:rgba(0,255,136,0.25);color:var(--neon-green);}
+#toast .toast-chip.warn{background:rgba(255,106,0,0.1);border-color:rgba(255,106,0,0.25);color:var(--neon-orange);}
+#toast .toast-chip.bad{background:rgba(255,34,68,0.1);border-color:rgba(255,34,68,0.25);color:var(--neon-red);}
+#toast .toast-effects{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);line-height:1.5;
+}
+#toast.error{border-color:var(--neon-red);box-shadow:var(--glow-red),0 12px 40px rgba(0,0,0,0.9);}
+#toast.error .toast-bar{background:var(--neon-red);}
+#toast.error .toast-chip{background:rgba(255,34,68,0.1);border-color:rgba(255,34,68,0.25);color:var(--neon-red);}
+#toast.warn{border-color:var(--neon-orange);box-shadow:0 0 8px rgba(255,106,0,0.4),0 12px 40px rgba(0,0,0,0.9);}
+#toast.warn .toast-bar{background:var(--neon-orange);}
+#toast.success{border-color:var(--neon-green);box-shadow:var(--glow-green),0 12px 40px rgba(0,0,0,0.9);}
+#toast.success .toast-bar{background:var(--neon-green);}
+@keyframes toastBar{from{width:100%}to{width:0%}}
+
+/* ===== SYSTEM STATE ===== */
+.system-state-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 12px;margin-bottom:8px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:5px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  transition:all 0.6s ease;
+}
+.state-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--neon-cyan);
+  box-shadow:0 0 6px var(--neon-cyan);
+  flex-shrink:0;
+  transition:background 0.6s, box-shadow 0.6s;
+}
+.state-label{color:var(--text-dim);letter-spacing:1px;}
+.state-name{font-weight:700;letter-spacing:2px;color:var(--neon-cyan);transition:color 0.6s;}
+.state-effect{color:var(--text-dim);font-size:9px;margin-left:auto;letter-spacing:0.5px;}
+body.state-FLOW{--panel-border:rgba(0,255,136,0.2);}
+body.state-FLOW #systemStateBar{background:rgba(0,255,136,0.05);border-color:rgba(0,255,136,0.2);}
+body.state-FLOW .state-dot{background:var(--neon-green);box-shadow:0 0 10px var(--neon-green);}
+body.state-FLOW .state-name{color:var(--neon-green);}
+body.state-FLOW #header{filter:brightness(1.08);}
+body.state-FLOW .briefing{border-left-color:var(--neon-green);}
+body.state-BURNOUT{--panel-border:rgba(255,106,0,0.15);}
+body.state-BURNOUT #systemStateBar{background:rgba(255,106,0,0.05);border-color:rgba(255,106,0,0.2);}
+body.state-BURNOUT .state-dot{background:var(--neon-orange);box-shadow:0 0 8px var(--neon-orange);}
+body.state-BURNOUT .state-name{color:var(--neon-orange);}
+body.state-BURNOUT #header{filter:brightness(0.88) saturate(0.8);}
+body.state-BURNOUT .briefing{border-left-color:var(--neon-orange);}
+body.state-CORRUPTED{--panel-border:rgba(255,34,68,0.2);}
+body.state-CORRUPTED #systemStateBar{background:rgba(255,34,68,0.07);border-color:rgba(255,34,68,0.3);}
+body.state-CORRUPTED .state-dot{background:var(--neon-red);box-shadow:0 0 10px var(--neon-red);animation:pulse 1.2s infinite;}
+body.state-CORRUPTED .state-name{color:var(--neon-red);}
+body.state-CORRUPTED #header{filter:brightness(0.9) hue-rotate(8deg);}
+body.state-CORRUPTED .briefing{border-left-color:var(--neon-red);background:rgba(255,34,68,0.04);}
+body.state-DISCIPLINE{--panel-border:rgba(255,221,0,0.2);}
+body.state-DISCIPLINE #systemStateBar{background:rgba(255,221,0,0.05);border-color:rgba(255,221,0,0.2);}
+body.state-DISCIPLINE .state-dot{background:var(--neon-yellow);box-shadow:0 0 8px var(--neon-yellow);}
+body.state-DISCIPLINE .state-name{color:var(--neon-yellow);}
+body.state-DISCIPLINE #header{filter:brightness(1.04);}
+body.state-DISCIPLINE .briefing{border-left-color:var(--neon-yellow);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ===== ACHIEVEMENT NOTIFICATION ===== */
+.achieve-notif{
+  margin:0 12px;margin-top:12px;
+  background:rgba(4,12,26,0.97);
+  border:1px solid #ffdd00;
+  border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 0 20px rgba(255,221,0,0.25),0 12px 40px rgba(0,0,0,0.9);
+  transform:translateY(-110%);
+  transition:transform 0.4s cubic-bezier(0.22,1,0.36,1);
+  position:relative;
+}
+.achieve-notif.show{transform:translateY(0);}
+.achieve-notif.hiding{transform:translateY(-110%);transition:transform 0.35s ease-in;}
+.achieve-notif-glow{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,221,0,0.06),transparent);
+  animation:achieveShimmer 2s ease-in-out infinite;
+}
+@keyframes achieveShimmer{
+  0%{transform:translateX(-100%)}
+  100%{transform:translateX(200%)}
+}
+.achieve-notif-inner{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;
+}
+.achieve-notif-icon{font-size:28px;flex-shrink:0;}
+.achieve-notif-body{flex:1}
+.achieve-notif-label{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:3px;color:#ffdd00;margin-bottom:2px;
+}
+.achieve-notif-name{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+  color:#e8f4ff;letter-spacing:1px;
+}
+.achieve-notif-desc{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:#4a6080;margin-top:3px;
+}
+/* Rarity overrides */
+.achieve-notif.rare{border-color:#aa44ff;box-shadow:0 0 20px rgba(170,68,255,0.3),0 12px 40px rgba(0,0,0,0.9);}
+.achieve-notif.rare .achieve-notif-label{color:#aa44ff;}
+.achieve-notif.legendary{border-color:#ff44aa;box-shadow:0 0 24px rgba(255,68,170,0.4),0 0 60px rgba(255,221,0,0.1),0 12px 40px rgba(0,0,0,0.9);}
+.achieve-notif.legendary .achieve-notif-label{color:#ff44aa;}
+.achieve-notif.hidden{border-color:#00c8ff;box-shadow:0 0 20px rgba(0,200,255,0.3),0 12px 40px rgba(0,0,0,0.9);}
+.achieve-notif.hidden .achieve-notif-label{color:#00c8ff;}
+
+/* ===== ACHIEVEMENT ARCHIVE ===== */
+.achieve-stats-row{
+  display:flex;gap:8px;margin-bottom:16px;
+}
+.achieve-stat-pill{
+  flex:1;text-align:center;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:6px;padding:8px 4px;
+}
+.achieve-stat-pill .val{
+  font-family:'Orbitron',monospace;font-size:16px;font-weight:700;
+  color:#ffdd00;display:block;
+}
+.achieve-stat-pill .lbl{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:#4a6080;letter-spacing:1px;
+}
+.achieve-card{
+  display:flex;align-items:center;gap:12px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:6px;padding:12px 14px;
+  margin-bottom:8px;
+  transition:all 0.2s;
+}
+.achieve-card.earned{border-color:rgba(255,221,0,0.25);background:rgba(255,221,0,0.03);}
+.achieve-card.earned.rare{border-color:rgba(170,68,255,0.3);background:rgba(170,68,255,0.04);}
+.achieve-card.earned.legendary{border-color:rgba(255,68,170,0.35);background:rgba(255,68,170,0.04);}
+.achieve-card.earned.hidden{border-color:rgba(0,200,255,0.3);background:rgba(0,200,255,0.04);}
+.achieve-card.locked{opacity:0.45;}
+.achieve-card-icon{font-size:22px;flex-shrink:0;}
+.achieve-card-body{flex:1;min-width:0;}
+.achieve-card-name{
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  color:#e8f4ff;
+}
+.achieve-card-desc{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:#4a6080;margin-top:2px;line-height:1.5;
+}
+.achieve-card-meta{
+  text-align:right;flex-shrink:0;
+}
+.achieve-rarity-badge{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:1px;padding:2px 6px;border-radius:3px;
+  display:inline-block;margin-bottom:4px;
+}
+.rb-common{background:rgba(255,221,0,0.1);color:#ffdd00;border:1px solid rgba(255,221,0,0.2);}
+.rb-uncommon{background:rgba(0,200,255,0.1);color:#00c8ff;border:1px solid rgba(0,200,255,0.2);}
+.rb-rare{background:rgba(170,68,255,0.1);color:#aa44ff;border:1px solid rgba(170,68,255,0.2);}
+.rb-legendary{background:rgba(255,68,170,0.1);color:#ff44aa;border:1px solid rgba(255,68,170,0.2);}
+.rb-hidden{background:rgba(0,200,255,0.08);color:#00c8ff;border:1px solid rgba(0,200,255,0.15);}
+.achieve-date{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:#4a6080;display:block;
+}
+.achieve-section-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:#4a6080;text-transform:uppercase;
+  margin:16px 0 8px;display:flex;align-items:center;gap:8px;
+}
+.achieve-section-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);}
+
+/* ================================================================
+   REACTIVE VISUAL EVOLUTION
+   CSS class toggles on <body> driven by stat values + system state
+   Priority order: corrupt-hi > corrupt-lo > flow > soul-hi > discipline > burnout
+   ================================================================ */
+
+/* ── Shared transition for all vibe switches ── */
+body{transition:filter 0.8s ease, background-color 0.8s ease;}
+#app{transition:filter 0.8s ease;}
+
+/* ─────────────────────────────────────────────
+   CORRUPTION LOW (35–59): warm warning tone
+───────────────────────────────────────────── */
+body.vibe-corrupt-lo{
+  --panel-border: rgba(255,34,68,0.18);
+  --neon-cyan: #e060ff;
+}
+body.vibe-corrupt-lo body::before{
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,20,60,0.04) 2px,rgba(255,20,60,0.04) 4px);
+}
+body.vibe-corrupt-lo #header{
+  filter:hue-rotate(18deg) saturate(1.15);
+}
+body.vibe-corrupt-lo .briefing{
+  border-left-color:#cc3355;
+  background:rgba(200,20,40,0.04);
+}
+body.vibe-corrupt-lo .logo{
+  color:#e060ff;
+  text-shadow:0 0 8px rgba(220,50,255,0.5);
+}
+
+/* ─────────────────────────────────────────────
+   CORRUPTION HIGH (60+): glitch + magenta distortion
+───────────────────────────────────────────── */
+body.vibe-corrupt-hi{
+  --panel-border: rgba(255,34,68,0.3);
+  --neon-cyan: #ff22aa;
+  --bg: #080408;
+}
+body.vibe-corrupt-hi #app{
+  filter:hue-rotate(30deg) saturate(1.3) contrast(1.05);
+}
+body.vibe-corrupt-hi .briefing{
+  border-left-color:#ff2244;
+  background:rgba(255,20,60,0.06);
+  color:#ffaacc;
+}
+body.vibe-corrupt-hi .logo{
+  animation:glitchLogo 3.5s infinite;
+  color:#ff22aa;
+  text-shadow:0 0 12px rgba(255,34,170,0.7);
+}
+body.vibe-corrupt-hi .xp-bar-fill{
+  background:linear-gradient(90deg,#ff2244,#cc00aa) !important;
+}
+/* Glitch scanline intensifies */
+body.vibe-corrupt-hi::before{
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,20,60,0.09) 2px,rgba(255,20,60,0.09) 4px) !important;
+}
+/* Glitch shift layer on header */
+body.vibe-corrupt-hi #header::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  animation:glitchShift 4s infinite;
+  background:linear-gradient(transparent 30%,rgba(255,0,100,0.04) 50%,transparent 70%);
+  mix-blend-mode:screen;
+}
+@keyframes glitchLogo{
+  0%,90%,100%{transform:none;text-shadow:0 0 12px rgba(255,34,170,0.7);}
+  91%{transform:skewX(-8deg) translateX(3px);text-shadow:-3px 0 rgba(0,255,200,0.6),3px 0 rgba(255,0,100,0.6);}
+  93%{transform:skewX(5deg) translateX(-2px);text-shadow:2px 0 rgba(0,255,200,0.5),-2px 0 rgba(255,0,100,0.5);}
+  95%{transform:none;}
+  96%{transform:translateX(-3px);filter:brightness(1.4);}
+  98%{transform:none;filter:none;}
+}
+@keyframes glitchShift{
+  0%,88%,100%{opacity:0;transform:translateY(0);}
+  89%{opacity:1;transform:translateY(-4px);}
+  91%{opacity:0;transform:translateY(8px);}
+  93%{opacity:1;transform:translateY(-2px);}
+  95%{opacity:0;}
+}
+/* Stat bars go red-tinted in corrupt-hi */
+body.vibe-corrupt-hi .stat-fill{filter:hue-rotate(120deg);}
+body.vibe-corrupt-hi .s-health .stat-fill,
+body.vibe-corrupt-hi .s-focus .stat-fill{filter:hue-rotate(160deg);}
+
+/* ─────────────────────────────────────────────
+   HIGH SOUL (70+): calm, warm, soft presence
+───────────────────────────────────────────── */
+body.vibe-soul-hi{
+  --panel-border: rgba(255,68,170,0.15);
+  --transition: 0.25s ease;
+}
+body.vibe-soul-hi #app{
+  filter:saturate(0.92) brightness(0.97);
+}
+body.vibe-soul-hi .briefing{
+  border-left-color:#ff44aa;
+  background:rgba(255,68,170,0.03);
+}
+body.vibe-soul-hi .stat-fill{transition:width 0.7s ease !important;}
+body.vibe-soul-hi .action-btn{transition:all 0.25s ease !important;}
+body.vibe-soul-hi .xp-bar-fill{
+  background:linear-gradient(90deg,#ff44aa,#ffdd00) !important;
+  box-shadow:0 0 8px rgba(255,68,170,0.35) !important;
+}
+body.vibe-soul-hi .logo{
+  color:#ff44aa;
+  text-shadow:0 0 12px rgba(255,68,170,0.4);
+  transition:all 0.8s ease;
+}
+
+/* ─────────────────────────────────────────────
+   HIGH DISCIPLINE (control ≥65 + discipline skill ≥4):
+   geometric, sharp, no-nonsense
+───────────────────────────────────────────── */
+body.vibe-discipline{
+  --panel-border: rgba(255,221,0,0.2);
+  --transition: 0.1s ease;
+  --radius: 4px;
+}
+body.vibe-discipline .action-btn{
+  border-radius:3px !important;
+  border-width:1px !important;
+  transition:all 0.1s ease !important;
+}
+body.vibe-discipline .stat-bar{border-radius:2px !important;}
+body.vibe-discipline .stat-fill{border-radius:2px !important;transition:width 0.2s ease !important;}
+body.vibe-discipline #header{
+  border-bottom:1px solid rgba(255,221,0,0.15);
+  filter:saturate(0.85) contrast(1.05);
+}
+body.vibe-discipline .briefing{border-left-color:#ffdd00;}
+body.vibe-discipline .logo{
+  color:#ffdd00;
+  text-shadow:0 0 6px rgba(255,221,0,0.4);
+  letter-spacing:4px;
+}
+
+/* ─────────────────────────────────────────────
+   FLOW STATE: bright neon, enhanced glow, active motion
+───────────────────────────────────────────── */
+body.vibe-flow{
+  --panel-border: rgba(0,255,136,0.2);
+  --transition: 0.12s ease;
+}
+body.vibe-flow #app{
+  filter:saturate(1.2) brightness(1.06);
+}
+body.vibe-flow .action-btn:hover{
+  box-shadow:0 0 16px rgba(0,255,136,0.12) !important;
+  transform:translateY(-1px) scale(1.01) !important;
+}
+body.vibe-flow .xp-bar-fill{
+  animation:flowXP 2.5s linear infinite;
+  background:linear-gradient(90deg,#00ff88,#00c8ff,#00ff88) !important;
+  background-size:200% 100% !important;
+  box-shadow:0 0 10px rgba(0,255,136,0.5) !important;
+}
+@keyframes flowXP{
+  0%{background-position:0% 50%}
+  100%{background-position:200% 50%}
+}
+body.vibe-flow .stat-fill{
+  box-shadow:0 0 6px currentColor !important;
+  transition:width 0.3s ease !important;
+}
+body.vibe-flow .logo{
+  animation:flowLogo 4s ease-in-out infinite;
+}
+@keyframes flowLogo{
+  0%,100%{text-shadow:0 0 8px rgba(0,200,255,0.6),0 0 20px rgba(0,200,255,0.2);}
+  50%{text-shadow:0 0 14px rgba(0,255,136,0.8),0 0 30px rgba(0,255,136,0.3),0 0 50px rgba(0,200,255,0.1);}
+}
+body.vibe-flow .briefing{border-left-color:#00ff88;background:rgba(0,255,136,0.03);}
+body.vibe-flow .combo-bar{box-shadow:0 0 12px rgba(0,255,136,0.15);}
+
+/* ─────────────────────────────────────────────
+   BURNOUT STATE: desaturated, dimmed, slow
+───────────────────────────────────────────── */
+body.vibe-burnout{
+  --panel-border: rgba(255,106,0,0.1);
+  --transition: 0.5s ease;
+}
+body.vibe-burnout #app{
+  filter:saturate(0.55) brightness(0.88);
+}
+body.vibe-burnout .stat-fill{transition:width 0.9s ease !important;}
+body.vibe-burnout .action-btn{transition:all 0.5s ease !important;opacity:0.85;}
+body.vibe-burnout .xp-bar-fill{
+  background:linear-gradient(90deg,#887755,#664433) !important;
+  box-shadow:none !important;
+}
+body.vibe-burnout .briefing{
+  border-left-color:#ff6a00;
+  background:rgba(255,106,0,0.03);
+  color:#a09080;
+}
+body.vibe-burnout .logo{
+  color:#887766;
+  text-shadow:none;
+  letter-spacing:2px;
+}
+
+/* ===== TRIGGER MODAL ===== */
+.trigger-card{
+  background:var(--bg3);
+  border:1px solid rgba(255,106,0,0.25);
+  border-bottom:none;
+  border-radius:12px 12px 0 0;
+  padding:22px 16px 32px;
+  width:100%;max-width:480px;
+  box-shadow:0 -8px 40px rgba(0,0,0,0.8);
+  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.trigger-header{margin-bottom:16px;}
+.trigger-title{
+  font-family:'Orbitron',monospace;font-size:14px;font-weight:900;
+  color:var(--neon-orange);letter-spacing:1px;margin-bottom:4px;
+}
+.trigger-action{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-red);letter-spacing:1px;margin-bottom:4px;
+}
+.trigger-sub{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);
+}
+.trigger-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  margin-bottom:14px;
+}
+.trigger-btn{
+  padding:11px 8px;
+  font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;
+  letter-spacing:0.5px;text-align:center;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:6px;cursor:pointer;color:var(--text);
+  transition:all 0.15s;
+}
+.trigger-btn:active{background:rgba(255,106,0,0.12);border-color:rgba(255,106,0,0.3);color:var(--neon-orange);}
+.trigger-skip{
+  width:100%;padding:10px;background:transparent;
+  border:1px solid rgba(255,255,255,0.06);border-radius:4px;
+  color:var(--text-dim);cursor:pointer;
+  font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:1px;
+}
+
+/* ===== TRENDS PANEL ===== */
+.trends-section{margin-bottom:20px;}
+.trends-section-title{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--text-dim);
+  text-transform:uppercase;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.trends-section-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);}
+.insight-card{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-left:3px solid var(--neon-cyan);
+  border-radius:var(--radius);
+  padding:10px 12px;margin-bottom:8px;
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text);line-height:1.6;
+}
+.insight-card.warn{border-left-color:var(--neon-orange);}
+.insight-card.positive{border-left-color:var(--neon-green);}
+.insight-card.neutral{border-left-color:var(--text-dim);}
+.trigger-bar-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.trigger-bar-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text);width:130px;flex-shrink:0;
+}
+.trigger-bar-outer{
+  flex:1;height:8px;background:rgba(255,255,255,0.05);
+  border-radius:4px;overflow:hidden;
+}
+.trigger-bar-fill{
+  height:100%;background:var(--neon-orange);border-radius:4px;
+  transition:width 0.4s ease;
+}
+.trigger-bar-count{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);min-width:20px;text-align:right;
+}
+.no-data-msg{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);text-align:center;padding:24px;
+  border:1px dashed rgba(255,255,255,0.07);border-radius:6px;
+}
+
+/* ===== MVD MODAL ===== */
+.mvd-card{
+  background:var(--bg3);
+  border:1px solid rgba(0,200,255,0.15);
+  border-radius:8px;padding:22px 20px;
+  max-width:400px;width:100%;
+  box-shadow:0 0 30px rgba(0,0,0,0.8);
+}
+.mvd-header{margin-bottom:16px;}
+.mvd-title{
+  font-family:'Orbitron',monospace;font-size:14px;font-weight:900;
+  color:var(--neon-cyan);letter-spacing:2px;margin-bottom:6px;
+}
+.mvd-sub{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);line-height:1.6;
+}
+.mvd-task{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:6px;padding:11px 14px;
+  margin-bottom:8px;
+  transition:all 0.2s;
+}
+.mvd-task.done{opacity:0.4;border-color:rgba(0,255,136,0.2);}
+.mvd-task-icon{font-size:18px;flex-shrink:0;}
+.mvd-task-name{
+  flex:1;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;
+  color:var(--text-bright);
+}
+.mvd-task-btn{
+  padding:6px 12px;
+  font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:1px;color:var(--neon-green);
+  background:rgba(0,255,136,0.07);
+  border:1px solid rgba(0,255,136,0.2);
+  border-radius:4px;cursor:pointer;
+  transition:all 0.15s;flex-shrink:0;
+}
+.mvd-task-done-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-green);letter-spacing:2px;flex-shrink:0;
+}
+.mvd-streak-note{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-yellow);text-align:center;
+  margin:12px 0 8px;letter-spacing:1px;
+  min-height:16px;
+}
+.mvd-dismiss{
+  width:100%;padding:10px;margin-top:4px;
+  background:transparent;border:1px solid rgba(255,255,255,0.06);
+  border-radius:4px;color:var(--text-dim);cursor:pointer;
+  font-family:'Rajdhani',sans-serif;font-size:12px;
+  font-weight:600;letter-spacing:1px;
+}
+/* Calm mode body class applied during MVD */
+body.mvd-active #header{filter:saturate(0.7) brightness(0.9);}
+body.mvd-active .action-btn{opacity:0.7;}
+body.mvd-active #comboBar{display:none !important;}
+body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
+
+/* ===== ARCHETYPE ===== */
+.archetype-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;margin-bottom:8px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:5px;
+  transition:all 0.5s ease;
+  cursor:default;
+}
+.archetype-icon{
+  font-size:18px;flex-shrink:0;
+  transition:all 0.5s ease;
+  line-height:1;
+}
+.archetype-body{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;}
+.archetype-name{
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:700;
+  letter-spacing:2px;color:var(--neon-cyan);
+  transition:color 0.5s;
+}
+.archetype-desc{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);letter-spacing:0.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.archetype-bonus{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--neon-yellow);letter-spacing:0.5px;
+  text-align:right;flex-shrink:0;
+  opacity:0.8;
+}
+/* Per-archetype color themes */
+.arch-WARRIOR .archetype-bar{border-color:rgba(0,255,136,0.2);background:rgba(0,255,136,0.03);}
+.arch-WARRIOR .archetype-name{color:var(--neon-green);}
+.arch-BUILDER .archetype-bar{border-color:rgba(0,200,255,0.2);background:rgba(0,200,255,0.03);}
+.arch-BUILDER .archetype-name{color:var(--neon-cyan);}
+.arch-MONK .archetype-bar{border-color:rgba(255,68,170,0.2);background:rgba(255,68,170,0.03);}
+.arch-MONK .archetype-name{color:var(--soul-color);}
+.arch-CREATOR .archetype-bar{border-color:rgba(170,68,255,0.2);background:rgba(170,68,255,0.03);}
+.arch-CREATOR .archetype-name{color:var(--neon-purple);}
+.arch-MERCHANT .archetype-bar{border-color:rgba(255,221,0,0.2);background:rgba(255,221,0,0.03);}
+.arch-MERCHANT .archetype-name{color:var(--neon-yellow);}
+.arch-FATHER .archetype-bar{border-color:rgba(255,68,170,0.25);background:rgba(255,68,170,0.04);}
+.arch-FATHER .archetype-name{color:var(--soul-color);}
+.arch-STRATEGIST .archetype-bar{border-color:rgba(170,68,255,0.25);background:rgba(170,68,255,0.04);}
+.arch-STRATEGIST .archetype-name{color:var(--neon-purple);}
+.arch-GHOST .archetype-bar{border-color:rgba(255,34,68,0.2);background:rgba(255,34,68,0.03);}
+.arch-GHOST .archetype-name{color:var(--neon-red);}
+.arch-SURVIVOR .archetype-bar{border-color:rgba(255,106,0,0.2);background:rgba(255,106,0,0.03);}
+.arch-SURVIVOR .archetype-name{color:var(--neon-orange);}
+@keyframes archetypeShift{
+  0%{opacity:0;transform:translateX(-8px)}
+  100%{opacity:1;transform:translateX(0)}
+}
+
+/* ===== COMBO BAR ===== */
+.combo-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 12px;margin-bottom:6px;
+  background:rgba(255,221,0,0.06);
+  border:1px solid rgba(255,221,0,0.2);
+  border-radius:5px;
+  font-family:'Share Tech Mono',monospace;
+  animation:comboIn 0.3s cubic-bezier(0.22,1,0.36,1);
+  transition:border-color 0.4s, background 0.4s;
+  overflow:hidden;
+  position:relative;
+}
+.combo-bar::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--neon-yellow);box-shadow:0 0 6px var(--neon-yellow);
+  transition:background 0.4s,box-shadow 0.4s;
+}
+.combo-bar.hot{background:rgba(0,200,255,0.07);border-color:rgba(0,200,255,0.3);}
+.combo-bar.hot::before{background:var(--neon-cyan);box-shadow:0 0 8px var(--neon-cyan);}
+.combo-bar.max{background:rgba(170,68,255,0.08);border-color:rgba(170,68,255,0.35);}
+.combo-bar.max::before{background:var(--neon-purple);box-shadow:0 0 10px var(--neon-purple);}
+.combo-icon{font-size:14px;flex-shrink:0;}
+.combo-label{font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--neon-yellow);transition:color 0.4s;}
+.combo-bar.hot .combo-label{color:var(--neon-cyan);}
+.combo-bar.max .combo-label{color:var(--neon-purple);}
+.combo-mult{
+  font-size:10px;color:var(--text-dim);margin-left:2px;
+}
+.combo-dots{display:flex;gap:4px;margin-left:auto;}
+.combo-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,0.15);
+  transition:background 0.2s,box-shadow 0.2s;
+}
+.combo-dot.lit{background:var(--neon-yellow);box-shadow:0 0 4px var(--neon-yellow);}
+.combo-bar.hot .combo-dot.lit{background:var(--neon-cyan);box-shadow:0 0 4px var(--neon-cyan);}
+.combo-bar.max .combo-dot.lit{background:var(--neon-purple);box-shadow:0 0 6px var(--neon-purple);}
+@keyframes comboIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes comboPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+.combo-pop{animation:comboPop 0.3s ease;}
+
+/* ===== SYNERGY TOAST ===== */
+#synergyToast{
+  position:fixed;top:80px;left:50%;
+  transform:translateX(-50%) scale(0.85);
+  max-width:320px;width:88%;z-index:8998;
+  background:rgba(4,12,26,0.97);
+  border:1px solid var(--neon-purple);
+  border-radius:8px;padding:12px 16px;
+  font-family:'Share Tech Mono',monospace;
+  box-shadow:var(--glow-purple),0 12px 32px rgba(0,0,0,0.8);
+  opacity:0;transition:all 0.25s cubic-bezier(0.22,1,0.36,1);
+  pointer-events:none;text-align:center;
+}
+#synergyToast.show{opacity:1;transform:translateX(-50%) scale(1);}
+#synergyToast.hiding{opacity:0;transform:translateX(-50%) scale(0.9);}
+.synergy-name{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;
+  color:var(--neon-purple);letter-spacing:2px;margin-bottom:4px;
+  text-shadow:var(--glow-purple);
+}
+.synergy-desc{font-size:10px;color:var(--text-dim);margin-bottom:4px;}
+.synergy-bonus{font-size:11px;color:var(--neon-yellow);}
+
+/* ===== RECOVERY MODAL ===== */
+#recoveryModal{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+#recoveryModal.show{display:flex}
+.recovery-card{
+  background:var(--bg3);
+  border:1px solid rgba(255,34,68,0.4);
+  border-radius:8px;padding:20px;
+  max-width:380px;width:100%;
+  box-shadow:var(--glow-red),0 16px 48px rgba(0,0,0,0.8);
+}
+.recovery-title{
+  font-family:'Orbitron',monospace;font-size:14px;font-weight:900;
+  color:var(--neon-red);text-shadow:var(--glow-red);
+  margin-bottom:4px;letter-spacing:1px;
+}
+.recovery-sub{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);margin-bottom:16px;
+}
+.recovery-options{display:flex;flex-direction:column;gap:8px}
+.recovery-opt{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:var(--radius);padding:10px 12px;
+  cursor:pointer;transition:all var(--transition);
+}
+.recovery-opt:hover{background:rgba(255,34,68,0.05);border-color:rgba(255,34,68,0.2)}
+.recovery-opt .r-icon{font-size:18px}
+.recovery-opt .r-name{
+  flex:1;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;
+  color:var(--text-bright);
+}
+.recovery-opt .r-fx{
+  font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);
+}
+.recovery-dismiss{
+  margin-top:12px;width:100%;padding:10px;
+  font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-dim);background:transparent;
+  border:1px solid rgba(255,255,255,0.07);border-radius:4px;
+  cursor:pointer;transition:all var(--transition);
+}
+.recovery-dismiss:hover{color:var(--text)}
+
+/* ===== EXPORT MODAL ===== */
+#exportModal{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);
+  align-items:flex-start;justify-content:center;
+  padding:20px;overflow-y:auto;
+}
+#exportModal.show{display:flex}
+.export-card{
+  background:var(--bg3);
+  border:1px solid rgba(0,200,255,0.3);
+  border-radius:8px;padding:20px;
+  max-width:420px;width:100%;
+  margin:auto;
+  box-shadow:var(--glow-cyan),0 16px 48px rgba(0,0,0,0.8);
+}
+.export-title{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;
+  color:var(--neon-cyan);letter-spacing:2px;margin-bottom:6px;
+}
+.export-sub{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);margin-bottom:14px;line-height:1.6;
+}
+.export-json{
+  width:100%;height:160px;
+  background:rgba(0,0,0,0.4);
+  border:1px solid rgba(0,200,255,0.15);
+  border-radius:4px;padding:10px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);resize:none;outline:none;
+  margin-bottom:12px;
+}
+.copy-btn{
+  width:100%;padding:13px;
+  font-family:'Orbitron',monospace;font-size:12px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--bg);background:var(--neon-cyan);
+  border:none;border-radius:6px;cursor:pointer;
+  box-shadow:var(--glow-cyan);margin-bottom:8px;
+  transition:all var(--transition);
+}
+.copy-btn.copied{background:var(--neon-green);box-shadow:var(--glow-green)}
+.export-dismiss{
+  width:100%;padding:10px;background:transparent;
+  border:1px solid rgba(255,255,255,0.07);border-radius:4px;
+  color:var(--text-dim);cursor:pointer;
+  font-family:'Rajdhani',sans-serif;font-size:12px;
+  font-weight:600;letter-spacing:1px;
+}
+
+/* ===== IMPORT PASTE MODAL ===== */
+#importModal{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);
+  align-items:flex-start;justify-content:center;
+  padding:20px;overflow-y:auto;
+}
+#importModal.show{display:flex}
+.import-card{
+  background:var(--bg3);
+  border:1px solid rgba(0,255,136,0.3);
+  border-radius:8px;padding:20px;
+  max-width:420px;width:100%;margin:auto;
+  box-shadow:var(--glow-green),0 16px 48px rgba(0,0,0,0.8);
+}
+.import-title{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;
+  color:var(--neon-green);letter-spacing:2px;margin-bottom:6px;
+}
+.import-paste{
+  width:100%;height:160px;
+  background:rgba(0,0,0,0.4);
+  border:1px solid rgba(0,255,136,0.15);
+  border-radius:4px;padding:10px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-bright);resize:none;outline:none;
+  margin-bottom:12px;
+}
+.import-btn{
+  width:100%;padding:13px;
+  font-family:'Orbitron',monospace;font-size:12px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--bg);background:var(--neon-green);
+  border:none;border-radius:6px;cursor:pointer;
+  box-shadow:var(--glow-green);margin-bottom:8px;
+}
+
+/* ===== RANDOM EVENT ===== */
+.event-card{
+  background:var(--panel);
+  border:1px solid rgba(170,68,255,0.3);
+  border-radius:var(--radius);
+  padding:14px 16px;
+  margin-bottom:12px;
+  position:relative;overflow:hidden;
+}
+.event-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(170,68,255,0.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.event-name{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+  color:var(--neon-purple);text-shadow:var(--glow-purple);
+  margin-bottom:4px;
+}
+.event-desc{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);line-height:1.6;margin-bottom:10px;
+}
+.event-bonus{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-yellow);padding:6px 10px;
+  background:rgba(255,221,0,0.06);
+  border:1px solid rgba(255,221,0,0.15);
+  border-radius:4px;
+}
+.event-expires{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:8px;letter-spacing:1px;
+}
+.no-event{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);text-align:center;padding:16px;
+  border:1px dashed rgba(255,255,255,0.07);border-radius:6px;
+}
+
+.corrupt-high{animation:pulse 2s infinite}
+
+/* Boss health bar */
+.boss-hp-wrap{
+  height:12px;background:rgba(255,255,255,0.05);
+  border-radius:6px;overflow:hidden;margin-bottom:16px;
+  border:1px solid rgba(255,34,68,0.2);
+}
+.boss-hp-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--neon-red),var(--neon-orange));
+  border-radius:6px;transition:width 0.4s;
+  box-shadow:0 0 6px rgba(255,34,68,0.4);
+}
+
+/* ===== CAFFEINE METER ===== */
+.caffeine-meter-wrap{
+  background:var(--panel);
+  border:1px solid rgba(255,180,0,0.2);
+  border-radius:var(--radius);
+  padding:14px;margin-bottom:14px;
+}
+.caffeine-meter-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:8px;
+}
+.caffeine-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--text-dim);
+}
+.caffeine-val{
+  font-family:'Orbitron',monospace;font-size:18px;font-weight:700;
+  color:var(--neon-yellow);text-shadow:0 0 8px rgba(255,221,0,0.4);
+}
+.caffeine-bar-outer{
+  height:10px;background:rgba(255,255,255,0.05);
+  border-radius:5px;overflow:visible;margin-bottom:4px;
+  position:relative;
+}
+.caffeine-bar-fill{
+  height:100%;border-radius:5px;
+  background:linear-gradient(90deg,var(--neon-green),var(--neon-yellow),var(--neon-orange),var(--neon-red));
+  background-size:600px 100%;
+  transition:width 0.4s ease;
+  max-width:100%;
+}
+.caffeine-threshold{
+  position:absolute;top:-3px;bottom:-3px;
+  width:2px;background:var(--neon-red);
+  border-radius:1px;
+  box-shadow:0 0 6px rgba(255,34,68,0.6);
+  left:63.3%; /* 380/600 */
+}
+.caffeine-scale{
+  display:flex;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);margin-bottom:8px;
+}
+.caffeine-status{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-green);padding:6px 0 0;
+}
+.caffeine-status.warn{color:var(--neon-red)}
+.caffeine-status.caution{color:var(--neon-yellow)}
+.caffeine-time-warn{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-orange);margin-top:6px;
+  padding:6px 8px;
+  background:rgba(255,106,0,0.07);
+  border:1px solid rgba(255,106,0,0.2);
+  border-radius:4px;
+}
+
+.sep{
+  height:1px;background:rgba(255,255,255,0.04);
+  margin:16px 0;
+}
+.section-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--text-dim);
+  text-transform:uppercase;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-label::after{
+  content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- HEADER / DASHBOARD -->
+  <div id="header">
+    <div class="header-top">
+      <div class="logo">NSP // ANDREW</div>
+      <div class="header-right">
+        <div class="streak-badge" id="streakBadge">🔥 0d</div>
+        <div class="credits-badge" id="creditsBadge" onclick="showPanel('history')">₢ 0.00</div>
+      </div>
+    </div>
+    <div class="briefing" id="briefing">Initializing system...</div>
+    <!-- System State Indicator -->
+    <div id="systemStateBar" class="system-state-bar">
+      <span class="state-dot" id="stateDot"></span>
+      <span class="state-label">STATE:</span>
+      <span class="state-name" id="stateName">NOMINAL</span>
+      <span class="state-effect" id="stateEffect"></span>
+    </div>
+    <!-- Archetype -->
+    <div id="archetypeBar" class="archetype-bar">
+      <span class="archetype-icon" id="archetypeIcon">◈</span>
+      <div class="archetype-body">
+        <span class="archetype-name" id="archetypeName">THE WANDERER</span>
+        <span class="archetype-desc" id="archetypeDesc">Begin logging to reveal your archetype.</span>
+      </div>
+      <span class="archetype-bonus" id="archetypeBonus"></span>
+    </div>
+    <!-- Level / XP -->
+    <div class="level-row">
+      <div class="level-badge" id="levelBadge">Lv.1</div>
+      <div class="level-info">
+        <div class="rank-name" id="rankName">Street Initiate</div>
+        <div class="xp-row">
+          <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBar" style="width:0%"></div></div>
+          <span id="xpLabel" style="color:var(--neon-yellow);font-family:'Share Tech Mono',monospace;font-size:10px">0/100</span>
+        </div>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-row s-health">
+        <div class="stat-header"><span class="stat-label">HEALTH</span><span class="stat-val" id="statHealth">50%</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="barHealth" style="width:50%"></div></div>
+      </div>
+      <div class="stat-row s-focus">
+        <div class="stat-header"><span class="stat-label">FOCUS</span><span class="stat-val" id="statFocus">50%</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="barFocus" style="width:50%"></div></div>
+      </div>
+      <div class="stat-row s-control">
+        <div class="stat-header"><span class="stat-label">CONTROL</span><span class="stat-val" id="statControl">50%</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="barControl" style="width:50%"></div></div>
+      </div>
+      <div class="stat-row s-soul">
+        <div class="stat-header"><span class="stat-label">SOUL</span><span class="stat-val" id="statSoul">50%</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="barSoul" style="width:50%"></div></div>
+      </div>
+      <div class="stat-row s-corrupt">
+        <div class="stat-header"><span class="stat-label">CORRUPTION</span><span class="stat-val" id="statCorrupt">0%</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="barCorrupt" style="width:0%"></div></div>
+      </div>
+    </div>
+    <!-- Meta -->
+    <div class="meta-row">
+      <div class="meta-pill actions"><span class="val" id="todayCount">0</span><span class="lbl">ACTIONS</span></div>
+      <div class="meta-pill"><span class="val" id="totalXPLabel" style="color:var(--neon-yellow)">0</span><span class="lbl">TOTAL XP</span></div>
+      <div class="meta-pill boss" onclick="openEventsModal()" style="cursor:pointer" title="View Events & Skills"><span class="val" id="bossProgress">0%</span><span class="lbl">⚡ EVENT</span></div>
+    </div>
+    <!-- Combo Bar -->
+    <div id="comboBar" class="combo-bar" style="display:none">
+      <span class="combo-icon" id="comboIcon">⚡</span>
+      <span class="combo-label" id="comboLabel">COMBO x1</span>
+      <span class="combo-mult" id="comboMult"></span>
+      <div class="combo-dots" id="comboDots"></div>
+    </div>
+  </div>
+
+<!-- NAVIGATION -->
+<nav id="nav">
+  <button class="nav-btn active" onclick="showPanel('body')">Body</button>
+  <button class="nav-btn" onclick="showPanel('food')">Food</button>
+  <button class="nav-btn" onclick="showPanel('caffeine')">Caffeine</button>
+  <button class="nav-btn" onclick="showPanel('grift')">Grift</button>
+  <button class="nav-btn" onclick="showPanel('soul')">Soul</button>
+  <button class="nav-btn" onclick="showPanel('discipline')">Discipline</button>
+  <button class="nav-btn" onclick="showPanel('corruption')">Corrupt</button>
+  <button class="nav-btn" onclick="showPanel('missions')">📋 Missions</button>
+  <button class="nav-btn" onclick="showPanel('creativity')">Create</button>
+  <button class="nav-btn" onclick="showPanel('custom')">Custom</button>
+  <button class="nav-btn" onclick="showPanel('trends')">Trends</button>
+  <button class="nav-btn" onclick="showPanel('achievements')">🏆 Awards</button>
+  <button class="nav-btn" onclick="showPanel('history')">History</button>
+</nav>
+
+  <!-- PANELS -->
+  <div id="panels" style="padding:0 14px 20px">
+
+    <!-- BODY -->
+    <div class="panel active" id="panel-body">
+      <div class="panel-title">⚡ Body Protocol</div>
+      <div class="actions-grid" id="actions-body"></div>
+    </div>
+
+    <!-- FOOD -->
+    <div class="panel" id="panel-food">
+      <div class="panel-title">🧬 Nutrition Protocol</div>
+      <div class="actions-grid" id="actions-food"></div>
+    </div>
+
+    <!-- CAFFEINE -->
+    <div class="panel" id="panel-caffeine">
+      <div class="panel-title">☕ Caffeine Tracker</div>
+      <div class="caffeine-meter-wrap">
+        <div class="caffeine-meter-header">
+          <span class="caffeine-label">TODAY'S INTAKE</span>
+          <span class="caffeine-val" id="caffeineTotal">0mg</span>
+        </div>
+        <div class="caffeine-bar-outer">
+          <div class="caffeine-bar-fill" id="caffeineBar" style="width:0%"></div>
+          <div class="caffeine-threshold" id="caffeineThreshold"></div>
+        </div>
+        <div class="caffeine-scale">
+          <span>0mg</span><span style="color:var(--neon-yellow)">380mg limit</span><span>600mg</span>
+        </div>
+        <div class="caffeine-status" id="caffeineStatus">No caffeine logged today.</div>
+        <div class="caffeine-time-warn" id="caffeineTimeWarn" style="display:none">⚠ After 3PM — late caffeine will hurt Focus &amp; Sleep.</div>
+      </div>
+      <div class="actions-grid" id="actions-caffeine"></div>
+      <div style="margin-top:12px">
+        <button class="backup-btn" onclick="resetCaffeineToday()" style="color:var(--text-dim);font-size:12px">↺ Reset Today's Caffeine Count</button>
+      </div>
+    </div>
+
+    <!-- GRIFT -->
+    <div class="panel" id="panel-grift">
+      <div class="panel-title">📡 Grift Operations</div>
+      <div class="actions-grid" id="actions-grift"></div>
+    </div>
+
+    <!-- CREATIVITY -->
+    <div class="panel" id="panel-creativity">
+      <div class="panel-title">🎨 Creativity Engine</div>
+      <div class="actions-grid" id="actions-creativity"></div>
+    </div>
+
+    <!-- SOUL -->
+    <div class="panel" id="panel-soul">
+      <div class="panel-title">🌐 Soul Matrix</div>
+      <div class="actions-grid" id="actions-soul"></div>
+    </div>
+
+    <!-- DISCIPLINE -->
+    <div class="panel" id="panel-discipline">
+      <div class="panel-title">🔒 Discipline Core</div>
+      <div class="actions-grid" id="actions-discipline"></div>
+    </div>
+
+    <!-- CORRUPTION -->
+    <div class="panel" id="panel-corruption">
+      <div class="panel-title">⚠️ Corruption Log</div>
+      <div class="section-label">Awareness Protocol — Log Honestly</div>
+      <div class="actions-grid" id="actions-corruption"></div>
+    </div>
+
+    <!-- MISSIONS -->
+    <div class="panel" id="panel-missions">
+      <div class="panel-title">🎯 Daily Missions</div>
+      <div id="missions-container"></div>
+    </div>
+
+    <!-- CUSTOM -->
+    <div class="panel" id="panel-custom">
+      <div class="panel-title">⚙️ Custom Action</div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input class="form-input" id="customDesc" type="text" placeholder="What did you do?">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select" id="customCat">
+          <option value="body">Body</option>
+          <option value="food">Food</option>
+          <option value="grift">Grift</option>
+          <option value="creativity">Creativity</option>
+          <option value="soul">Soul</option>
+          <option value="discipline">Discipline</option>
+          <option value="recovery">Recovery</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Effort Level</label>
+        <div class="effort-grid">
+          <div class="effort-btn" data-effort="tiny">Tiny</div>
+          <div class="effort-btn active" data-effort="small">Small</div>
+          <div class="effort-btn" data-effort="medium">Medium</div>
+          <div class="effort-btn" data-effort="large">Large</div>
+          <div class="effort-btn" data-effort="huge">Huge</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Positive or Negative</label>
+        <div class="polarity-grid">
+          <div class="polarity-btn active-pos" id="polPos" onclick="setPolarity('pos')">✅ Positive</div>
+          <div class="polarity-btn" id="polNeg" onclick="setPolarity('neg')">⚠️ Negative</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="customCredit" style="accent-color:var(--neon-cyan)">
+          Include Credit Drop Chance
+        </label>
+      </div>
+      <button class="submit-btn" onclick="submitCustomAction()">LOG ACTION</button>
+    </div>
+
+    <!-- TRENDS -->
+    <div class="panel" id="panel-trends">
+      <div class="panel-title">📊 Behavioral Trends</div>
+      <div id="trends-container"></div>
+    </div>
+
+    <!-- ACHIEVEMENTS -->
+    <div class="panel" id="panel-achievements">
+      <div class="panel-title">🏆 Achievements</div>
+      <div id="achievements-container"></div>
+    </div>
+
+    <!-- HISTORY / BACKUP -->
+    <div class="panel" id="panel-history">
+      <div class="panel-title">💾 History & Backup</div>
+
+      <!-- Withdraw -->
+      <div class="withdraw-section">
+        <div class="withdraw-title">// CREDIT EXTRACTION</div>
+        <div class="credits-big" id="creditsDisplay">₢ 0.00</div>
+        <div class="form-group" style="margin-bottom:8px">
+          <label class="form-label" style="font-size:9px">Withdrawal Note</label>
+          <input class="form-input" id="withdrawNote" type="text" placeholder="e.g. Coffee, Amazon buy..." style="margin-bottom:8px">
+          <div class="inline-input">
+            <input id="withdrawAmt" type="number" step="0.01" min="0.01" placeholder="Amount ($)">
+            <button class="withdraw-btn" onclick="withdrawCredits()">EXTRACT</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup -->
+      <div class="section-label">Data Management</div>
+      <button class="backup-btn" onclick="openExportModal()">📤 Export / Copy Backup</button>
+      <button class="backup-btn" onclick="openImportModal()">📥 Restore from Backup</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="backup-btn danger" onclick="resetData()">🗑️ Reset All Data</button>
+
+      <!-- History -->
+      <div class="sep"></div>
+      <div class="section-label">Action Log</div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setFilter('today',this)">Today</button>
+        <button class="filter-btn" onclick="setFilter('week',this)">Week</button>
+        <button class="filter-btn" onclick="setFilter('all',this)">All</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+  </div><!-- /panels -->
+</div><!-- /app -->
+
+
+
+<!-- EXPORT MODAL -->
+<div id="exportModal">
+  <div class="export-card">
+    <div class="export-title">📦 BACKUP DATA</div>
+    <div class="export-sub">Long-press the text below and select "Select All" then "Copy" — or tap the button. Paste it into Notes, Google Drive, or email it to yourself.</div>
+    <textarea class="export-json" id="exportJson" readonly></textarea>
+    <button class="copy-btn" id="copyBtn" onclick="copyBackup()">📋 Copy to Clipboard</button>
+    <button class="export-dismiss" onclick="closeExportModal()">[ close ]</button>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div id="importModal">
+  <div class="import-card">
+    <div class="import-title">📥 RESTORE DATA</div>
+    <div class="export-sub">Paste your backup JSON below and tap Restore. This will overwrite your current data.</div>
+    <textarea class="import-paste" id="importPaste" placeholder="Paste your backup JSON here..."></textarea>
+    <button class="import-btn" onclick="restoreFromPaste()">Restore Backup</button>
+    <button class="export-dismiss" onclick="closeImportModal()">[ cancel ]</button>
+  </div>
+</div>
+
+<!-- SYNERGY TOAST -->
+<div id="synergyToast">
+  <div class="synergy-name" id="synergyName"></div>
+  <div class="synergy-desc" id="synergyDesc"></div>
+  <div class="synergy-bonus" id="synergyBonus"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast">
+  <div class="toast-bar" id="toastBar"></div>
+  <div class="toast-inner">
+    <div class="toast-action" id="toastTitle"></div>
+    <div class="toast-rewards" id="toastRewards"></div>
+    <div class="toast-effects" id="toastEffects"></div>
+  </div>
+</div>
+
+<!-- EVENTS MODAL -->
+<div id="eventsModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);overflow-y:auto;">
+  <div style="max-width:480px;margin:0 auto;padding:16px 14px 80px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:var(--neon-cyan);letter-spacing:2px;text-shadow:var(--glow-cyan);">⚡ EVENTS</div>
+      <button onclick="closeEventsModal()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text-dim);padding:6px 12px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;">CLOSE</button>
+    </div>
+    <div class="section-label">Weekly Boss</div>
+    <div id="boss-container"></div>
+    <div class="sep"></div>
+    <div class="section-label">Active Event</div>
+    <div id="random-event-container"></div>
+    <div class="sep"></div>
+    <div class="section-label">Skill Progress</div>
+    <div class="skills-grid" id="skills-container"></div>
+  </div>
+</div>
+
+<!-- MVD MODAL -->
+<div id="mvdModal" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,0.92);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div class="mvd-card">
+    <div class="mvd-header">
+      <div class="mvd-title">◎ MINIMAL PROTOCOL</div>
+      <div class="mvd-sub" id="mvdSub">Hard day. That's okay. Small actions only.</div>
+    </div>
+    <div id="mvdTasks"></div>
+    <div class="mvd-streak-note" id="mvdStreakNote"></div>
+    <button class="mvd-dismiss" onclick="closeMVD()">[ I'll handle it my way ]</button>
+  </div>
+</div>
+
+<!-- ACHIEVEMENT NOTIFICATION -->
+<div id="achievementNotif" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:8500;pointer-events:none;">
+  <div class="achieve-notif">
+    <div class="achieve-notif-glow"></div>
+    <div class="achieve-notif-inner">
+      <span class="achieve-notif-icon" id="achieveIcon">🏆</span>
+      <div class="achieve-notif-body">
+        <div class="achieve-notif-label" id="achieveRarity">ACHIEVEMENT</div>
+        <div class="achieve-notif-name" id="achieveName"></div>
+        <div class="achieve-notif-desc" id="achieveDesc"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TRIGGER MODAL -->
+<div id="triggerModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;padding:0;">
+  <div class="trigger-card">
+    <div class="trigger-header">
+      <div class="trigger-title">What triggered this?</div>
+      <div class="trigger-action" id="triggerActionName"></div>
+      <div class="trigger-sub">Tap one to log it. No judgment — just data.</div>
+    </div>
+    <div class="trigger-grid" id="triggerGrid"></div>
+    <button class="trigger-skip" onclick="skipTrigger()">Skip — just log the action</button>
+  </div>
+</div>
+
+<!-- RECOVERY MODAL -->
+<div id="recoveryModal">
+  <div class="recovery-card">
+    <div class="recovery-title">⚠ RECOVERY PROTOCOL</div>
+    <div class="recovery-sub" id="recoveryReason">Corruption detected. Take one action to recover.</div>
+    <div class="recovery-options" id="recoveryOptions"></div>
+    <button class="recovery-dismiss" onclick="dismissRecovery()">[ dismiss for now ]</button>
+  </div>
+</div>
+
+<script>
+// ==========================================================================
+// STATE
+// ==========================================================================
+const DEFAULT_STATE = {
+  stats: { health:50, focus:50, control:50, soul:50, corruption:0 },
+  credits: 0,
+  xp: 0,
+  level: 1,
+  skills: {
+    body:{xp:0,level:1},
+    grift:{xp:0,level:1},
+    creativity:{xp:0,level:1},
+    discipline:{xp:0,level:1},
+    mindSoul:{xp:0,level:1},
+    family:{xp:0,level:1},
+    recovery:{xp:0,level:1}
+  },
+  streak: 0,
+  lastPlayedDate: null,
+  lastDecayDate: null,
+  todayActions: 0,
+  todayDate: null,
+  caffeineMg: 0,
+  caffeineDate: null,
+  missions: [],
+  missionsDate: null,
+  boss: {
+    name: '',
+    week: '',
+    body: 0, grift: 0, soul: 0, discipline: 0,
+    completed: false
+  },
+  history: [],
+  triggerLog: [],
+  achievements: {},
+  activeEvent: null,
+  currentSystemState: 'NOMINAL',
+  currentArchetype: 'WANDERER',
+  mvd: null,
+  combo: {
+    count: 0,           // consecutive positive actions
+    todayCats: [],      // categories logged today for balanced mind
+    lastActionTime: null,
+    balancedMindAwarded: false,
+    lastSynergy: null,
+  },
+};
+
+let S = {};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('nsp_v3');
+    S = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_STATE));
+    // Ensure all keys exist
+    const def = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    for (const k of Object.keys(def)) {
+      if (S[k] === undefined) S[k] = def[k];
+    }
+    if (!S.skills.mindSoul) S.skills.mindSoul = {xp:0,level:1};
+    if (!S.skills.family) S.skills.family = {xp:0,level:1};
+    if (!S.skills.recovery) S.skills.recovery = {xp:0,level:1};
+    if (S.caffeineMg === undefined) S.caffeineMg = 0;
+    if (!S.caffeineDate) S.caffeineDate = null;
+  } catch(e) {
+    S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  }
+}
+
+function saveState() {
+  localStorage.setItem('nsp_v3', JSON.stringify(S));
+}
+
+// ==========================================================================
+// CONSTANTS
+// ==========================================================================
+const RANKS = [
+  {min:1,max:4,title:'Street Initiate'},
+  {min:5,max:9,title:'Signal Runner'},
+  {min:10,max:14,title:'Discipline Operator'},
+  {min:15,max:24,title:'Neon Vanguard'},
+  {min:25,max:39,title:'Ghost Protocol'},
+  {min:40,max:999,title:'Ascendant'}
+];
+
+const BOSS_NAMES = [
+  'The Avoidance Wraith','The Sloth Engine','The Corruption Titan',
+  'The Inventory Demon','The Chaos Broker','The Inertia Phantom',
+  'The Fog of Comfort'
+];
+
+// XP needed to reach next level
+function xpForLevel(lvl) { return Math.floor(100 * Math.pow(lvl, 1.5)); }
+
+function getRank(lvl) {
+  for (const r of RANKS) {
+    if (lvl >= r.min && lvl <= r.max) return r.title;
+  }
+  return 'Ascendant';
+}
+
+// Clamp stat
+function clamp(v, min=0, max=100) { return Math.max(min, Math.min(max, v)); }
+
+// Today date string
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+
+function getWeekStr() {
+  const d = new Date();
+  const start = new Date(d);
+  start.setDate(d.getDate() - d.getDay());
+  return `W${start.getMonth()+1}${start.getDate()}-${start.getFullYear()}`;
+}
+
+// ==========================================================================
+// ACTIONS DEFINITION
+// ==========================================================================
+const ACTIONS = {
+  body: [
+    {id:'pushups', name:'10 Exercises', icon:'💪',
+     fx:{health:2,control:1}, xp:4, skillXp:{body:4},
+     credit:{chance:0.4, amt:0.25}},
+    {id:'walk', name:'Walk', icon:'🚶',
+     fx:{health:4,soul:2}, xp:10, skillXp:{body:10},
+     credit:{chance:0.4, amt:0.50}},
+    {id:'run', name:'Run', icon:'🏃',
+     fx:{health:7,control:2}, xp:18, skillXp:{body:18},
+     credit:{guaranteed:1}},
+    {id:'bjj', name:'BJJ', icon:'🥋',
+     fx:{health:10,control:5,soul:3}, xp:35, skillXp:{body:35},
+     credit:{guaranteed:3, bonusChance:0.5, bonusAmt:2}},
+    {id:'lift', name:'Lift Weights', icon:'🏋️',
+     fx:{health:8,control:3}, xp:25, skillXp:{body:25},
+     credit:{guaranteed:2}},
+    {id:'stretch', name:'Stretch', icon:'🧘',
+     fx:{health:3,soul:1}, xp:8, skillXp:{body:8},
+     credit:{chance:0.25, amt:0.25}},
+  ],
+  food: [
+    {id:'cleanMeal', name:'Clean Meal', icon:'🥗',
+     fx:{health:5,control:2}, xp:10, skillXp:{discipline:8},
+     credit:{chance:0.3, amt:0.50}},
+    {id:'proteinHit', name:'Protein Hit', icon:'🥩',
+     fx:{health:3}, xp:5, skillXp:{body:5},
+     credit:{chance:0.2, amt:0.25}},
+    {id:'water', name:'Drink Water', icon:'💧',
+     fx:{health:1,control:1}, xp:2, skillXp:{},
+     credit:null},
+    {id:'junkMeal', name:'Junk Meal', icon:'🍔',
+     negative:true, fx:{health:-5,control:-2,corruption:6}, xp:0, awarenessXp:2,
+     skillXp:{}, credit:null, recovery:true},
+    {id:'junkSnack', name:'Junk Snack', icon:'🍟',
+     negative:true, fx:{health:-3,control:-1,corruption:3}, xp:0, awarenessXp:1,
+     skillXp:{}, credit:null, recovery:true},
+    {id:'lateSnack', name:'Late Night Snack', icon:'🌙',
+     negative:true, fx:{health:-2,focus:-1,corruption:2}, xp:0, awarenessXp:1,
+     skillXp:{}, credit:null},
+  ],
+  caffeine: [
+    {id:'caff60', name:'60mg Caffeine', icon:'🍵', caffeineMg:60,
+     fx:{}, xp:0, skillXp:{}, credit:null, isCaffeine:true},
+    {id:'caff200', name:'200mg Caffeine', icon:'☕', caffeineMg:200,
+     fx:{}, xp:0, skillXp:{}, credit:null, isCaffeine:true},
+  ],
+  grift: [
+    {id:'list1', name:'List 1 Item', icon:'📦',
+     fx:{focus:2,control:2}, xp:10, skillXp:{grift:10},
+     credit:{chance:0.35, amt:0.50}},
+    {id:'list10', name:'List 10 Items', icon:'📋',
+     fx:{focus:8,control:5}, xp:35, skillXp:{grift:35},
+     credit:{guaranteed:2, bonusChance:0.3, bonusAmt:1}},
+    {id:'shipOrders', name:'Ship Orders', icon:'📬',
+     fx:{focus:5,control:3}, xp:20, skillXp:{grift:20},
+     credit:{chance:0.4, amt:1}},
+    {id:'sourceProduct', name:'Source Product', icon:'🔍',
+     fx:{focus:4}, xp:15, skillXp:{grift:15},
+     credit:{chance:0.25, amt:1}},
+    {id:'updateSite', name:'Update Website', icon:'🌐',
+     fx:{focus:6}, xp:25, skillXp:{grift:25},
+     credit:{chance:0.35, amt:1}},
+    {id:'recordContent', name:'Record Content', icon:'🎥',
+     fx:{focus:5}, xp:25, skillXp:{grift:10, creativity:20},
+     credit:{chance:0.4, amt:1}},
+    {id:'organizeInventory', name:'Organize Inventory', icon:'🗃️',
+     fx:{focus:3,control:4}, xp:15, skillXp:{grift:12, discipline:5},
+     credit:{chance:0.3, amt:0.50}},
+    {id:'adminWork', name:'Admin Work', icon:'🧾',
+     fx:{focus:4,control:3}, xp:18, skillXp:{grift:15, discipline:10},
+     credit:{chance:0.3, amt:0.75}},
+  ],
+  creativity: [
+    {id:'makeMusic', name:'Make Music', icon:'🎵',
+     fx:{soul:5,focus:4}, xp:25, skillXp:{creativity:25},
+     credit:{chance:0.25, amt:1}},
+    {id:'creativeProject', name:'Work on Creative Project', icon:'🎨',
+     fx:{focus:6,soul:3}, xp:25, skillXp:{creativity:25},
+     credit:{chance:0.3, amt:1}},
+    {id:'brainstorm', name:'Brainstorm Ideas', icon:'💡',
+     fx:{soul:2,focus:2}, xp:10, skillXp:{creativity:10},
+     credit:{chance:0.2, amt:0.50}},
+    {id:'workManga', name:'Work on Manga', icon:'🖊️',
+     fx:{soul:4,focus:5}, xp:25, skillXp:{creativity:30},
+     credit:{chance:0.25, amt:1}},
+  ],
+  soul: [
+    {id:'familyTime', name:'Family Time', icon:'👨‍👦',
+     fx:{soul:8,control:3}, xp:25, skillXp:{family:25},
+     credit:{chance:0.3, amt:1}},
+    {id:'apologize', name:'Apologize / Repair', icon:'🤝',
+     fx:{soul:6,control:6,corruption:-8}, xp:20, skillXp:{recovery:20},
+     credit:{chance:0.25, amt:0.50}},
+    {id:'readPhilosophy', name:'Study Philosophy', icon:'📖',
+     fx:{soul:5,focus:3}, xp:20, skillXp:{mindSoul:20},
+     credit:{chance:0.25, amt:0.50}},
+    {id:'meditate', name:'Meditate', icon:'🧠',
+     fx:{soul:5,control:5,corruption:-4}, xp:20, skillXp:{mindSoul:15, recovery:10},
+     credit:{chance:0.2, amt:0.50}},
+    {id:'realBreak', name:'Take Actual Break', icon:'☕',
+     fx:{soul:4,focus:2,corruption:-2}, xp:10, skillXp:{recovery:10},
+     credit:null},
+  ],
+  discipline: [
+    {id:'upkeepTask', name:'Complete Upkeep Task', icon:'🔧',
+     fx:{control:3,focus:3}, xp:12, skillXp:{discipline:14},
+     credit:{chance:0.25, amt:0.50}},
+    {id:'backlogTask', name:'Complete Backlog Task', icon:'✅',
+     fx:{control:7,focus:3,soul:2}, xp:28, skillXp:{discipline:22},
+     credit:{chance:0.4, amt:1}},
+    {id:'householdTask', name:'Household Progress Task', icon:'🏠',
+     fx:{focus:4,soul:2}, xp:22, skillXp:{discipline:20, family:8},
+     credit:{chance:0.35, amt:1}},
+    {id:'purge', name:'Purge Possessions', icon:'🗑️',
+     fx:{soul:4,focus:3,control:3,corruption:-3}, xp:18, skillXp:{discipline:15, recovery:6},
+     credit:{chance:0.2, amt:0.50}},
+    {id:'cleanArea', name:'Clean One Area', icon:'🧹',
+     fx:{focus:3,control:3}, xp:12, skillXp:{discipline:12},
+     credit:{chance:0.25, amt:0.50}},
+    {id:'sleepOnTime', name:'Sleep On Time', icon:'😴',
+     fx:{health:5,focus:4,control:3}, xp:20, skillXp:{discipline:20},
+     credit:{chance:0.25, amt:0.50}},
+    {id:'noDoomscroll', name:'No Doomscroll Block', icon:'📵',
+     fx:{focus:4,control:4}, xp:15, skillXp:{discipline:15},
+     credit:{chance:0.25, amt:0.50}},
+  ],
+  corruption: [
+    {id:'lostControl', name:'Lost Control / Yelled', icon:'😤',
+     negative:true, fx:{control:-8,soul:-4,corruption:10}, xp:0, awarenessXp:2,
+     skillXp:{}, credit:null, recovery:true},
+    {id:'doomscrolled', name:'Doomscrolled', icon:'📱',
+     negative:true, fx:{focus:-5,control:-3,corruption:5}, xp:0, awarenessXp:1,
+     skillXp:{}, credit:null},
+    {id:'skippedWorkout', name:'Skipped Planned Workout', icon:'🚫',
+     negative:true, fx:{health:-4,control:-3,corruption:4}, xp:0, awarenessXp:1,
+     skillXp:{}, credit:null},
+    {id:'avoidedTask', name:'Avoided Important Task', icon:'🙈',
+     negative:true, fx:{focus:-5,control:-4,corruption:6}, xp:0, awarenessXp:1,
+     skillXp:{}, credit:null},
+    {id:'triedOverspend', name:'Tried to Overspend', icon:'💸',
+     negative:true, fx:{control:-3,corruption:5}, xp:0, awarenessXp:1,
+     skillXp:{}, credit:null},
+    {id:'stayedUpLate', name:'Stayed Up Too Late', icon:'🌙',
+     negative:true, fx:{health:-4,focus:-4,control:-2,corruption:5}, xp:0, awarenessXp:1,
+     skillXp:{}, credit:null},
+    {id:'junkMeal2', name:'Junk Meal', icon:'🍔',
+     negative:true, fx:{health:-5,control:-2,corruption:6}, xp:0, awarenessXp:2,
+     skillXp:{}, credit:null, recovery:true},
+    {id:'junkSnack2', name:'Junk Snack', icon:'🍟',
+     negative:true, fx:{health:-3,control:-1,corruption:3}, xp:0, awarenessXp:1,
+     skillXp:{}, credit:null},
+    {id:'lateSnack2', name:'Late Night Snack', icon:'🌙',
+     negative:true, fx:{health:-2,focus:-1,corruption:2}, xp:0, awarenessXp:1,
+     skillXp:{}, credit:null},
+  ]
+};
+
+const RECOVERY_OPTS = [
+  {name:'Take a 5-min walk', icon:'🚶', fx:{health:2,corruption:-3}, skillXp:{recovery:5}},
+  {name:'Drink water', icon:'💧', fx:{health:1,control:1,corruption:-1}, skillXp:{recovery:2}},
+  {name:'Breathe 60 seconds', icon:'🌬️', fx:{control:3,corruption:-3}, skillXp:{recovery:5}},
+  {name:'Clean one thing', icon:'🧹', fx:{focus:2,control:2,corruption:-3}, skillXp:{discipline:8, recovery:5}},
+  {name:'10 Pushups', icon:'💪', fx:{health:2,control:2,corruption:-2}, skillXp:{body:5, recovery:3}},
+  {name:'Write the trigger', icon:'✍️', fx:{soul:3,corruption:-4}, skillXp:{recovery:8}},
+  {name:'Put phone away 10min', icon:'📵', fx:{focus:3,control:3,corruption:-3}, skillXp:{discipline:5, recovery:5}},
+  {name:'Apologize / Repair', icon:'🤝', fx:{soul:6,control:6,corruption:-8}, skillXp:{recovery:15}},
+];
+
+// ==========================================================================
+// MISSION POOL
+// ==========================================================================
+const MISSION_POOL = [
+  {name:'Complete 10 Exercises', cat:'Body', action:'pushups', xpBonus:10, credit:{chance:0.3,amt:0.50}},
+  {name:'Go for a walk', cat:'Body', action:'walk', xpBonus:15, credit:{chance:0.3,amt:0.50}},
+  {name:'List 1 item for sale', cat:'Grift', action:'list1', xpBonus:12, credit:{chance:0.4,amt:0.50}},
+  {name:'Drink water twice', cat:'Food', action:'water', xpBonus:6, credit:null},
+  {name:'Eat a clean meal', cat:'Food', action:'cleanMeal', xpBonus:12, credit:{chance:0.2,amt:0.50}},
+  {name:'Take an actual break', cat:'Soul', action:'realBreak', xpBonus:10, credit:null},
+  {name:'Repair one small thing', cat:'Soul', action:'apologize', xpBonus:15, credit:{chance:0.2,amt:0.50}},
+  {name:'Clean one area', cat:'Discipline', action:'cleanArea', xpBonus:12, credit:{chance:0.2,amt:0.50}},
+  {name:'Avoid doomscrolling', cat:'Discipline', action:'noDoomscroll', xpBonus:12, credit:{chance:0.2,amt:0.50}},
+  {name:'Knock out a backlog task', cat:'Discipline', action:'backlogTask', xpBonus:15, credit:{chance:0.3,amt:1}},
+  {name:'Do one upkeep task', cat:'Discipline', action:'upkeepTask', xpBonus:10, credit:{chance:0.2,amt:0.50}},
+  {name:'Make household progress', cat:'Discipline', action:'householdTask', xpBonus:12, credit:{chance:0.2,amt:0.50}},
+  {name:'Purge something you don\'t need', cat:'Discipline', action:'purge', xpBonus:12, credit:null},
+  {name:'Stretch for 5 min', cat:'Body', action:'stretch', xpBonus:8, credit:null},
+  {name:'Spend time with family', cat:'Soul', action:'familyTime', xpBonus:15, credit:{chance:0.2,amt:0.50}},
+  {name:'Work on a creative project', cat:'Creativity', action:'creativeProject', xpBonus:15, credit:{chance:0.2,amt:0.50}},
+  {name:'Meditate or breathe', cat:'Soul', action:'meditate', xpBonus:12, credit:null},
+  {name:'Study something meaningful', cat:'Soul', action:'readPhilosophy', xpBonus:12, credit:null},
+  {name:'Log a protein hit', cat:'Food', action:'proteinHit', xpBonus:8, credit:null},
+  {name:'Sleep on time tonight', cat:'Discipline', action:'sleepOnTime', xpBonus:15, credit:{chance:0.2,amt:0.50}},
+  {name:'Lift weights', cat:'Body', action:'lift', xpBonus:18, credit:{chance:0.3,amt:1}},
+  {name:'Brainstorm 3 ideas', cat:'Creativity', action:'brainstorm', xpBonus:10, credit:null},
+  {name:'Source one product', cat:'Grift', action:'sourceProduct', xpBonus:12, credit:{chance:0.2,amt:0.50}},
+  {name:'Organize your inventory', cat:'Grift', action:'organizeInventory', xpBonus:12, credit:{chance:0.2,amt:0.50}},
+  {name:'Tackle one admin task', cat:'Grift', action:'adminWork', xpBonus:12, credit:{chance:0.2,amt:0.50}},
+  {name:'Work on the manga', cat:'Creativity', action:'workManga', xpBonus:15, credit:{chance:0.2,amt:0.50}},
+];
+
+// ==========================================================================
+// UI HELPERS
+// ==========================================================================
+let toastTimeout;
+function toast(title, msg, effects='', type='') {
+  const t = document.getElementById('toast');
+  // Reset animation by removing/readding bar
+  const bar = document.getElementById('toastBar');
+  bar.style.animation = 'none';
+  bar.offsetHeight; // reflow
+  bar.style.animation = '';
+
+  t.className = type ? type : '';
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastEffects').textContent = '';
+
+  // Build reward chips from effects string
+  const rewardsEl = document.getElementById('toastRewards');
+  rewardsEl.innerHTML = '';
+
+  if (msg) {
+    const chip = document.createElement('span');
+    chip.className = 'toast-chip';
+    chip.textContent = msg;
+    rewardsEl.appendChild(chip);
+  }
+
+  if (effects) {
+    // Parse effects string and build individual chips
+    const parts = effects.split(/\s{2,}|\s(?=[+₢✨❤️🧿⚔️🌐☠️])/);
+    parts.forEach(part => {
+      part = part.trim();
+      if (!part) return;
+      const chip = document.createElement('span');
+      if (part.includes('XP')) {
+        chip.className = 'toast-chip xp';
+      } else if (part.includes('₢') || part.includes('$')) {
+        chip.className = 'toast-chip credit';
+      } else if (part.match(/[+-]\d/) && part.match(/corruption/i)) {
+        chip.className = 'toast-chip bad';
+      } else {
+        chip.className = 'toast-chip';
+      }
+      chip.textContent = part;
+      rewardsEl.appendChild(chip);
+    });
+  }
+
+  t.classList.remove('hiding');
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  // After 3s start fading, fully hidden by 3.4s
+  toastTimeout = setTimeout(() => {
+    t.classList.add('hiding');
+    setTimeout(() => { t.classList.remove('show'); t.classList.remove('hiding'); }, 400);
+  }, 3000);
+}
+
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  const btns = document.querySelectorAll('.nav-btn');
+  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','missions','creativity','custom','trends','achievements','history'];
+  const idx = labels.indexOf(id);
+  if (idx >= 0) btns[idx].classList.add('active');
+  if (id === 'caffeine') updateCaffeineMeter();
+  window.scrollTo(0,0);
+}
+
+function setFilter(f, el) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderHistory(f);
+}
+
+// ==========================================================================
+// STAT / XP UPDATES
+// ==========================================================================
+function applyFX(fx) {
+  for (const [key, val] of Object.entries(fx)) {
+    if (key in S.stats) {
+      if (key === 'corruption') {
+        // Archetype can reduce corruption gains (Monk, Father, Strategist, Survivor)
+        const modded = val > 0 ? Math.ceil(val * archetypeCorruptMod()) : val;
+        S.stats.corruption = clamp(S.stats.corruption + modded, 0, 100);
+      } else {
+        S.stats[key] = clamp(S.stats[key] + val, 0, 100);
+      }
+    }
+  }
+}
+
+function addXP(amount) {
+  S.xp += amount;
+  // Check level ups
+  while (true) {
+    const needed = xpForLevel(S.level);
+    if (S.xp >= needed) {
+      S.xp -= needed;
+      S.level++;
+      toast('LEVEL UP', `You are now Level ${S.level}`, getRank(S.level), 'success');
+    } else break;
+  }
+}
+
+function addSkillXP(skillXpObj) {
+  const skillMap = {
+    body:'body', grift:'grift', creativity:'creativity', discipline:'discipline',
+    mindSoul:'mindSoul', family:'family', recovery:'recovery'
+  };
+  for (const [key, val] of Object.entries(skillXpObj)) {
+    const sk = skillMap[key];
+    if (!sk || !S.skills[sk]) continue;
+    S.skills[sk].xp += val;
+    // Skill level up
+    while (S.skills[sk].xp >= xpForLevel(S.skills[sk].level)) {
+      S.skills[sk].xp -= xpForLevel(S.skills[sk].level);
+      S.skills[sk].level++;
+    }
+  }
+}
+
+function calcCreditDrop(credit) {
+  if (!credit) return 0;
+  if (credit.guaranteed) {
+    let total = credit.guaranteed;
+    if (credit.bonusChance && Math.random() < credit.bonusChance) total += credit.bonusAmt || 0;
+    return parseFloat(total.toFixed(2));
+  }
+  if (credit.chance && Math.random() < credit.chance) {
+    if (credit.minAmt !== undefined) {
+      return parseFloat((credit.minAmt + Math.random() * (credit.maxAmt - credit.minAmt)).toFixed(2));
+    }
+    return credit.amt || 0;
+  }
+  return 0;
+}
+
+// ==========================================================================
+// EXECUTE ACTION
+// ==========================================================================
+function executeAction(action, source='button') {
+  const today = todayStr();
+  if (S.todayDate !== today) {
+    S.todayDate = today;
+    S.todayActions = 0;
+  }
+
+  // Apply stat effects
+  applyFX(action.fx || {});
+
+  // === COMBO PROCESSING (before XP so multiplier is ready) ===
+  const comboBonuses = processCombo(action);
+
+  // XP — apply state, combo, and archetype multipliers
+  let gainedXP = 0;
+  if (action.negative) {
+    gainedXP = action.awarenessXp || 0;
+  } else {
+    const baseXP = Math.round((action.xp || 0) * stateXPMult() * comboXPMult());
+    gainedXP = archetypeXPBonus(action.category, baseXP);
+  }
+  if (source === 'mission') gainedXP += 10;
+
+  addXP(gainedXP);
+  addSkillXP(action.skillXp || {});
+
+  // Credits — apply state mult + archetype bonus
+  let gainedCredits = 0;
+  if (!action.negative) {
+    const rawCredits = calcCreditDrop(action.credit);
+    const stateAdjusted = rawCredits > 0 ? parseFloat((rawCredits * stateCreditMult()).toFixed(2)) : 0;
+    gainedCredits = archetypeCreditBonus(action.category, stateAdjusted);
+  }
+  S.credits = parseFloat((S.credits + gainedCredits).toFixed(2));
+
+  // Evaluate system state and archetype after action
+  const newState = evaluateSystemState();
+  applySystemState(newState);
+  applyArchetype(evaluateArchetype());
+
+  // Track today
+  if (!action.negative) {
+    S.todayActions++;
+    // Update boss progress
+    const catBossMap = {body:'body', food:'body', grift:'grift', soul:'soul', discipline:'discipline', creativity:'soul'};
+    const bossKey = catBossMap[action.category];
+    if (bossKey && S.boss[bossKey] !== undefined) {
+      S.boss[bossKey]++;
+    }
+  }
+
+  // Streak
+  updateStreak();
+
+  // History
+  const effectsStr = Object.entries(action.fx||{}).map(([k,v]) => `${k}${v>0?'+':''}${v}`).join(' ');
+  S.history.unshift({
+    time: new Date().toISOString(),
+    action: action.name,
+    category: action.category || 'other',
+    effects: effectsStr,
+    xp: gainedXP,
+    credits: gainedCredits,
+    type: action.negative ? 'negative' : 'positive'
+  });
+  if (S.history.length > 500) S.history = S.history.slice(0,500);
+
+  saveState();
+  updateUI();
+
+  // Apply combo bonuses (XP + credits) and fire notifications
+  if (comboBonuses.xp > 0 || comboBonuses.credits > 0) {
+    applyComboBonus(comboBonuses);
+    saveState();
+    updateUI();
+  }
+  handleComboBonusMessages(comboBonuses.messages);
+
+  // Toast
+  const fxParts = [];
+  const fxEntries = Object.entries(action.fx || {});
+  for (const [k,v] of fxEntries) {
+    const icons = {health:'❤️',focus:'🧿',control:'⚔️',soul:'🌐',corruption:'☠️'};
+    fxParts.push(`${icons[k]||''}${k} ${v>0?'+':''}${v}`);
+  }
+  if (gainedXP > 0) fxParts.push(`✨ +${gainedXP}XP`);
+  if (gainedCredits > 0) fxParts.push(`₢ +$${gainedCredits.toFixed(2)}`);
+
+  const toastType = action.negative ? 'warn' : (gainedCredits > 0 ? 'success' : '');
+  toast(action.negative ? '⚠ LOGGED' : '✓ LOGGED', action.name, fxParts.join('  '), toastType);
+
+  // Recovery Protocol
+  if (action.recovery || S.stats.corruption >= 40) {
+    setTimeout(() => showRecovery(action.negative ? `Corruption spiked from: ${action.name}` : 'Corruption is elevated. Recover now.'), 400);
+  }
+
+  // Emotional trigger prompt for specific negative actions
+  if (action.negative && TRIGGER_ACTION_IDS.includes(action.id)) {
+    setTimeout(() => maybeTriggerEmotionalLog(action), action.recovery ? 3600 : 600);
+  }
+
+  // Check boss completion
+  checkBossCompletion();
+  // Check MVD trigger
+  checkMVDAfterAction();
+  // Check achievements
+  checkAchievements({ action });
+}
+
+function updateStreak() {
+  const today = todayStr();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = `${yesterday.getFullYear()}-${yesterday.getMonth()+1}-${yesterday.getDate()}`;
+
+  if (S.lastPlayedDate === today) return;
+  if (S.lastPlayedDate === yStr) {
+    S.streak++;
+  } else if (S.lastPlayedDate !== today) {
+    if (S.lastPlayedDate !== yStr) S.streak = 1;
+  }
+  S.lastPlayedDate = today;
+}
+
+// ==========================================================================
+// CAFFEINE LOGIC
+// ==========================================================================
+const CAFFEINE_LIMIT = 380;
+const CAFFEINE_MAX_DISPLAY = 600;
+const CAFFEINE_LATE_HOUR = 15; // 3pm
+
+function resetCaffeineToday() {
+  S.caffeineMg = 0;
+  S.caffeineDate = todayStr();
+  saveState();
+  updateCaffeineMeter();
+  toast('↺ RESET', 'Caffeine count cleared for today.', '', '');
+}
+
+function getCaffeineStatus(mg, isLate) {
+  if (isLate && mg > 0) return {text: `${mg}mg logged — late intake will disrupt sleep.`, cls:'warn'};
+  if (mg > CAFFEINE_LIMIT) return {text: `Over limit (${mg}mg). Focus degraded, Corruption rising.`, cls:'warn'};
+  if (mg >= 300) return {text: `${mg}mg — approaching limit. One more and you're in the red.`, cls:'caution'};
+  if (mg >= 60) return {text: `${mg}mg — within range. Stay sharp.`, cls:''};
+  return {text: 'No caffeine logged today.', cls:''};
+}
+
+function isAfter3PM() {
+  return new Date().getHours() >= CAFFEINE_LATE_HOUR;
+}
+
+function updateCaffeineMeter() {
+  const today = todayStr();
+  if (S.caffeineDate !== today) { S.caffeineMg = 0; S.caffeineDate = today; }
+  const mg = S.caffeineMg || 0;
+  const pct = Math.min((mg / CAFFEINE_MAX_DISPLAY) * 100, 100);
+  const late = isAfter3PM();
+  document.getElementById('caffeineTotal').textContent = mg + 'mg';
+  document.getElementById('caffeineBar').style.width = pct + '%';
+  const status = getCaffeineStatus(mg, late);
+  const statusEl = document.getElementById('caffeineStatus');
+  statusEl.textContent = status.text;
+  statusEl.className = 'caffeine-status ' + status.cls;
+  document.getElementById('caffeineTimeWarn').style.display = late ? 'block' : 'none';
+}
+
+function executeCaffeineAction(action) {
+  const today = todayStr();
+  if (S.caffeineDate !== today) { S.caffeineMg = 0; S.caffeineDate = today; }
+  const late = isAfter3PM();
+  const prevMg = S.caffeineMg || 0;
+  const addMg = action.caffeineMg;
+  const newMg = prevMg + addMg;
+  S.caffeineMg = newMg;
+
+  // Determine effects based on timing and total
+  const fx = {};
+  let toastNote = '';
+  let toastType = '';
+  let gainedXP = 0;
+
+  if (late) {
+    // After 3pm: always negative
+    fx.focus = -3;
+    fx.health = -2;
+    fx.corruption = 3;
+    gainedXP = 1; // awareness XP
+    toastNote = `Late caffeine — Focus-3 Health-2 Corruption+3`;
+    toastType = 'warn';
+  } else if (newMg > CAFFEINE_LIMIT) {
+    // Over daily limit: negative
+    const overBy = newMg - CAFFEINE_LIMIT;
+    fx.focus = -2;
+    fx.control = -2;
+    fx.corruption = Math.min(Math.ceil(overBy / 60), 8);
+    gainedXP = 1;
+    toastNote = `Over limit (${newMg}mg) — Focus-2 Control-2 Corruption+${fx.corruption}`;
+    toastType = 'warn';
+  } else {
+    // Neutral — no stat change, just log it
+    toastNote = `${newMg}mg total today — within limit`;
+    toastType = '';
+    gainedXP = 0;
+  }
+
+  if (Object.keys(fx).length) applyFX(fx);
+  if (gainedXP) addXP(gainedXP);
+
+  S.history.unshift({
+    time: new Date().toISOString(),
+    action: `${action.name} (${newMg}mg total)`,
+    category: 'caffeine',
+    effects: Object.entries(fx).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' ') || 'neutral',
+    xp: gainedXP,
+    credits: 0,
+    type: late || newMg > CAFFEINE_LIMIT ? 'negative' : 'neutral'
+  });
+
+  saveState();
+  updateUI();
+  updateCaffeineMeter();
+  toast(late || newMg > CAFFEINE_LIMIT ? '⚠ CAFFEINE' : '☕ CAFFEINE', action.name, toastNote, toastType);
+}
+
+
+function renderActionButton(action, cat, container) {
+  const btn = document.createElement('button');
+  btn.className = `action-btn cat-${action.negative ? 'negative' : cat}`;
+  action.category = cat;
+
+  let rewardHtml = '';
+  if (action.credit) {
+    if (action.credit.guaranteed) {
+      rewardHtml = `<span class="btn-reward">₢ $${action.credit.guaranteed}+</span>`;
+    } else if (action.credit.chance) {
+      const pct = Math.round(action.credit.chance * 100);
+      const amt = action.credit.minAmt ? `$${action.credit.minAmt}-$${action.credit.maxAmt}` : `$${action.credit.amt}`;
+      rewardHtml = `<span class="btn-reward">${pct}% ${amt}</span>`;
+    }
+  }
+
+  const fxParts = Object.entries(action.fx||{}).map(([k,v]) => `${k}${v>0?'+':''}${v}`).join(' ');
+
+  btn.innerHTML = `
+    <span class="btn-icon">${action.icon}</span>
+    <div class="btn-body">
+      <div class="btn-name">${action.name}</div>
+      <div class="btn-fx">${fxParts} ${action.xp ? `+${action.xp}XP` : action.awarenessXp ? `+${action.awarenessXp}XP awareness` : ''}</div>
+    </div>
+    ${rewardHtml}
+  `;
+
+  btn.onclick = () => {
+    if (action.isCaffeine) { executeCaffeineAction(action); return; }
+    executeAction(action, 'button');
+  };
+  container.appendChild(btn);
+}
+
+function renderAllActions() {
+  for (const [cat, actions] of Object.entries(ACTIONS)) {
+    const container = document.getElementById('actions-'+cat);
+    if (!container) continue;
+    container.innerHTML = '';
+    for (const action of actions) {
+      renderActionButton(action, cat, container);
+    }
+  }
+}
+
+// ==========================================================================
+// MISSIONS
+// ==========================================================================
+function generateMissions() {
+  const today = todayStr();
+  if (S.missionsDate === today && S.missions.length === 3) return;
+
+  // Weight toward weak stats
+  const weights = [];
+  for (const m of MISSION_POOL) {
+    let w = 1;
+    const cat = m.cat.toLowerCase();
+    if (cat === 'body' && S.stats.health < 50) w += 2;
+    if (cat === 'grift' && S.stats.focus < 50) w += 2;
+    if (cat === 'soul' && S.stats.soul < 50) w += 2;
+    if (cat === 'discipline' && S.stats.control < 50) w += 2;
+    if (S.stats.corruption > 30) w += (cat === 'soul' || cat === 'discipline') ? 1 : 0;
+    weights.push(w);
+  }
+
+  const selected = [];
+  const pool = [...MISSION_POOL.map((m,i) => ({...m, w:weights[i]}))];
+  while (selected.length < 3 && pool.length > 0) {
+    const total = pool.reduce((s,m) => s+m.w, 0);
+    let r = Math.random() * total, cum = 0;
+    for (let i = 0; i < pool.length; i++) {
+      cum += pool[i].w;
+      if (r <= cum) { selected.push({...pool[i], completed:false}); pool.splice(i,1); break; }
+    }
+  }
+
+  S.missions = selected;
+  S.missionsDate = today;
+  saveState();
+}
+
+function renderMissions() {
+  generateMissions();
+  const container = document.getElementById('missions-container');
+  container.innerHTML = '';
+  for (let i = 0; i < S.missions.length; i++) {
+    const m = S.missions[i];
+    const card = document.createElement('div');
+    card.className = `mission-card${m.completed ? ' completed' : ''}`;
+    const rewardStr = m.credit ? `+${m.xpBonus}XP + ₢ chance` : `+${m.xpBonus}XP`;
+    card.innerHTML = `
+      <div class="mission-header">
+        <div>
+          <div class="mission-name">${m.name}</div>
+          <div class="mission-cat">${m.cat}</div>
+        </div>
+        <div class="mission-reward">${rewardStr}</div>
+      </div>
+      ${m.completed
+        ? '<div class="mission-done-label">✓ COMPLETE</div>'
+        : `<button class="mission-complete-btn" onclick="completeMission(${i})">Mark Complete</button>`}
+    `;
+    container.appendChild(card);
+  }
+}
+
+function completeMission(idx) {
+  const m = S.missions[idx];
+  if (m.completed) return;
+  m.completed = true;
+
+  // Find matching action for full effects
+  let action = null;
+  for (const acts of Object.values(ACTIONS)) {
+    action = acts.find(a => a.id === m.action);
+    if (action) break;
+  }
+
+  if (action) {
+    // Apply action effects + bonus XP
+    applyFX(action.fx || {});
+    addXP((action.xp || 0) + m.xpBonus);
+    addSkillXP(action.skillXp || {});
+    const credits = calcCreditDrop(m.credit);
+    S.credits = parseFloat((S.credits + credits).toFixed(2));
+
+    S.history.unshift({
+      time: new Date().toISOString(),
+      action: `[MISSION] ${m.name}`,
+      category: m.cat.toLowerCase(),
+      effects: '',
+      xp: (action.xp || 0) + m.xpBonus,
+      credits,
+      type: 'mission'
+    });
+  }
+
+  saveState();
+  updateUI();
+  renderMissions();
+  toast('🎯 MISSION COMPLETE', m.name, `+${m.xpBonus} bonus XP`, 'success');
+}
+
+// ==========================================================================
+// WEEKLY BOSS
+// ==========================================================================
+const BOSS_TARGETS = {body:5, grift:5, soul:3, discipline:2};
+
+function initBoss() {
+  const week = getWeekStr();
+  if (S.boss.week !== week) {
+    S.boss = {
+      name: BOSS_NAMES[Math.floor(Math.random() * BOSS_NAMES.length)],
+      week,
+      body:0, grift:0, soul:0, discipline:0,
+      completed:false
+    };
+    saveState();
+  }
+}
+
+function getBossProgress() {
+  const keys = Object.keys(BOSS_TARGETS);
+  let total = keys.reduce((s,k) => s + BOSS_TARGETS[k], 0);
+  let done = keys.reduce((s,k) => s + Math.min(S.boss[k]||0, BOSS_TARGETS[k]), 0);
+  return Math.round((done/total)*100);
+}
+
+function checkBossCompletion() {
+  if (S.boss.completed) return;
+  const allDone = Object.entries(BOSS_TARGETS).every(([k,v]) => (S.boss[k]||0) >= v);
+  if (allDone) {
+    S.boss.completed = true;
+    const reward = 5;
+    S.credits = parseFloat((S.credits + reward).toFixed(2));
+    addXP(200);
+    S.history.unshift({
+      time: new Date().toISOString(),
+      action: `[BOSS DEFEATED] ${S.boss.name}`,
+      category:'boss',
+      effects:'',
+      xp:200,
+      credits:reward,
+      type:'boss'
+    });
+    saveState();
+    updateUI();
+    setTimeout(() => toast('☠️ BOSS DEFEATED', S.boss.name, '+200XP  ₢ +$5.00', 'success'), 200);
+  }
+}
+
+function renderBoss() {
+  initBoss();
+  const container = document.getElementById('boss-container');
+  if (S.boss.completed) {
+    container.innerHTML = `<div class="boss-complete-msg">✓ ${S.boss.name}<br><small style="font-size:11px;opacity:0.6">DEFEATED THIS WEEK</small></div>`;
+    return;
+  }
+  const pct = getBossProgress();
+  const hpPct = Math.max(0, 100 - pct);
+  let rows = '';
+  for (const [k,v] of Object.entries(BOSS_TARGETS)) {
+    const cur = Math.min(S.boss[k]||0, v);
+    const fillPct = Math.round((cur/v)*100);
+    rows += `
+      <div class="boss-req-row">
+        <span class="boss-req-label">${k.charAt(0).toUpperCase()+k.slice(1)} actions</span>
+        <div class="boss-req-bar"><div class="boss-req-fill" style="width:${fillPct}%"></div></div>
+        <span class="boss-req-val">${cur}/${v}</span>
+      </div>`;
+  }
+  container.innerHTML = `
+    <div class="boss-card">
+      <div class="boss-name">${S.boss.name}</div>
+      <div class="boss-week">// ${S.boss.week} //</div>
+      <div class="boss-hp-wrap"><div class="boss-hp-fill" style="width:${hpPct}%"></div></div>
+      <div class="boss-req">${rows}</div>
+      <div class="boss-reward-info">Defeat reward: ₢ $5.00 + 200 XP</div>
+    </div>
+  `;
+}
+
+function renderSkills() {
+  const container = document.getElementById('skills-container');
+  const skillLabels = {
+    body:'Body',grift:'Grift',creativity:'Creativity',
+    discipline:'Discipline',mindSoul:'Mind/Soul',family:'Family',recovery:'Recovery'
+  };
+  container.innerHTML = '';
+  for (const [k, label] of Object.entries(skillLabels)) {
+    const sk = S.skills[k];
+    const needed = xpForLevel(sk.level);
+    const pct = Math.round((sk.xp / needed) * 100);
+    const card = document.createElement('div');
+    card.className = 'skill-card';
+    card.innerHTML = `
+      <div class="skill-name">${label}</div>
+      <div class="skill-level">Lv.${sk.level} — ${sk.xp}/${needed} XP</div>
+      <div class="skill-xp-bar"><div class="skill-xp-fill" style="width:${pct}%"></div></div>
+    `;
+    container.appendChild(card);
+  }
+}
+
+// ==========================================================================
+// RANDOM EVENTS
+// ==========================================================================
+const RANDOM_EVENTS = [
+  {
+    id:'doubleBodyXP',
+    name:'OVERDRIVE PROTOCOL',
+    desc:'Body systems running hot. All Body actions grant double XP this week.',
+    bonus:'2x Body XP',
+    multiplier:{category:'body', stat:'xp', factor:2},
+  },
+  {
+    id:'griftSurge',
+    name:'MARKET SURGE',
+    desc:'Demand is up. Grift actions have elevated credit drop chances this week.',
+    bonus:'+20% Credit chance on all Grift actions',
+    multiplier:{category:'grift', stat:'credit', factor:1.2},
+  },
+  {
+    id:'soulRestoration',
+    name:'SIGNAL CLARITY',
+    desc:'Noise is low. All Soul actions grant +3 bonus Soul this week.',
+    bonus:'+3 Soul on every Soul action',
+    multiplier:{category:'soul', stat:'soul', bonus:3},
+  },
+  {
+    id:'corruptionPressure',
+    name:'CORRUPTION SURGE',
+    desc:'Environmental pressure is high. Corruption gains are doubled this week. Stay clean.',
+    bonus:'⚠ Corruption effects x2 this week',
+    multiplier:{category:'corruption', stat:'corruption', factor:2},
+    negative:true,
+  },
+  {
+    id:'disciplineBoost',
+    name:'IRON WEEK',
+    desc:'Discipline is the edge. Discipline actions grant double XP.',
+    bonus:'2x Discipline XP',
+    multiplier:{category:'discipline', stat:'xp', factor:2},
+  },
+  {
+    id:'creativityFlow',
+    name:'FLOW STATE ACTIVE',
+    desc:'Creative systems aligned. Creativity actions grant bonus Soul.',
+    bonus:'+4 Soul on every Creativity action',
+    multiplier:{category:'creativity', stat:'soul', bonus:4},
+  },
+  {
+    id:'restWeek',
+    name:'RECOVERY WINDOW',
+    desc:'The system needs maintenance. Recovery actions restore double Corruption reduction.',
+    bonus:'2x Corruption reduction on Recovery',
+    multiplier:{category:'recovery', stat:'corruption', factor:2},
+  },
+];
+
+function initRandomEvent() {
+  const week = getWeekStr();
+  if (S.activeEvent && S.activeEvent.week === week) return;
+  // Pick a new event each week
+  const idx = Math.floor((new Date().getTime() / (7*24*60*60*1000))) % RANDOM_EVENTS.length;
+  S.activeEvent = { ...RANDOM_EVENTS[idx], week };
+  saveState();
+}
+
+function renderRandomEvent() {
+  const container = document.getElementById('random-event-container');
+  if (!container) return;
+  if (!S.activeEvent) { container.innerHTML = '<div class="no-event">No active event this week.</div>'; return; }
+  const e = S.activeEvent;
+  container.innerHTML = `
+    <div class="event-card">
+      <div class="event-name">${e.name}</div>
+      <div class="event-desc">${e.desc}</div>
+      <div class="event-bonus">${e.bonus}</div>
+      <div class="event-expires">// Active this week: ${e.week} //</div>
+    </div>
+  `;
+}
+
+
+function showRecovery(reason) {
+  document.getElementById('recoveryReason').textContent = reason || 'Corruption elevated. Take one action.';
+  const container = document.getElementById('recoveryOptions');
+  container.innerHTML = '';
+  // Pick 4 random options
+  const shuffled = [...RECOVERY_OPTS].sort(() => Math.random()-0.5).slice(0,4);
+  for (const opt of shuffled) {
+    const el = document.createElement('div');
+    el.className = 'recovery-opt';
+    const fxStr = Object.entries(opt.fx).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' ');
+    el.innerHTML = `
+      <span class="r-icon">${opt.icon}</span>
+      <span class="r-name">${opt.name}</span>
+      <span class="r-fx">${fxStr}</span>
+    `;
+    el.onclick = () => {
+      applyFX(opt.fx);
+      addXP(5);
+      addSkillXP(opt.skillXp || {});
+      S.history.unshift({
+        time:new Date().toISOString(),
+        action:`[RECOVERY] ${opt.name}`,
+        category:'recovery',effects:'',xp:5,credits:0,type:'recovery'
+      });
+      saveState();
+      updateUI();
+      dismissRecovery();
+      toast('🛡 RECOVERY COMPLETE', opt.name, Object.entries(opt.fx).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' '), 'success');
+    };
+    container.appendChild(el);
+  }
+  document.getElementById('recoveryModal').classList.add('show');
+}
+
+function dismissRecovery() {
+  document.getElementById('recoveryModal').classList.remove('show');
+}
+
+// ==========================================================================
+// CUSTOM ACTION
+// ==========================================================================
+let customPolarity = 'pos';
+let customEffort = 'small';
+
+const EFFORT_XP = {tiny:2, small:8, medium:18, large:35, huge:60};
+const EFFORT_STAT = {tiny:1, small:2, medium:4, large:7, huge:10};
+
+function setPolarity(p) {
+  customPolarity = p;
+  document.getElementById('polPos').className = 'polarity-btn' + (p==='pos'?' active-pos':'');
+  document.getElementById('polNeg').className = 'polarity-btn' + (p==='neg'?' active-neg':'');
+}
+
+document.querySelectorAll('.effort-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.effort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    customEffort = btn.dataset.effort;
+  };
+});
+
+function submitCustomAction() {
+  const desc = document.getElementById('customDesc').value.trim();
+  if (!desc) { toast('ERROR','Enter a description.','','error'); return; }
+  const cat = document.getElementById('customCat').value;
+  const includeCredit = document.getElementById('customCredit').checked;
+  const isNeg = customPolarity === 'neg';
+  const xpAmt = isNeg ? 1 : EFFORT_XP[customEffort];
+  const statAmt = EFFORT_STAT[customEffort];
+
+  // Build fx
+  const fx = {};
+  const catStatMap = {
+    body:{health:statAmt}, food:{health:isNeg?-statAmt:statAmt},
+    grift:{focus:statAmt}, creativity:{soul:statAmt,focus:Math.ceil(statAmt/2)},
+    soul:{soul:statAmt,control:Math.ceil(statAmt/2)},
+    discipline:{focus:statAmt,control:statAmt},
+    recovery:{soul:statAmt,corruption:-(statAmt)},
+    other:{focus:Math.ceil(statAmt/2)}
+  };
+  const baseFX = catStatMap[cat] || {focus:1};
+  if (isNeg) {
+    for (const [k,v] of Object.entries(baseFX)) fx[k] = -Math.abs(v);
+    fx.corruption = statAmt;
+  } else {
+    Object.assign(fx, baseFX);
+  }
+
+  let gainedCredits = 0;
+  const creditConfig = includeCredit && !isNeg ? {chance:0.3, amt:EFFORT_XP[customEffort]*0.02} : null;
+  if (creditConfig) gainedCredits = calcCreditDrop(creditConfig);
+
+  applyFX(fx);
+  addXP(xpAmt);
+  const skillMap = {body:{body:xpAmt},food:{discipline:Math.ceil(xpAmt/2)},grift:{grift:xpAmt},creativity:{creativity:xpAmt},soul:{mindSoul:xpAmt},discipline:{discipline:xpAmt},recovery:{recovery:xpAmt},other:{}};
+  addSkillXP(skillMap[cat]||{});
+  S.credits = parseFloat((S.credits + gainedCredits).toFixed(2));
+  if (!isNeg) S.todayActions++;
+
+  S.history.unshift({
+    time:new Date().toISOString(),
+    action:`[CUSTOM] ${desc}`,
+    category:cat,effects:Object.entries(fx).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' '),
+    xp:xpAmt,credits:gainedCredits,type:isNeg?'negative':'positive'
+  });
+
+  saveState();
+  updateUI();
+  document.getElementById('customDesc').value = '';
+  toast(isNeg?'⚠ LOGGED':'✓ LOGGED', desc, `${Object.entries(fx).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' ')}  +${xpAmt}XP`, isNeg?'warn':'success');
+
+  if (isNeg && S.stats.corruption >= 30) setTimeout(() => showRecovery('Custom negative action logged.'), 400);
+}
+
+// ==========================================================================
+// DAILY DECAY
+// ==========================================================================
+function applyDecay() {
+  const today = todayStr();
+  if (S.lastDecayDate === today) return;
+  S.lastDecayDate = today;
+
+  if (!S.history.length) return;
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const ydStr = yesterday.toISOString().split('T')[0];
+
+  const yHistory = S.history.filter(h => h.time.startsWith(ydStr));
+  const cats = yHistory.map(h => h.category);
+
+  const hasBody = cats.some(c => c==='body');
+  const hasSoul = cats.some(c => c==='soul'||c==='recovery');
+  const hasFocus = cats.some(c => c==='grift'||c==='discipline');
+  const hasPositive = yHistory.some(h => h.type==='positive'||h.type==='mission');
+
+  if (!hasBody) S.stats.health = clamp(S.stats.health - 1);
+  if (!hasSoul) S.stats.soul = clamp(S.stats.soul - 1);
+  if (!hasFocus) S.stats.focus = clamp(S.stats.focus - 1);
+  if (!hasPositive) S.stats.corruption = clamp(S.stats.corruption + 1, 0, 100);
+
+  saveState();
+}
+
+// ==========================================================================
+// BRIEFING GENERATOR
+// ==========================================================================
+function generateBriefing() {
+  const {health,focus,control,soul,corruption} = S.stats;
+
+  // Use state-specific briefing override 50% of the time when in a non-nominal state
+  const state = S.currentSystemState || 'NOMINAL';
+  const cfg = STATE_CONFIG[state];
+  if (cfg && cfg.briefingOverride && Math.random() < 0.5) {
+    const overrides = cfg.briefingOverride;
+    document.getElementById('briefing').textContent = overrides[Math.floor(Math.random()*overrides.length)];
+    return;
+  }
+
+  const lines = [];
+  const statList = [{n:'health',v:health},{n:'focus',v:focus},{n:'control',v:control},{n:'soul',v:soul}];
+  const weakest = statList.sort((a,b)=>a.v-b.v)[0];
+  const openers = [`System online, Andrew.`,`Andrew. Logged in.`,`Protocol engaged, Andrew.`,`Status check complete.`];
+  lines.push(openers[Math.floor(Math.random()*openers.length)]);
+  if (corruption >= 50) {
+    lines.push(`Corruption is critical at ${corruption}. Recovery Protocol required.`);
+  } else if (corruption >= 30) {
+    lines.push(`Corruption elevated at ${corruption}. Watch your patterns.`);
+  } else if (health >= 70 && focus >= 70) {
+    lines.push(`Vitals strong. Momentum is building.`);
+  } else {
+    lines.push(`${weakest.n.charAt(0).toUpperCase()+weakest.n.slice(1)} is lagging at ${weakest.v}. Address it first.`);
+  }
+  const skills = Object.entries(S.skills);
+  const neglected = skills.sort((a,b) => a[1].xp - b[1].xp)[0];
+  const skillNames = {body:'Body',grift:'Grift',creativity:'Creativity',discipline:'Discipline',mindSoul:'Mind',family:'Family',recovery:'Recovery'};
+  const neglectedName = skillNames[neglected[0]] || neglected[0];
+  const directives = [
+    `Today's directive: move your body, list one item, keep corruption contained.`,
+    `Priority: ${neglectedName} skill is dormant. Activate it.`,
+    `Focus on one small win. Build the chain.`,
+    `The protocol is simple: act, log, recover. Repeat.`,
+    `One action forward. That's enough for now.`,
+  ];
+  lines.push(directives[Math.floor(Math.random()*directives.length)]);
+  if (S.streak > 2) lines.push(`Streak: ${S.streak} days. Don't break it.`);
+  document.getElementById('briefing').textContent = lines.join(' ');
+}
+
+// ==========================================================================
+// WITHDRAW
+// ==========================================================================
+function withdrawCredits() {
+  const amt = parseFloat(document.getElementById('withdrawAmt').value);
+  const note = document.getElementById('withdrawNote').value.trim() || 'Withdrawal';
+  if (!amt || amt <= 0) { toast('ERROR','Enter a valid amount.','','error'); return; }
+  if (amt > S.credits) {
+    toast('DENIED', 'Insufficient credits. Earn before extraction.', `Balance: $${S.credits.toFixed(2)}`, 'error');
+    return;
+  }
+  S.credits = parseFloat((S.credits - amt).toFixed(2));
+  S.history.unshift({
+    time:new Date().toISOString(),
+    action:`[WITHDRAWAL] ${note} — $${amt.toFixed(2)}`,
+    category:'withdrawal',effects:'',xp:0,credits:-amt,type:'withdrawal'
+  });
+  saveState();
+  updateUI();
+  document.getElementById('withdrawAmt').value = '';
+  document.getElementById('withdrawNote').value = '';
+  toast('₢ EXTRACTED', `$${amt.toFixed(2)} — ${note}`, `Remaining: $${S.credits.toFixed(2)}`, 'success');
+}
+
+// ==========================================================================
+// HISTORY RENDER
+// ==========================================================================
+function renderHistory(filter='today') {
+  const list = document.getElementById('historyList');
+  const now = new Date();
+  const todayS = todayStr();
+  const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate()-7);
+
+  const filtered = S.history.filter(h => {
+    if (filter === 'today') return h.time.startsWith(todayS.replace(/-(\d+)-(\d+)$/, (_, m, d) => `-${m.padStart(2,'0')}-${d.padStart(2,'0')}`)) || new Date(h.time).toDateString() === now.toDateString();
+    if (filter === 'week') return new Date(h.time) >= weekAgo;
+    return true;
+  });
+
+  if (!filtered.length) { list.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-family:\'Share Tech Mono\',monospace;font-size:11px">NO ENTRIES</div>'; return; }
+
+  list.innerHTML = filtered.map(h => {
+    const d = new Date(h.time);
+    const timeStr = `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+    const xpStr = h.xp ? `+${h.xp}XP` : '';
+    const credStr = h.credits > 0 ? `<span class="h-credits">+₢$${h.credits.toFixed(2)}</span>` : h.credits < 0 ? `<span class="h-withdrawal">₢$${h.credits.toFixed(2)}</span>` : '';
+    return `<div class="history-entry">
+      <div class="h-time">${timeStr}</div>
+      <div class="h-action">${h.action}</div>
+      <div class="h-effects">${h.effects ? h.effects + '  ' : ''}${xpStr} ${credStr}</div>
+    </div>`;
+  }).join('');
+}
+
+// ==========================================================================
+// BACKUP / RESTORE
+// ==========================================================================
+function openExportModal() {
+  const json = JSON.stringify(S, null, 2);
+  document.getElementById('exportJson').value = json;
+  document.getElementById('copyBtn').textContent = '📋 Copy to Clipboard';
+  document.getElementById('copyBtn').classList.remove('copied');
+  document.getElementById('exportModal').classList.add('show');
+  // Auto-select text for easy manual copy
+  setTimeout(() => {
+    const ta = document.getElementById('exportJson');
+    ta.focus();
+    ta.select();
+  }, 200);
+}
+
+function closeExportModal() {
+  document.getElementById('exportModal').classList.remove('show');
+}
+
+function copyBackup() {
+  const json = document.getElementById('exportJson').value;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(json).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => closeExportModal(), 1200);
+    }).catch(() => fallbackCopy(json));
+  } else {
+    fallbackCopy(json);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.getElementById('exportJson');
+  ta.select();
+  try {
+    document.execCommand('copy');
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => closeExportModal(), 1200);
+  } catch(e) {
+    toast('MANUAL COPY', 'Select all text above and copy it manually.', '', 'warn');
+  }
+}
+
+function openImportModal() {
+  document.getElementById('importPaste').value = '';
+  document.getElementById('importModal').classList.add('show');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('show');
+}
+
+function restoreFromPaste() {
+  const raw = document.getElementById('importPaste').value.trim();
+  if (!raw) { toast('ERROR', 'Paste your backup JSON first.', '', 'error'); return; }
+  try {
+    const data = JSON.parse(raw);
+    S = data;
+    saveState();
+    updateUI();
+    closeImportModal();
+    toast('✓ RESTORED', 'Data restored successfully.', '', 'success');
+  } catch(e) {
+    toast('ERROR', 'Invalid JSON. Check your backup text.', '', 'error');
+  }
+}
+
+function exportData() { openExportModal(); }
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      S = data;
+      saveState();
+      updateUI();
+      toast('✓ IMPORTED', 'Data restored successfully.','','success');
+    } catch {
+      toast('ERROR', 'Invalid backup file.','','error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetData() {
+  if (!confirm('Reset ALL data? This cannot be undone.')) return;
+  S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  saveState();
+  updateUI();
+  toast('RESET', 'All data cleared.','','warn');
+}
+
+// ==========================================================================
+// SYSTEM STATE ENGINE
+// ==========================================================================
+const STATE_CONFIG = {
+  NOMINAL: {
+    label:'NOMINAL', effect:'System stable.',
+    xpMult:1.0, creditMult:1.0,
+  },
+  FLOW: {
+    label:'FLOW STATE', effect:'+XP  +Credits  Balance active',
+    xpMult:1.15, creditMult:1.2,
+    briefingOverride:[
+      'Flow State active. Every action is compounding right now. Stay in it.',
+      'System in sync. XP and credits running hot. Keep the chain.',
+      'Momentum detected. Balanced output across all systems. Lean in.',
+    ],
+  },
+  BURNOUT: {
+    label:'BURNOUT', effect:'Rest needed. Reduced output.',
+    xpMult:0.9, creditMult:0.8,
+    briefingOverride:[
+      'Burnout detected. You have been grinding without recovery. Slow down and restore.',
+      'Output quality degrading. Soul is low. Take a break before continuing.',
+      'System stress high. Prioritize recovery before pushing further.',
+    ],
+  },
+  CORRUPTED: {
+    label:'CORRUPTED', effect:'⚠ XP reduced. Recovery required.',
+    xpMult:0.8, creditMult:0.85,
+    briefingOverride:[
+      'CORRUPTED. Negative patterns dominating. Immediate recovery protocol advised.',
+      'System integrity compromised. Corruption is controlling output. Recover now.',
+      'Warning: behavioral corruption detected. You know what to do.',
+    ],
+  },
+  DISCIPLINE: {
+    label:'DISCIPLINE', effect:'+XP  System stable.',
+    xpMult:1.1, creditMult:1.0,
+    briefingOverride:[
+      'Discipline State online. Consistency is your edge. The system is stable.',
+      'Structural integrity high. Keep logging. Keep building.',
+      'Protocol adherence elevated. XP gains enhanced. Hold the line.',
+    ],
+  },
+};
+
+function evaluateSystemState() {
+  const recent = S.history.slice(0, 20);
+  const recentPositive = recent.filter(h => h.type === 'positive' || h.type === 'mission' || h.type === 'recovery');
+  const recentNegative = recent.filter(h => h.type === 'negative');
+  const recentCats = recentPositive.map(h => h.category);
+  const hasRecovery = recentCats.some(c => c === 'recovery' || c === 'soul');
+  const griftCount = recentCats.filter(c => c === 'grift').length;
+  const disciplineCount = recentCats.filter(c => c === 'discipline').length;
+  const bodyCount = recentCats.filter(c => c === 'body').length;
+  const soulCount = recentCats.filter(c => c === 'soul').length;
+  const categoriesUsed = new Set(recentCats.slice(0, 12)).size;
+  const recentStreakClean = recent.slice(0, 5).filter(h=>h.type!=='negative').length >= 4;
+  const { corruption, soul, control, focus } = S.stats;
+
+  // CORRUPTED: high corruption OR 5+ negatives recently with no recovery
+  if (corruption >= 50 || (recentNegative.length >= 5 && !hasRecovery)) {
+    return 'CORRUPTED';
+  }
+
+  // BURNOUT: grinding without soul/recovery, low soul stat
+  if ((griftCount + disciplineCount) >= 7 && soul < 45 && !hasRecovery && soulCount < 2) {
+    return 'BURNOUT';
+  }
+
+  // FLOW: clean streak, balanced categories, low corruption, good activity
+  if (recentStreakClean && corruption < 25 && categoriesUsed >= 3 && recentPositive.length >= 5) {
+    return 'FLOW';
+  }
+
+  // DISCIPLINE: 3+ discipline actions, low corruption, control high, streak
+  if (disciplineCount >= 3 && corruption < 30 && control >= 55 && S.streak >= 2) {
+    return 'DISCIPLINE';
+  }
+
+  return 'NOMINAL';
+}
+
+function applySystemState(newState) {
+  const prev = S.currentSystemState || 'NOMINAL';
+  if (newState === prev) { renderSystemStateUI(); return; }
+
+  S.currentSystemState = newState;
+  renderSystemStateUI();
+
+  // Notify on meaningful transitions
+  if (newState === 'FLOW') toast('⚡ FLOW STATE', 'Momentum active. XP and credits enhanced.', '+15% XP  +20% Credits', 'success');
+  else if (newState === 'BURNOUT') toast('😮‍💨 BURNOUT', 'Grinding too hard. Prioritize recovery.', 'XP -10%  Credits -20%', 'warn');
+  else if (newState === 'CORRUPTED') toast('☠ CORRUPTED', 'Negative patterns dominating. Recover now.', 'XP -20%  Recovery required', 'error');
+  else if (newState === 'DISCIPLINE') toast('🔒 DISCIPLINE STATE', 'Consistency detected. System stable.', '+10% XP  Control enhanced', '');
+  else if (prev !== 'NOMINAL') toast('◎ NOMINAL', 'System stabilized.', '', '');
+}
+
+function renderSystemStateUI() {
+  const state = S.currentSystemState || 'NOMINAL';
+  const cfg = STATE_CONFIG[state] || STATE_CONFIG.NOMINAL;
+
+  // Update indicator
+  document.getElementById('stateName').textContent = cfg.label;
+  document.getElementById('stateEffect').textContent = cfg.effect;
+
+  // Swap body class
+  document.body.className = document.body.className
+    .replace(/state-\S+/g, '').trim();
+  document.body.classList.add(`state-${state}`);
+}
+
+// Apply state multipliers to XP gain
+function stateXPMult() {
+  const cfg = STATE_CONFIG[S.currentSystemState || 'NOMINAL'];
+  return cfg ? cfg.xpMult : 1.0;
+}
+
+// Apply state multipliers to credit drop
+function stateCreditMult() {
+  const cfg = STATE_CONFIG[S.currentSystemState || 'NOMINAL'];
+  return cfg ? cfg.creditMult : 1.0;
+}
+
+// ==========================================================================
+// COMBO & MOMENTUM ENGINE
+// ==========================================================================
+
+const COMBO_TIERS = [
+  { min:10, mult:1.5, label:'MOMENTUM MAX', cls:'max', icon:'🔥' },
+  { min:5,  mult:1.2, label:'HOT STREAK',   cls:'hot', icon:'⚡' },
+  { min:3,  mult:1.1, label:'COMBO',        cls:'',    icon:'✦'  },
+];
+
+const SYNERGIES = [
+  { cats:['body','discipline'],  name:'WARRIOR SYNC',   desc:'Body + Discipline aligned.',  xpBonus:20, creditBonus:0.25 },
+  { cats:['creativity','soul'],  name:'RESONANCE SYNC', desc:'Creativity + Soul in flow.',   xpBonus:20, creditBonus:0.25 },
+  { cats:['grift','discipline'], name:'BUILDER SYNC',   desc:'Grift + Discipline locked.',   xpBonus:20, creditBonus:0.50 },
+  { cats:['body','soul'],        name:'BALANCE SYNC',   desc:'Body + Soul harmonized.',      xpBonus:15, creditBonus:0.25 },
+  { cats:['grift','creativity'], name:'SIGNAL SYNC',    desc:'Grift + Creativity converge.', xpBonus:18, creditBonus:0.25 },
+  { cats:['discipline','soul'],  name:'CLARITY SYNC',   desc:'Discipline + Soul grounded.',  xpBonus:15, creditBonus:0.25 },
+];
+
+const BALANCED_MIND_CATS = 4;
+const BALANCED_MIND_XP   = 50;
+const BALANCED_MIND_CRED = 1.00;
+
+let synergyTimer = null;
+
+function getComboTier(count) {
+  return COMBO_TIERS.find(t => count >= t.min) || null;
+}
+function comboXPMult() {
+  const tier = getComboTier(S.combo?.count || 0);
+  return tier ? tier.mult : 1.0;
+}
+
+function ensureCombo() {
+  if (!S.combo) S.combo = { count:0, todayCats:[], todayDate:null, lastActionTime:null, balancedMindAwarded:false, lastSynergy:null };
+}
+
+function processCombo(action) {
+  ensureCombo();
+  const today = todayStr();
+  if (S.combo.todayDate !== today) {
+    S.combo.todayCats = [];
+    S.combo.todayDate = today;
+    S.combo.balancedMindAwarded = false;
+    S.combo.lastSynergy = null;
+  }
+
+  const isNeg = !!action.negative;
+  const isMajorNeg = isNeg && ((action.fx?.corruption || 0) >= 5);
+  const now = Date.now();
+  const bonuses = { xp:0, credits:0, messages:[] };
+
+  // Inactivity reset (4 hours of nothing)
+  if (S.combo.lastActionTime && !isNeg && (now - S.combo.lastActionTime) > 4*60*60*1000) {
+    if (S.combo.count > 0) { S.combo.count = 0; }
+  }
+
+  if (isNeg) {
+    if (isMajorNeg && S.combo.count >= 3) bonuses.messages.push({ type:'comboBreak', count:S.combo.count });
+    if (isMajorNeg) S.combo.count = 0;
+  } else {
+    S.combo.count++;
+    S.combo.lastActionTime = now;
+
+    // Track unique categories today
+    const countable = ['body','grift','creativity','soul','discipline','recovery'];
+    if (countable.includes(action.category) && !S.combo.todayCats.includes(action.category)) {
+      S.combo.todayCats.push(action.category);
+    }
+
+    // Combo threshold crossed?
+    const prevTier = getComboTier(S.combo.count - 1);
+    const newTier  = getComboTier(S.combo.count);
+    if (newTier && (!prevTier || newTier.min !== prevTier.min)) {
+      const bonusXP = newTier.min === 10 ? 40 : newTier.min === 5 ? 20 : 10;
+      bonuses.xp += bonusXP;
+      bonuses.messages.push({ type:'comboThreshold', tier:newTier, bonusXP });
+    }
+
+    // Synergy check — look at today's unique positive categories
+    const todayPosCats = [...new Set(
+      S.history
+        .filter(h => (h.type==='positive'||h.type==='mission') && new Date(h.time).toDateString()===new Date().toDateString())
+        .slice(0,8).map(h=>h.category)
+    )];
+    todayPosCats.unshift(action.category);
+    const unique = [...new Set(todayPosCats)];
+
+    for (const syn of SYNERGIES) {
+      if (syn.cats.every(c=>unique.includes(c)) && S.combo.lastSynergy !== syn.name) {
+        S.combo.lastSynergy = syn.name;
+        bonuses.xp += syn.xpBonus;
+        bonuses.credits += syn.creditBonus;
+        bonuses.messages.push({ type:'synergy', syn });
+        break; // one synergy per action
+      }
+    }
+
+    // Balanced Mind check
+    if (!S.combo.balancedMindAwarded && S.combo.todayCats.length >= BALANCED_MIND_CATS) {
+      S.combo.balancedMindAwarded = true;
+      bonuses.xp += BALANCED_MIND_XP;
+      bonuses.credits += BALANCED_MIND_CRED;
+      bonuses.messages.push({ type:'balancedMind' });
+    }
+  }
+  return bonuses;
+}
+
+function applyComboBonus(bonuses) {
+  if (bonuses.xp > 0) addXP(bonuses.xp);
+  if (bonuses.credits > 0) S.credits = parseFloat((S.credits + bonuses.credits).toFixed(2));
+}
+
+function renderComboUI() {
+  const bar = document.getElementById('comboBar');
+  if (!bar) return;
+  const count = S.combo?.count || 0;
+  if (count < 3) { bar.style.display = 'none'; return; }
+  const tier = getComboTier(count);
+  bar.style.display = 'flex';
+  bar.className = `combo-bar${tier.cls ? ' '+tier.cls : ''}`;
+  document.getElementById('comboIcon').textContent = tier.icon;
+  document.getElementById('comboLabel').textContent = `${tier.label}  ×${count}`;
+  document.getElementById('comboMult').textContent = `+${Math.round((tier.mult-1)*100)}% XP`;
+  // Dots show progress to next threshold
+  const dotsEl = document.getElementById('comboDots');
+  const nextThresh = count < 5 ? 5 : 10;
+  const base       = count < 5 ? 0 : 5;
+  const progress   = Math.min(count - base, nextThresh - base);
+  const dotCount   = nextThresh - base;
+  dotsEl.innerHTML = '';
+  for (let i=0;i<dotCount;i++) {
+    const d = document.createElement('div');
+    d.className = 'combo-dot'+(i<progress?' lit':'');
+    dotsEl.appendChild(d);
+  }
+  // Pop animation on update
+  bar.classList.remove('combo-pop');
+  void bar.offsetWidth;
+  bar.classList.add('combo-pop');
+}
+
+function fireSynergyToast(syn) {
+  const el = document.getElementById('synergyToast');
+  if (!el) return;
+  document.getElementById('synergyName').textContent  = syn.name;
+  document.getElementById('synergyDesc').textContent  = syn.desc;
+  document.getElementById('synergyBonus').textContent = `+${syn.xpBonus}XP  ₢ +$${syn.creditBonus.toFixed(2)}`;
+  el.classList.remove('hiding');
+  el.classList.add('show');
+  clearTimeout(synergyTimer);
+  synergyTimer = setTimeout(()=>{
+    el.classList.add('hiding');
+    setTimeout(()=>{ el.classList.remove('show','hiding'); },350);
+  }, 3200);
+}
+
+function handleComboBonusMessages(messages) {
+  for (const msg of messages) {
+    if (msg.type==='comboThreshold') {
+      setTimeout(()=>toast(`${msg.tier.icon} ${msg.tier.label}`,`${S.combo.count} consecutive actions`,`+${msg.bonusXP}XP  ×${msg.tier.mult} multiplier active`,'success'),400);
+    } else if (msg.type==='synergy') {
+      setTimeout(()=>fireSynergyToast(msg.syn),600);
+    } else if (msg.type==='balancedMind') {
+      setTimeout(()=>toast('🧠 BALANCED MIND',`${BALANCED_MIND_CATS}+ categories today`,`+${BALANCED_MIND_XP}XP  ₢ +$${BALANCED_MIND_CRED.toFixed(2)}`,'success'),800);
+    } else if (msg.type==='comboBreak') {
+      setTimeout(()=>toast('💥 COMBO BROKEN',`${msg.count}-chain ended`,'Major negative action','warn'),300);
+    }
+  }
+}
+
+// ==========================================================================
+// ARCHETYPE ENGINE
+// ==========================================================================
+const ARCHETYPES = {
+  WARRIOR: {
+    name:'THE WARRIOR',
+    icon:'⚔️',
+    desc:'Discipline forged through physical action.',
+    bonus:'+8% Body XP',
+    bonusFn: (cat, xp) => cat === 'body' ? Math.round(xp * 1.08) : xp,
+    creditFn: null,
+    corruptMod: 1.0,
+    tags:['body','discipline'],
+  },
+  BUILDER: {
+    name:'THE BUILDER',
+    icon:'🏗️',
+    desc:'Systems thinker. Output over everything.',
+    bonus:'+8% Grift XP',
+    bonusFn: (cat, xp) => cat === 'grift' ? Math.round(xp * 1.08) : xp,
+    creditFn: (cat, c) => cat === 'grift' ? parseFloat((c * 1.08).toFixed(2)) : c,
+    corruptMod: 1.0,
+    tags:['grift','discipline'],
+  },
+  MONK: {
+    name:'THE MONK',
+    icon:'🌙',
+    desc:'Inner work. Corruption resists your presence.',
+    bonus:'Corruption gain -20%',
+    bonusFn: null,
+    creditFn: null,
+    corruptMod: 0.8,
+    tags:['soul','recovery'],
+  },
+  CREATOR: {
+    name:'THE CREATOR',
+    icon:'🎨',
+    desc:'Expression is your edge. Ideas become reality.',
+    bonus:'+8% Creativity XP',
+    bonusFn: (cat, xp) => cat === 'creativity' ? Math.round(xp * 1.08) : xp,
+    creditFn: null,
+    corruptMod: 1.0,
+    tags:['creativity','soul'],
+  },
+  MERCHANT: {
+    name:'THE MERCHANT',
+    icon:'📡',
+    desc:'Flow state of the operator. Everything is leverage.',
+    bonus:'+10% Credit drops',
+    bonusFn: null,
+    creditFn: (cat, c) => c > 0 ? parseFloat((c * 1.10).toFixed(2)) : c,
+    corruptMod: 1.0,
+    tags:['grift'],
+  },
+  FATHER: {
+    name:'THE FATHER',
+    icon:'👨‍👦',
+    desc:'Legacy is built one day at a time.',
+    bonus:'+10% Family XP',
+    bonusFn: (cat, xp) => cat === 'family' ? Math.round(xp * 1.10) : xp,
+    creditFn: null,
+    corruptMod: 0.9,
+    tags:['family','soul'],
+  },
+  STRATEGIST: {
+    name:'THE STRATEGIST',
+    icon:'🧠',
+    desc:'Long game. Every move is deliberate.',
+    bonus:'+8% Discipline & Mind XP',
+    bonusFn: (cat, xp) => (cat === 'discipline' || cat === 'mindSoul') ? Math.round(xp * 1.08) : xp,
+    creditFn: null,
+    corruptMod: 0.9,
+    tags:['discipline','mindSoul'],
+  },
+  GHOST: {
+    name:'THE GHOST',
+    icon:'👻',
+    desc:'Fading signal. The system is losing you.',
+    bonus:'No bonus active',
+    bonusFn: null,
+    creditFn: null,
+    corruptMod: 1.2,
+    tags:[],
+  },
+  SURVIVOR: {
+    name:'THE SURVIVOR',
+    icon:'🛡️',
+    desc:'Climbing back. Recovery is your superpower.',
+    bonus:'+15% Recovery XP',
+    bonusFn: (cat, xp) => cat === 'recovery' ? Math.round(xp * 1.15) : xp,
+    creditFn: null,
+    corruptMod: 0.85,
+    tags:['recovery'],
+  },
+  WANDERER: {
+    name:'THE WANDERER',
+    icon:'◈',
+    desc:'No dominant path yet. Keep logging.',
+    bonus:'Archetype forming...',
+    bonusFn: null,
+    creditFn: null,
+    corruptMod: 1.0,
+    tags:[],
+  },
+};
+
+function evaluateArchetype() {
+  // Need at least 10 history entries to determine
+  const hist = S.history.filter(h => h.type === 'positive' || h.type === 'mission');
+  if (hist.length < 5) return 'WANDERER';
+
+  // GHOST: high corruption, low activity
+  if (S.stats.corruption >= 60 && hist.length < 10) return 'GHOST';
+
+  // SURVIVOR: heavy recent recovery
+  const recent = hist.slice(0, 30);
+  const recoveryCt = recent.filter(h => h.category === 'recovery').length;
+  if (recoveryCt >= 5 && S.stats.corruption >= 35) return 'SURVIVOR';
+
+  // Tally skill XP weighted by category
+  const sk = S.skills;
+  const scores = {
+    WARRIOR:    (sk.body.xp + sk.body.level*50)     * 1.2 + (sk.discipline.xp + sk.discipline.level*50),
+    BUILDER:    (sk.grift.xp + sk.grift.level*50)   * 1.2 + (sk.discipline.xp + sk.discipline.level*50),
+    MONK:       (sk.mindSoul.xp + sk.mindSoul.level*50) * 1.2 + (sk.recovery.xp + sk.recovery.level*50) * 1.2,
+    CREATOR:    (sk.creativity.xp + sk.creativity.level*50) * 1.5 + (sk.mindSoul.xp + sk.mindSoul.level*50) * 0.5,
+    MERCHANT:   (sk.grift.xp + sk.grift.level*50)   * 1.8,
+    FATHER:     (sk.family.xp + sk.family.level*50)  * 2.0 + (sk.mindSoul.xp + sk.mindSoul.level*50) * 0.5,
+    STRATEGIST: (sk.discipline.xp + sk.discipline.level*50) * 1.5 + (sk.mindSoul.xp + sk.mindSoul.level*50),
+  };
+
+  // Boost scores by recent category frequency
+  recent.forEach(h => {
+    const catBoost = { body:['WARRIOR'], grift:['BUILDER','MERCHANT'], creativity:['CREATOR'], soul:['MONK','FATHER'], discipline:['WARRIOR','BUILDER','STRATEGIST'], recovery:['MONK','SURVIVOR'], family:['FATHER'] };
+    (catBoost[h.category] || []).forEach(k => { if (scores[k] !== undefined) scores[k] += 15; });
+  });
+
+  // Find highest scoring archetype
+  const best = Object.entries(scores).sort((a,b) => b[1]-a[1])[0][0];
+
+  // Only allow GHOST if no dominant category
+  const topScore = Object.values(scores).sort((a,b)=>b-a)[0];
+  if (topScore < 200) return 'WANDERER';
+
+  return best;
+}
+
+function applyArchetype(key) {
+  const prev = S.currentArchetype;
+  S.currentArchetype = key;
+  renderArchetypeUI();
+  // Notify on change (not on load)
+  if (prev && prev !== key && prev !== 'WANDERER') {
+    const arch = ARCHETYPES[key];
+    setTimeout(() => toast(`${arch.icon} ARCHETYPE SHIFT`, arch.name, arch.bonus, ''), 600);
+  }
+}
+
+function renderArchetypeUI() {
+  const key = S.currentArchetype || 'WANDERER';
+  const arch = ARCHETYPES[key] || ARCHETYPES.WANDERER;
+  document.getElementById('archetypeIcon').textContent = arch.icon;
+  document.getElementById('archetypeName').textContent = arch.name;
+  document.getElementById('archetypeDesc').textContent = arch.desc;
+  document.getElementById('archetypeBonus').textContent = arch.bonus;
+  // Apply color class to a parent container
+  const bar = document.getElementById('archetypeBar');
+  // Remove old arch class
+  const appEl = document.getElementById('app');
+  appEl.className = appEl.className.replace(/arch-\S+/g,'').trim();
+  appEl.classList.add(`arch-${key}`);
+  // Animate on change
+  bar.style.animation = 'none';
+  void bar.offsetWidth;
+  bar.style.animation = 'archetypeShift 0.4s ease';
+}
+
+// Archetype passive bonus hooks
+function archetypeXPBonus(cat, xp) {
+  const arch = ARCHETYPES[S.currentArchetype || 'WANDERER'];
+  if (arch?.bonusFn) return arch.bonusFn(cat, xp);
+  return xp;
+}
+function archetypeCreditBonus(cat, credits) {
+  const arch = ARCHETYPES[S.currentArchetype || 'WANDERER'];
+  if (arch?.creditFn) return arch.creditFn(cat, credits);
+  return credits;
+}
+function archetypeCorruptMod() {
+  const arch = ARCHETYPES[S.currentArchetype || 'WANDERER'];
+  return arch?.corruptMod ?? 1.0;
+}
+
+// ==========================================================================
+// MAIN UI UPDATE
+// ==========================================================================
+// ==========================================================================
+// REACTIVE VISUAL EVOLUTION
+// ==========================================================================
+const VIBE_CLASSES = ['vibe-corrupt-lo','vibe-corrupt-hi','vibe-soul-hi','vibe-discipline','vibe-flow','vibe-burnout'];
+
+function applyVisualVibe() {
+  const { corruption, soul, control } = S.stats;
+  const state   = S.currentSystemState || 'NOMINAL';
+  const discLvl = (S.skills?.discipline?.level || 1);
+
+  // Determine active vibes — order matters for priority
+  const active = new Set();
+
+  // Corruption overrides everything
+  if (corruption >= 60) {
+    active.add('vibe-corrupt-hi');
+  } else if (corruption >= 35) {
+    active.add('vibe-corrupt-lo');
+  } else {
+    // Non-corrupt vibes only apply when corruption is low enough
+    if (state === 'FLOW') active.add('vibe-flow');
+    if (soul >= 70)        active.add('vibe-soul-hi');
+    if (control >= 65 && discLvl >= 3) active.add('vibe-discipline');
+  }
+
+  // Burnout can layer on top of soul/discipline (but not flow)
+  if (state === 'BURNOUT' || state === 'CORRUPTED') {
+    active.delete('vibe-flow');
+    active.delete('vibe-soul-hi');
+    active.delete('vibe-discipline');
+    if (corruption < 35) active.add('vibe-burnout');
+  }
+
+  // Apply — only swap if something actually changed to avoid layout thrash
+  const body = document.body;
+  const current = new Set(VIBE_CLASSES.filter(c => body.classList.contains(c)));
+  const toAdd    = [...active].filter(c => !current.has(c));
+  const toRemove = [...current].filter(c => !active.has(c));
+
+  toRemove.forEach(c => body.classList.remove(c));
+  toAdd.forEach(c    => body.classList.add(c));
+}
+
+function updateUI() {
+  const {health,focus,control,soul,corruption} = S.stats;
+
+  // Stats — update fill width and bar label
+  ['health','focus','control','soul'].forEach(k => {
+    const cap = k.charAt(0).toUpperCase()+k.slice(1);
+    const val = S.stats[k];
+    document.getElementById('bar'+cap).style.width = val+'%';
+    document.getElementById('stat'+cap).textContent = val+'%';
+  });
+  document.getElementById('barCorrupt').style.width = corruption+'%';
+  document.getElementById('statCorrupt').textContent = corruption+'%';
+
+  // Corruption pulse
+  const corruptRow = document.querySelector('.s-corrupt');
+  corruptRow.classList.toggle('corrupt-high', corruption >= 50);
+
+  // Level / XP
+  const needed = xpForLevel(S.level);
+  const pct = Math.round((S.xp / needed) * 100);
+  document.getElementById('levelBadge').textContent = `Lv.${S.level}`;
+  document.getElementById('rankName').textContent = getRank(S.level);
+  document.getElementById('xpBar').style.width = pct+'%';
+  document.getElementById('xpLabel').textContent = `${S.xp}/${needed}`;
+  document.getElementById('totalXPLabel').textContent = S.xp;
+
+  // Credits / streak / today
+  document.getElementById('creditsBadge').textContent = `₢ ${S.credits.toFixed(2)}`;
+  document.getElementById('streakBadge').textContent = `🔥 ${S.streak}d`;
+  document.getElementById('todayCount').textContent = S.todayActions || 0;
+  document.getElementById('creditsDisplay').textContent = `₢ ${S.credits.toFixed(2)}`;
+  document.getElementById('totalXPLabel').textContent = S.xp;
+
+  // Boss progress
+  document.getElementById('bossProgress').textContent = getBossProgress()+'%';
+
+  // System State UI
+  renderSystemStateUI();
+  // Combo UI
+  renderComboUI();
+  // Archetype UI
+  renderArchetypeUI();
+  // Reactive visual vibe
+  applyVisualVibe();
+
+  // Re-render dynamic panels
+  renderMissions();
+  renderBoss();
+  renderSkills();
+  renderRandomEvent();
+  renderTrends();
+  renderAchievements();
+  renderHistory('today');
+}
+
+// ==========================================================================
+// INIT
+// ==========================================================================
+// ==========================================================================
+// EVENTS MODAL
+// ==========================================================================
+function openEventsModal() {
+  renderBoss();
+  renderSkills();
+  renderRandomEvent();
+  document.getElementById('eventsModal').style.display = 'block';
+}
+function closeEventsModal() {
+  document.getElementById('eventsModal').style.display = 'none';
+}
+
+// ==========================================================================
+// MINIMUM VIABLE DAY (MVD)
+// ==========================================================================
+const MVD_TASKS = [
+  { id:'mvd_water',   name:'Drink a glass of water',    icon:'💧', actionId:'water',     xp:3,  fx:{health:1,control:1} },
+  { id:'mvd_pushups', name:'10 exercises (any kind)',    icon:'💪', actionId:'pushups',   xp:5,  fx:{health:2,control:1} },
+  { id:'mvd_walk',    name:'Walk outside for 5 minutes', icon:'🚶', actionId:'walk',      xp:8,  fx:{health:3,soul:2} },
+  { id:'mvd_clean',   name:'Clean one small thing',      icon:'🧹', actionId:'cleanArea', xp:5,  fx:{focus:2,control:2} },
+  { id:'mvd_breathe', name:'Breathe for 60 seconds',     icon:'🌬️', actionId:null,        xp:4,  fx:{control:3,corruption:-2} },
+  { id:'mvd_repair',  name:'Do one small repair action', icon:'🤝', actionId:'apologize', xp:8,  fx:{soul:4,control:3,corruption:-3} },
+  { id:'mvd_phone',   name:'Put phone away for 10 min',  icon:'📵', actionId:null,        xp:5,  fx:{focus:3,control:2,corruption:-2} },
+  { id:'mvd_protein', name:'Eat something with protein', icon:'🥩', actionId:'proteinHit',xp:4,  fx:{health:2} },
+];
+
+// Conditions that trigger MVD
+function shouldTriggerMVD() {
+  const today = todayStr();
+  // Already active today
+  if (S.mvd && S.mvd.date === today && S.mvd.active) return false;
+  // Already dismissed today
+  if (S.mvd && S.mvd.dismissed === today) return false;
+
+  const todayHist = S.history.filter(h => new Date(h.time).toDateString() === new Date().toDateString());
+  const negToday = todayHist.filter(h => h.type === 'negative').length;
+  const posToday = todayHist.filter(h => h.type === 'positive' || h.type === 'mission').length;
+  const { corruption } = S.stats;
+  const isBurnout = S.currentSystemState === 'BURNOUT' || S.currentSystemState === 'CORRUPTED';
+
+  // Trigger if: 3+ negatives today with few positives, OR high corruption + burnout
+  return (negToday >= 3 && posToday <= 2) || (corruption >= 55 && isBurnout) || (corruption >= 70);
+}
+
+function initMVD() {
+  if (!S.mvd) S.mvd = { active:false, date:null, dismissed:null, tasks:[], allDone:false };
+  if (shouldTriggerMVD()) {
+    const today = todayStr();
+    if (S.mvd.date !== today) {
+      // Pick 3 random tasks
+      const shuffled = [...MVD_TASKS].sort(() => Math.random() - 0.5).slice(0, 3);
+      S.mvd = { active:true, date:today, dismissed:null, tasks:shuffled.map(t => ({...t, done:false})), allDone:false };
+      document.body.classList.add('mvd-active');
+      saveState();
+      setTimeout(() => showMVD(), 800);
+    }
+  }
+}
+
+function showMVD() {
+  if (!S.mvd || !S.mvd.active) return;
+  renderMVD();
+  document.getElementById('mvdModal').style.display = 'flex';
+}
+
+function closeMVD() {
+  document.getElementById('mvdModal').style.display = 'none';
+  if (S.mvd) S.mvd.dismissed = todayStr();
+  document.body.classList.remove('mvd-active');
+  saveState();
+}
+
+function completeMVDTask(idx) {
+  if (!S.mvd || !S.mvd.tasks[idx]) return;
+  const task = S.mvd.tasks[idx];
+  if (task.done) return;
+  task.done = true;
+
+  // Apply effects
+  applyFX(task.fx || {});
+  addXP(task.xp || 0);
+  S.history.unshift({
+    time:new Date().toISOString(),
+    action:`[MVD] ${task.name}`,
+    category:'recovery',
+    effects:Object.entries(task.fx||{}).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' '),
+    xp:task.xp,credits:0,type:'positive'
+  });
+
+  // Check if all done
+  const allDone = S.mvd.tasks.every(t => t.done);
+  if (allDone && !S.mvd.allDone) {
+    S.mvd.allDone = true;
+    // Preserve streak
+    const today = todayStr();
+    S.lastPlayedDate = today;
+    if (S.streak === 0) S.streak = 1;
+    addXP(25); // protocol completion bonus
+    setTimeout(() => toast('◎ PROTOCOL COMPLETE', 'Minimal day complete. Streak preserved.', '+25XP  Streak held', 'success'), 400);
+    document.body.classList.remove('mvd-active');
+  }
+
+  saveState();
+  updateUI();
+  renderMVD();
+
+  if (!allDone) toast('◎ MVD', task.name, `+${task.xp}XP`, '');
+}
+
+function renderMVD() {
+  if (!S.mvd || !S.mvd.tasks) return;
+  const container = document.getElementById('mvdTasks');
+  const streakEl   = document.getElementById('mvdStreakNote');
+  const subEl      = document.getElementById('mvdSub');
+  const allDone    = S.mvd.allDone;
+
+  subEl.textContent = allDone
+    ? 'Protocol complete. You showed up. That matters.'
+    : 'Hard day. That\'s okay. Small actions only.';
+
+  container.innerHTML = '';
+  S.mvd.tasks.forEach((task, i) => {
+    const row = document.createElement('div');
+    row.className = `mvd-task${task.done ? ' done' : ''}`;
+    row.innerHTML = `
+      <span class="mvd-task-icon">${task.icon}</span>
+      <span class="mvd-task-name">${task.name}</span>
+      ${task.done
+        ? '<span class="mvd-task-done-label">✓ DONE</span>'
+        : `<button class="mvd-task-btn" onclick="completeMVDTask(${i})">Do it</button>`
+      }
+    `;
+    container.appendChild(row);
+  });
+
+  const doneCount = S.mvd.tasks.filter(t => t.done).length;
+  const total = S.mvd.tasks.length;
+  if (allDone) {
+    streakEl.textContent = '✓ STREAK PRESERVED — Protocol complete';
+  } else if (doneCount > 0) {
+    streakEl.textContent = `${doneCount}/${total} — Complete all ${total} to preserve streak`;
+  } else {
+    streakEl.textContent = `Complete all ${total} tasks to preserve your streak`;
+  }
+}
+
+function checkMVDAfterAction() {
+  if (!S.mvd || S.mvd.dismissed === todayStr()) return;
+  if (shouldTriggerMVD() && !S.mvd.active) {
+    initMVD();
+  }
+}
+
+// ==========================================================================
+// EMOTIONAL TRIGGER LOGGING
+// ==========================================================================
+
+const TRIGGER_ACTION_IDS = ['lostControl','doomscrolled','avoidedTask','stayedUpLate'];
+
+const TRIGGER_OPTIONS = [
+  { id:'stress',         label:'Stress',               icon:'😰' },
+  { id:'exhaustion',     label:'Exhaustion',            icon:'😴' },
+  { id:'overstimulation',label:'Overstimulation',       icon:'⚡' },
+  { id:'hunger',         label:'Hunger',                icon:'🍽️' },
+  { id:'frustration',    label:'Frustration',           icon:'😤' },
+  { id:'family_chaos',   label:'Family / Chaos',        icon:'👨‍👦' },
+  { id:'avoidance',      label:'Avoidance',             icon:'🙈' },
+  { id:'anxiety',        label:'Anxiety',               icon:'🌀' },
+  { id:'social_spiral',  label:'Social Media Spiral',   icon:'📱' },
+  { id:'financial',      label:'Financial Stress',      icon:'💸' },
+];
+
+let _pendingTriggerAction = null;
+
+function maybeTriggerEmotionalLog(action) {
+  if (!TRIGGER_ACTION_IDS.includes(action.id)) return;
+  _pendingTriggerAction = action;
+  document.getElementById('triggerActionName').textContent = `// ${action.name.toUpperCase()}`;
+  const grid = document.getElementById('triggerGrid');
+  grid.innerHTML = '';
+  TRIGGER_OPTIONS.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'trigger-btn';
+    btn.innerHTML = `${opt.icon} ${opt.label}`;
+    btn.onclick = () => logTrigger(opt.id, opt.label);
+    grid.appendChild(btn);
+  });
+  document.getElementById('triggerModal').style.display = 'flex';
+}
+
+function logTrigger(triggerId, triggerLabel) {
+  if (!_pendingTriggerAction) return;
+  const entry = {
+    time: new Date().toISOString(),
+    actionId: _pendingTriggerAction.id,
+    actionName: _pendingTriggerAction.name,
+    trigger: triggerId,
+    triggerLabel,
+    corruption: S.stats.corruption,
+    stats: { ...S.stats },
+  };
+  if (!S.triggerLog) S.triggerLog = [];
+  S.triggerLog.unshift(entry);
+  if (S.triggerLog.length > 200) S.triggerLog = S.triggerLog.slice(0, 200);
+  saveState();
+  closeTriggerModal();
+  toast('📊 TRIGGER LOGGED', triggerLabel, 'Behavioral data updated.', '');
+  // Refresh trends if visible
+  renderTrends();
+}
+
+function skipTrigger() {
+  closeTriggerModal();
+}
+
+function closeTriggerModal() {
+  document.getElementById('triggerModal').style.display = 'none';
+  _pendingTriggerAction = null;
+}
+
+// ==========================================================================
+// TRENDS & BEHAVIORAL ANALYTICS
+// ==========================================================================
+
+function generateInsights() {
+  const insights = [];
+  const tLog = S.triggerLog || [];
+  const hist = S.history || [];
+
+  if (tLog.length < 3 && hist.length < 10) return null;
+
+  // 1. Most common trigger
+  if (tLog.length >= 2) {
+    const tCounts = {};
+    tLog.forEach(e => { tCounts[e.triggerLabel] = (tCounts[e.triggerLabel] || 0) + 1; });
+    const top = Object.entries(tCounts).sort((a,b) => b[1]-a[1])[0];
+    if (top[1] >= 2) {
+      insights.push({ type:'warn', text:`Most corruption spikes are triggered by: ${top[0]}. (${top[1]} logged events)` });
+    }
+  }
+
+  // 2. BJJ / Body positive effect on control
+  const bjjDays = new Set(
+    hist.filter(h => h.action === 'BJJ' || h.actionId === 'bjj')
+        .map(h => new Date(h.time).toDateString())
+  );
+  if (bjjDays.size >= 2) {
+    const nextDayNegs = hist.filter(h => {
+      const d = new Date(h.time);
+      const prev = new Date(d); prev.setDate(prev.getDate()-1);
+      return h.type === 'negative' && bjjDays.has(prev.toDateString());
+    });
+    const bjjDayNegs = hist.filter(h => h.type === 'negative' && bjjDays.has(new Date(h.time).toDateString()));
+    const avgNegsAfterBJJ = bjjDayNegs.length / bjjDays.size;
+    if (avgNegsAfterBJJ < 1) {
+      insights.push({ type:'positive', text:`BJJ days show fewer negative actions on average. Physical grounding works.` });
+    }
+    insights.push({ type:'positive', text:`Control improves measurably on BJJ training days.` });
+  }
+
+  // 3. Family chaos trigger -> Focus correlation
+  if (tLog.length >= 2) {
+    const familyTriggers = tLog.filter(e => e.trigger === 'family_chaos');
+    if (familyTriggers.length >= 2) {
+      const avgFocusOnFamilyTrigger = familyTriggers.reduce((s,e) => s+(e.stats?.focus||50), 0) / familyTriggers.length;
+      if (avgFocusOnFamilyTrigger < 50) {
+        insights.push({ type:'warn', text:`Family/chaos triggers occur when Focus is low (avg ${Math.round(avgFocusOnFamilyTrigger)}%). Protect your energy reserves.` });
+      }
+    }
+  }
+
+  // 4. Exhaustion / late sleep correlation
+  const lateNegs = hist.filter(h => (h.action === 'Stayed Up Too Late' || h.actionId === 'stayedUpLate') && h.type === 'negative');
+  if (lateNegs.length >= 2) {
+    const nextMorningNegs = hist.filter(h => {
+      if (h.type !== 'negative') return false;
+      const d = new Date(h.time);
+      const prev = new Date(d); prev.setDate(prev.getDate()-1);
+      return lateNegs.some(l => new Date(l.time).toDateString() === prev.toDateString());
+    });
+    if (nextMorningNegs.length >= 2) {
+      insights.push({ type:'warn', text:`Most corruption spikes the next day follow nights you stayed up late. Sleep is your highest-leverage habit.` });
+    }
+  }
+
+  // 5. Streak vs corruption
+  if (S.streak >= 5 && S.stats.corruption < 20) {
+    insights.push({ type:'positive', text:`${S.streak}-day streak active with low corruption. You are currently in a strong consistency window.` });
+  }
+
+  // 6. Avoidance pattern
+  const avoidTriggers = (tLog).filter(e => e.trigger === 'avoidance');
+  const avoidActions  = hist.filter(h => h.actionId === 'avoidedTask' || h.action?.includes('Avoided'));
+  if (avoidTriggers.length + avoidActions.length >= 3) {
+    insights.push({ type:'warn', text:`Avoidance is a recurring pattern. Consider breaking tasks into smaller units before they become blockers.` });
+  }
+
+  // 7. Anxiety spike pattern
+  const anxietyTriggers = tLog.filter(e => e.trigger === 'anxiety');
+  if (anxietyTriggers.length >= 2) {
+    const avgCorruptWhenAnxious = anxietyTriggers.reduce((s,e) => s+(e.corruption||0), 0) / anxietyTriggers.length;
+    insights.push({ type:'warn', text:`Anxiety-triggered actions occur at avg ${Math.round(avgCorruptWhenAnxious)}% corruption. Meditation or breathing before this threshold may intercept it.` });
+  }
+
+  // 8. Not enough data
+  if (insights.length === 0 && tLog.length < 5) {
+    insights.push({ type:'neutral', text:`Not enough trigger data yet. Log a few more negative actions with triggers to unlock behavioral insights.` });
+  }
+
+  return insights;
+}
+
+function renderTrends() {
+  const container = document.getElementById('trends-container');
+  if (!container) return;
+
+  const tLog = S.triggerLog || [];
+  const hist  = S.history || [];
+
+  let html = '';
+
+  // ── Trigger Frequency ──
+  html += `<div class="trends-section">
+    <div class="trends-section-title">Trigger Frequency</div>`;
+
+  if (tLog.length === 0) {
+    html += `<div class="no-data-msg">No trigger data yet. After logging a negative action, tap a trigger to start tracking.</div>`;
+  } else {
+    const counts = {};
+    tLog.forEach(e => { counts[e.triggerLabel] = (counts[e.triggerLabel] || 0) + 1; });
+    const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+    const max = sorted[0]?.[1] || 1;
+    sorted.forEach(([label, count]) => {
+      const pct = Math.round((count / max) * 100);
+      html += `<div class="trigger-bar-row">
+        <span class="trigger-bar-label">${label}</span>
+        <div class="trigger-bar-outer"><div class="trigger-bar-fill" style="width:${pct}%"></div></div>
+        <span class="trigger-bar-count">${count}</span>
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  // ── Recent Trigger Log ──
+  html += `<div class="trends-section">
+    <div class="trends-section-title">Recent Trigger Log</div>`;
+  if (tLog.length === 0) {
+    html += `<div class="no-data-msg">No entries yet.</div>`;
+  } else {
+    tLog.slice(0, 8).forEach(e => {
+      const d = new Date(e.time);
+      const ts = `${d.toLocaleDateString()} ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+      html += `<div class="history-entry">
+        <div class="h-time">${ts}</div>
+        <div class="h-action">${e.actionName} → ${e.triggerLabel}</div>
+        <div class="h-effects">Corruption at time: ${e.corruption}%</div>
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  // ── Behavioral Insights ──
+  html += `<div class="trends-section">
+    <div class="trends-section-title">Behavioral Insights</div>`;
+  const insights = generateInsights();
+  if (!insights || insights.length === 0) {
+    html += `<div class="no-data-msg">Keep logging. Insights emerge after consistent use.</div>`;
+  } else {
+    insights.forEach(ins => {
+      html += `<div class="insight-card ${ins.type}">${ins.text}</div>`;
+    });
+  }
+  html += `</div>`;
+
+  // ── Positive Pattern Tracker ──
+  html += `<div class="trends-section">
+    <div class="trends-section-title">Positive Patterns</div>`;
+  // Count top positive action categories this week
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+  const weekPos = hist.filter(h => (h.type==='positive'||h.type==='mission') && new Date(h.time) >= weekAgo);
+  if (weekPos.length < 3) {
+    html += `<div class="no-data-msg">Not enough weekly data yet.</div>`;
+  } else {
+    const catCounts = {};
+    weekPos.forEach(h => { catCounts[h.category] = (catCounts[h.category]||0)+1; });
+    const catSorted = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const catMax = catSorted[0]?.[1]||1;
+    const catLabels = {body:'Body',grift:'Grift',creativity:'Creativity',soul:'Soul',discipline:'Discipline',recovery:'Recovery',food:'Food',caffeine:'Caffeine',family:'Family'};
+    catSorted.forEach(([cat, count]) => {
+      const pct = Math.round((count/catMax)*100);
+      html += `<div class="trigger-bar-row">
+        <span class="trigger-bar-label">${catLabels[cat]||cat}</span>
+        <div class="trigger-bar-outer"><div class="trigger-bar-fill" style="width:${pct}%;background:var(--neon-green)"></div></div>
+        <span class="trigger-bar-count">${count}</span>
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+
+// ==========================================================================
+// ACHIEVEMENT SYSTEM
+// ==========================================================================
+
+const ACHIEVEMENTS = [
+  // ── RECOVERY & RESILIENCE ──────────────────────────────────────────
+  {
+    id:'signal_restored', icon:'📡', rarity:'uncommon',
+    name:'Signal Restored',
+    desc:'Reduced Corruption from 50%+ down to below 30% in a single session.',
+    hint:'Keep logging positive and recovery actions after a spike.',
+    check(S) {
+      const h = S.history;
+      for (let i = 0; i < h.length - 1; i++) {
+        const snap = h[i]; const prev = h[i+1];
+        if ((snap.stats?.corruption ?? 100) < 30 && (prev.stats?.corruption ?? 0) >= 50) return true;
+      }
+      // Simpler: check if corruption was ever high and is now low
+      return S.history.some(h=>h.type==='positive') && S.stats.corruption < 30 && S.history.some(h=>(h.stats?.corruption||0)>=50);
+    }
+  },
+  {
+    id:'comeback_arc', icon:'🔄', rarity:'uncommon',
+    name:'Comeback Arc',
+    desc:'Logged positive actions the day after being in a Corrupted state.',
+    hint:'Corrupted days followed by positive re-engagement.',
+    check(S) {
+      const h = S.history;
+      let foundCorruptedDay = false, foundNextDayPos = false;
+      const days = {};
+      h.forEach(e => { const d = new Date(e.time).toDateString(); if(!days[d]) days[d]=[]; days[d].push(e); });
+      const dayKeys = Object.keys(days).sort();
+      for (let i = 1; i < dayKeys.length; i++) {
+        const prevDay = days[dayKeys[i-1]];
+        const thisDay = days[dayKeys[i]];
+        const prevCorrupt = prevDay.some(e=>e.category==='corruption'||e.type==='negative');
+        const thisPositive = thisDay.some(e=>e.type==='positive'||e.type==='mission');
+        if (prevCorrupt && thisPositive) return true;
+      }
+      return false;
+    }
+  },
+  {
+    id:'damage_control', icon:'🛡️', rarity:'common',
+    name:'Damage Control',
+    desc:'Completed a Recovery Protocol action within an hour of a major negative.',
+    hint:'Log a recovery action shortly after a big negative event.',
+    check(S) {
+      const h = [...S.history];
+      for (let i = 0; i < h.length; i++) {
+        if (h[i].type === 'recovery') {
+          const recTime = new Date(h[i].time).getTime();
+          for (let j = i+1; j < Math.min(i+10, h.length); j++) {
+            if (h[j].type === 'negative' && (h[j].stats?.corruption >= 8 || (h[j].effects||'').includes('corruption+10') || (h[j].effects||'').includes('corruption+6'))) {
+              if (recTime - new Date(h[j].time).getTime() < 3600000) return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+  },
+  {
+    id:'rebuilt_from_zero', icon:'🔨', rarity:'uncommon',
+    name:'Rebuilt From Zero',
+    desc:'Completed all three MVD tasks on a hard day.',
+    hint:'When the Minimal Protocol activates, complete every task.',
+    check(S) { return !!(S.mvd?.allDone); }
+  },
+  {
+    id:'still_standing', icon:'⚡', rarity:'rare',
+    name:'Still Standing',
+    desc:'Completed 5 Minimal Day Protocols in total.',
+    hint:'Hard days keep coming. You keep showing up.',
+    check(S) {
+      return S.history.filter(h=>h.action?.includes('[MVD]')).length >= 15; // 5 protocols × 3 tasks
+    }
+  },
+  {
+    id:'phoenix', icon:'🔥', rarity:'legendary',
+    name:'Phoenix Protocol',
+    desc:'Went from 80%+ Corruption to below 20% within a 7-day window.',
+    hint:'The longest way back is through it.',
+    hidden: false,
+    check(S) {
+      const h = S.history;
+      const week = 7*24*60*60*1000;
+      for (let i = 0; i < h.length; i++) {
+        if ((h[i].stats?.corruption||0) < 20) {
+          const t0 = new Date(h[i].time).getTime();
+          for (let j = i+1; j < h.length; j++) {
+            if (new Date(h[j].time).getTime() < t0 - week) break;
+            if ((h[j].stats?.corruption||0) >= 80) return true;
+          }
+        }
+      }
+      return false;
+    }
+  },
+
+  // ── BALANCE & WHOLENESS ────────────────────────────────────────────
+  {
+    id:'full_spectrum', icon:'🌈', rarity:'common',
+    name:'Full Spectrum',
+    desc:'Logged actions in 5 different categories in a single day.',
+    hint:'Body, Grift, Soul, Discipline, Creativity — one day.',
+    check(S) {
+      const days = {};
+      S.history.filter(h=>h.type==='positive'||h.type==='mission').forEach(e=>{
+        const d=new Date(e.time).toDateString(); if(!days[d]) days[d]=new Set(); days[d].add(e.category);
+      });
+      return Object.values(days).some(s=>s.size>=5);
+    }
+  },
+  {
+    id:'equilibrium', icon:'⚖️', rarity:'uncommon',
+    name:'Equilibrium',
+    desc:'All four main stats — Health, Focus, Control, Soul — above 60% simultaneously.',
+    hint:'Build up across all pillars.',
+    check(S) {
+      const {health,focus,control,soul}=S.stats;
+      return health>=60&&focus>=60&&control>=60&&soul>=60;
+    }
+  },
+  {
+    id:'renaissance', icon:'🎭', rarity:'rare',
+    name:'The Renaissance',
+    desc:'Logged Body, Grift, Soul, Discipline, and Creativity actions in a single week.',
+    hint:'Five systems active in one week.',
+    check(S) {
+      const week=new Date(); week.setDate(week.getDate()-7);
+      const weekH=S.history.filter(h=>(h.type==='positive'||h.type==='mission')&&new Date(h.time)>=week);
+      const cats=new Set(weekH.map(h=>h.category));
+      return ['body','grift','soul','discipline','creativity'].every(c=>cats.has(c));
+    }
+  },
+  {
+    id:'balanced_mind_triple', icon:'🧠', rarity:'uncommon',
+    name:'Balanced Mind × 3',
+    desc:'Earned the Balanced Mind bonus (4+ categories in a day) on 3 separate days.',
+    hint:'Consistency in balance, not just one good day.',
+    check(S) {
+      const days = {}; let count=0;
+      S.history.filter(h=>h.type==='positive'||h.type==='mission').forEach(e=>{
+        const d=new Date(e.time).toDateString(); if(!days[d]) days[d]=new Set(); days[d].add(e.category);
+      });
+      Object.values(days).forEach(s=>{ if(s.size>=4) count++; });
+      return count>=3;
+    }
+  },
+
+  // ── CONSISTENCY & DISCIPLINE ───────────────────────────────────────
+  {
+    id:'streak_7', icon:'🔥', rarity:'common',
+    name:'Signal Lock',
+    desc:'Maintained a 7-day streak.',
+    hint:'Open the app and log something every day.',
+    check(S) { return S.streak>=7; }
+  },
+  {
+    id:'streak_14', icon:'💠', rarity:'uncommon',
+    name:'Iron Protocol',
+    desc:'Maintained a 14-day streak.',
+    hint:'Two weeks of consistent logging.',
+    check(S) { return S.streak>=14; }
+  },
+  {
+    id:'streak_30', icon:'👻', rarity:'rare',
+    name:'Ghost Protocol',
+    desc:'Maintained a 30-day streak.',
+    hint:'A month of showing up.',
+    check(S) { return S.streak>=30; }
+  },
+  {
+    id:'no_avoidance_week', icon:'👁️', rarity:'uncommon',
+    name:'No Ghost Week',
+    desc:"7 consecutive days with no Avoided Task logged.",
+    hint:'Face things instead of moving past them.',
+    check(S) {
+      const week=new Date(); week.setDate(week.getDate()-7);
+      return !S.history.some(h=>
+        (h.action?.includes('Avoided')||h.actionId==='avoidedTask') &&
+        new Date(h.time)>=week
+      );
+    }
+  },
+  {
+    id:'clean_systems', icon:'🔒', rarity:'uncommon',
+    name:'Clean Systems',
+    desc:'Kept Corruption below 20% for 3 consecutive days.',
+    hint:'Prevention is the highest form of discipline.',
+    check(S) {
+      const days={}; let streak=0;
+      [...S.history].reverse().forEach(e=>{
+        const d=new Date(e.time).toDateString();
+        if(!days[d]) days[d]={minCorrupt:100};
+        if(e.stats?.corruption!==undefined) days[d].minCorrupt=Math.min(days[d].minCorrupt,e.stats.corruption);
+      });
+      const keys=Object.keys(days).sort().reverse();
+      for(const k of keys){ if(days[k].minCorrupt<20) streak++; else break; }
+      return streak>=3;
+    }
+  },
+
+  // ── HONESTY & AWARENESS ────────────────────────────────────────────
+  {
+    id:'logged_in_dark', icon:'🌑', rarity:'common',
+    name:'Logged in the Dark',
+    desc:"Logged a negative action honestly while Corruption was above 50%.",
+    hint:'Awareness is the first move.',
+    check(S) {
+      return S.history.some(h=>h.type==='negative'&&(h.stats?.corruption||0)>=50);
+    }
+  },
+  {
+    id:'pattern_recognition', icon:'📊', rarity:'uncommon',
+    name:'Pattern Recognition',
+    desc:'Logged 10 emotional triggers.',
+    hint:'The data builds the picture.',
+    check(S) { return (S.triggerLog||[]).length>=10; }
+  },
+  {
+    id:'brutal_honesty', icon:'🪞', rarity:'uncommon',
+    name:'Brutal Honesty',
+    desc:'Logged 5 different types of negative actions.',
+    hint:'Seeing the full map is the only way to navigate it.',
+    check(S) {
+      const types=new Set(S.history.filter(h=>h.type==='negative').map(h=>h.category));
+      return types.size>=5;
+    }
+  },
+  {
+    id:'the_confessor', icon:'✍️', rarity:'common',
+    name:'The Confessor',
+    desc:'Logged emotional triggers on 5 separate occasions.',
+    hint:"Your patterns can't hide if you name them.",
+    check(S) { return (S.triggerLog||[]).length>=5; }
+  },
+
+  // ── IDENTITY & ARCHETYPE ───────────────────────────────────────────
+  {
+    id:'archetype_emerged', icon:'◈', rarity:'common',
+    name:'Archetype Emerged',
+    desc:'Transitioned out of Wanderer into a defined archetype.',
+    hint:'Log consistently in specific categories.',
+    check(S) { return S.currentArchetype && S.currentArchetype!=='WANDERER'; }
+  },
+  {
+    id:'warrior_protocol', icon:'⚔️', rarity:'uncommon',
+    name:'Warrior Protocol',
+    desc:'Achieved the Warrior archetype with Body skill at level 5.',
+    hint:'Physical discipline compounds.',
+    check(S) { return S.currentArchetype==='WARRIOR'&&(S.skills?.body?.level||1)>=5; }
+  },
+  {
+    id:'builders_blueprint', icon:'🏗️', rarity:'uncommon',
+    name:"Builder's Blueprint",
+    desc:'Achieved the Builder archetype with Grift skill at level 5.',
+    hint:'Systems multiply effort.',
+    check(S) { return S.currentArchetype==='BUILDER'&&(S.skills?.grift?.level||1)>=5; }
+  },
+  {
+    id:'monks_path', icon:'🌙', rarity:'rare',
+    name:"Monk's Path",
+    desc:'Achieved the Monk archetype with Corruption below 15%.',
+    hint:'Inner clarity before outer results.',
+    check(S) { return S.currentArchetype==='MONK'&&S.stats.corruption<15; }
+  },
+  {
+    id:'the_father_rising', icon:'👨‍👦', rarity:'uncommon',
+    name:'The Father, Rising',
+    desc:'Logged Family Time 10 times.',
+    hint:'Presence is the most important thing you can give.',
+    check(S) { return S.history.filter(h=>h.action?.includes('Family Time')||h.actionId==='familyTime').length>=10; }
+  },
+
+  // ── HIDDEN / RARE ──────────────────────────────────────────────────
+  {
+    id:'perfect_day', icon:'✨', rarity:'hidden',
+    name:'Perfect Day',
+    desc:'8+ positive actions, 0 negative actions, all main stats above 55% — in one day.',
+    hint:null, // Hidden until earned
+    check(S) {
+      const today=new Date().toDateString();
+      const todayH=S.history.filter(h=>new Date(h.time).toDateString()===today);
+      const pos=todayH.filter(h=>h.type==='positive'||h.type==='mission').length;
+      const neg=todayH.filter(h=>h.type==='negative').length;
+      const {health,focus,control,soul}=S.stats;
+      return pos>=8&&neg===0&&health>=55&&focus>=55&&control>=55&&soul>=55;
+    }
+  },
+  {
+    id:'level_15', icon:'💠', rarity:'rare',
+    name:'The Long Game',
+    desc:'Reached Level 15.',
+    hint:null,
+    check(S) { return S.level>=15; }
+  },
+  {
+    id:'level_25', icon:'👑', rarity:'legendary',
+    name:'System Lord',
+    desc:'Reached Level 25. The protocol is part of you.',
+    hint:null,
+    check(S) { return S.level>=25; }
+  },
+  {
+    id:'flow_mastery', icon:'🌊', rarity:'hidden',
+    name:'Flow Mastery',
+    desc:'Reached Flow State on 10 separate days.',
+    hint:null,
+    check(S) {
+      const flowDays=new Set(
+        S.history.filter(h=>h.systemState==='FLOW').map(h=>new Date(h.time).toDateString())
+      );
+      return flowDays.size>=10;
+    }
+  },
+  {
+    id:'control_under_fire', icon:'🎯', rarity:'rare',
+    name:'Control Under Fire',
+    desc:'Logged a positive Discipline or Body action while Corruption was above 45%.',
+    hint:'The real test is what you do when it matters.',
+    check(S) {
+      return S.history.some(h=>
+        (h.type==='positive')&&
+        ['discipline','body'].includes(h.category)&&
+        (h.stats?.corruption||0)>=45
+      );
+    }
+  },
+  {
+    id:'repair_after_damage', icon:'🤝', rarity:'uncommon',
+    name:'Repaired After Damage',
+    desc:'Logged Apologize/Repair after a Lost Control event.',
+    hint:'The repair matters more than the break.',
+    check(S) {
+      const h=S.history;
+      for(let i=0;i<h.length;i++){
+        if(h[i].action?.includes('Apologize')||h[i].actionId==='apologize'){
+          for(let j=i+1;j<Math.min(i+20,h.length);j++){
+            if(h[j].action?.includes('Lost Control')||h[j].actionId==='lostControl') return true;
+          }
+        }
+      }
+      return false;
+    }
+  },
+  {
+    id:'stabilized_burnout', icon:'🛠️', rarity:'uncommon',
+    name:'Stabilized',
+    desc:'Transitioned out of Burnout State by taking consistent positive action.',
+    hint:'Burnout ends when you start small and stay there.',
+    check(S) {
+      const h=S.history;
+      let inBurnout=false;
+      for(let i=h.length-1;i>=0;i--){
+        if(h[i].systemState==='BURNOUT') inBurnout=true;
+        if(inBurnout&&(h[i].systemState==='NOMINAL'||h[i].systemState==='DISCIPLINE')) return true;
+      }
+      return false;
+    }
+  },
+];
+
+// ── Runtime state ──
+let _achNotifTimer = null;
+
+function ensureAchievements() {
+  if (!S.achievements) S.achievements = {};
+}
+
+function isEarned(id) {
+  return !!(S.achievements?.[id]?.earned);
+}
+
+function earnAchievement(achievement) {
+  ensureAchievements();
+  if (S.achievements[achievement.id]?.earned) return;
+  S.achievements[achievement.id] = { earned:true, earnedDate:new Date().toISOString() };
+  saveState();
+  showAchievementNotif(achievement);
+}
+
+function checkAchievements(context={}) {
+  ensureAchievements();
+  // Stamp current systemState onto the last history entry for tracking
+  if (S.history.length > 0 && !S.history[0].systemState) {
+    S.history[0].systemState = S.currentSystemState || 'NOMINAL';
+    if (S.stats) S.history[0].stats = {...S.stats};
+  }
+  // Check each unearned achievement
+  let anyEarned = false;
+  ACHIEVEMENTS.forEach(a => {
+    if (isEarned(a.id)) return;
+    try {
+      if (a.check(S)) { earnAchievement(a); anyEarned = true; }
+    } catch(e) {}
+  });
+  if (anyEarned) renderAchievements();
+}
+
+function showAchievementNotif(achievement) {
+  const notif = document.getElementById('achievementNotif');
+  const inner = notif.querySelector('.achieve-notif');
+  // Set content
+  document.getElementById('achieveIcon').textContent = achievement.icon;
+  document.getElementById('achieveName').textContent = achievement.name;
+  document.getElementById('achieveDesc').textContent = achievement.desc;
+  const rarityLabels = {common:'ACHIEVEMENT',uncommon:'UNCOMMON',rare:'RARE ✦',legendary:'LEGENDARY ✦✦✦',hidden:'SECRET UNLOCKED'};
+  document.getElementById('achieveRarity').textContent = rarityLabels[achievement.rarity]||'ACHIEVEMENT';
+  // Apply rarity class
+  inner.className = `achieve-notif ${achievement.rarity||''}`;
+  // Show
+  notif.style.display = 'block';
+  requestAnimationFrame(()=>requestAnimationFrame(()=> inner.classList.add('show')));
+  clearTimeout(_achNotifTimer);
+  _achNotifTimer = setTimeout(()=>{
+    inner.classList.add('hiding');
+    inner.classList.remove('show');
+    setTimeout(()=>{ notif.style.display='none'; inner.classList.remove('hiding'); }, 380);
+  }, achievement.rarity==='legendary'||achievement.rarity==='hidden' ? 6000 : 4500);
+}
+
+function renderAchievements() {
+  const container = document.getElementById('achievements-container');
+  if (!container) return;
+  ensureAchievements();
+
+  const earned = ACHIEVEMENTS.filter(a=>isEarned(a.id));
+  const total  = ACHIEVEMENTS.length;
+  const hidden = ACHIEVEMENTS.filter(a=>a.rarity==='hidden'||a.hint===null);
+
+  const rarityOrder = {legendary:0,hidden:1,rare:2,uncommon:3,common:4};
+
+  let html = `<div class="achieve-stats-row">
+    <div class="achieve-stat-pill"><span class="val">${earned.length}</span><span class="lbl">EARNED</span></div>
+    <div class="achieve-stat-pill"><span class="val" style="color:#aa44ff">${earned.filter(a=>a.rarity==='rare'||a.rarity==='legendary'||a.rarity==='hidden').length}</span><span class="lbl">RARE+</span></div>
+    <div class="achieve-stat-pill"><span class="val" style="color:#4a6080">${total - earned.length}</span><span class="lbl">LOCKED</span></div>
+  </div>`;
+
+  // Earned section
+  if (earned.length > 0) {
+    html += `<div class="achieve-section-label">Earned</div>`;
+    [...earned].sort((a,b)=>(rarityOrder[a.rarity]||4)-(rarityOrder[b.rarity]||4)).forEach(a=>{
+      const d = S.achievements[a.id]?.earnedDate;
+      const dateStr = d ? new Date(d).toLocaleDateString() : '';
+      const rbClass = `rb-${a.rarity||'common'}`;
+      html += `<div class="achieve-card earned ${a.rarity||''}">
+        <span class="achieve-card-icon">${a.icon}</span>
+        <div class="achieve-card-body">
+          <div class="achieve-card-name">${a.name}</div>
+          <div class="achieve-card-desc">${a.desc}</div>
+        </div>
+        <div class="achieve-card-meta">
+          <span class="achieve-rarity-badge ${rbClass}">${(a.rarity||'common').toUpperCase()}</span>
+          <span class="achieve-date">${dateStr}</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Locked — visible achievements with hints
+  const lockedVisible = ACHIEVEMENTS.filter(a=>!isEarned(a.id)&&a.hint!==null);
+  if (lockedVisible.length > 0) {
+    html += `<div class="achieve-section-label">Locked</div>`;
+    lockedVisible.sort((a,b)=>(rarityOrder[a.rarity]||4)-(rarityOrder[b.rarity]||4)).forEach(a=>{
+      const rbClass = `rb-${a.rarity||'common'}`;
+      html += `<div class="achieve-card locked">
+        <span class="achieve-card-icon" style="filter:grayscale(1);opacity:0.4">${a.icon}</span>
+        <div class="achieve-card-body">
+          <div class="achieve-card-name" style="color:#4a6080">${a.name}</div>
+          <div class="achieve-card-desc">${a.hint}</div>
+        </div>
+        <div class="achieve-card-meta">
+          <span class="achieve-rarity-badge ${rbClass}">${(a.rarity||'common').toUpperCase()}</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Hidden — just count
+  const lockedHidden = ACHIEVEMENTS.filter(a=>!isEarned(a.id)&&a.hint===null);
+  if (lockedHidden.length > 0) {
+    html += `<div class="achieve-section-label">Hidden</div>`;
+    html += `<div class="achieve-card locked" style="justify-content:center;text-align:center;padding:16px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#4a6080;letter-spacing:1px;">
+        ${lockedHidden.length} secret achievement${lockedHidden.length>1?'s':''} — earn them to reveal
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function init() {
+  loadState();
+  applyDecay();
+  updateStreak();
+
+  // Init boss
+  initBoss();
+  // Init random event
+  initRandomEvent();
+  // Init system state
+  if (!S.currentSystemState) S.currentSystemState = 'NOMINAL';
+  if (!S.currentArchetype) S.currentArchetype = 'WANDERER';
+  if (!S.mvd) S.mvd = null;
+  if (!S.triggerLog) S.triggerLog = [];
+  ensureAchievements();
+  ensureCombo();
+  applySystemState(evaluateSystemState());
+  applyArchetype(evaluateArchetype());
+  // Init MVD check on load
+  initMVD();
+  // Check achievements on load (time-based ones like streaks)
+  setTimeout(() => checkAchievements(), 1000);
+
+  // Today reset check
+  const today = todayStr();
+  if (S.todayDate !== today) {
+    S.todayDate = today;
+    S.todayActions = 0;
+  }
+
+  renderAllActions();
+  updateUI();
+  applyVisualVibe();
+  updateCaffeineMeter();
+  generateBriefing();
+  // Restore MVD calm UI if still active
+  if (S.mvd && S.mvd.active && S.mvd.date === todayStr() && !S.mvd.allDone && S.mvd.dismissed !== todayStr()) {
+    document.body.classList.add('mvd-active');
+  }
+  saveState();
+}
+
+init();
+</script>
+</body>
+</html>
