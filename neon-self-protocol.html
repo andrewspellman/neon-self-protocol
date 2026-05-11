@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -546,6 +546,86 @@ body[class*="phase-"]::after{
 .history-entry .h-effects{font-size:10px;color:var(--text-dim)}
 .history-entry .h-credits{color:var(--neon-green)}
 .history-entry .h-withdrawal{color:var(--neon-red)}
+
+/* ===== TODAY ACTIONS QUICK VIEW ===== */
+.meta-pill.actions{cursor:pointer;transition:all var(--transition)}
+.meta-pill.actions:active{transform:scale(0.97);filter:brightness(1.2)}
+.today-modal{
+  display:none;position:fixed;inset:0;z-index:470;
+  background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);
+  align-items:flex-end;justify-content:center;padding:0;
+}
+.today-drawer{
+  width:100%;max-width:480px;max-height:78vh;overflow:hidden;
+  background:rgba(8,13,24,0.98);
+  border:1px solid rgba(0,200,255,0.18);
+  border-bottom:none;border-radius:8px 8px 0 0;
+  box-shadow:0 -10px 36px rgba(0,0,0,0.75),0 0 18px rgba(0,200,255,0.08);
+  padding:14px 14px calc(18px + env(safe-area-inset-bottom, 0px));
+}
+.today-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.today-title{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;
+  color:var(--neon-cyan);letter-spacing:2px;text-shadow:var(--glow-cyan);
+}
+.today-close{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);background:transparent;
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:4px;padding:6px 10px;cursor:pointer;
+}
+.today-list{max-height:62vh;overflow-y:auto;padding-right:2px;}
+.today-entry{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-left:3px solid var(--neon-cyan);
+  border-radius:var(--radius);
+  padding:10px 10px;margin-bottom:8px;
+}
+.today-entry.negative{border-left-color:var(--neon-red);}
+.today-entry.mission{border-left-color:var(--neon-yellow);}
+.today-entry-main{flex:1;min-width:0;}
+.today-entry-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
+.today-time{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);letter-spacing:1px;
+}
+.today-action{
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  color:var(--text-bright);letter-spacing:0.4px;
+}
+.today-cat{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--neon-cyan);text-transform:uppercase;letter-spacing:1px;
+}
+.today-effects{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);line-height:1.45;
+}
+.today-chip{color:var(--neon-yellow);}
+.today-signal{color:var(--neon-cyan);}
+.today-energy-pos{color:var(--neon-green);}
+.today-energy-neg{color:var(--text-dim);}
+.today-delete{
+  flex-shrink:0;
+  width:28px;height:28px;border-radius:4px;
+  background:rgba(255,34,68,0.06);
+  border:1px solid rgba(255,34,68,0.22);
+  color:var(--neon-red);
+  font-family:'Share Tech Mono',monospace;font-size:12px;
+  cursor:pointer;
+}
+.today-empty{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);text-align:center;
+  padding:18px 10px;
+  border:1px dashed rgba(255,255,255,0.08);
+  border-radius:var(--radius);
+}
 .h-delete-btn{
   background:transparent;border:none;
   color:rgba(255,34,68,0.35);font-size:13px;
@@ -2693,7 +2773,236 @@ input[type=range].music-slider::-moz-range-thumb{
   background:rgba(0,255,136,0.08);
   border-color:rgba(0,255,136,0.22);
   font-size:13px;padding:2px 10px;
-}</style>
+}
+
+/* ===== WAR ROOM / PROTOCOL CARD REFINEMENT ===== */
+.card-badge,
+.status-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:1px;text-transform:uppercase;
+  border-radius:3px;padding:2px 6px;white-space:nowrap;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.04);
+  color:var(--text-dim);
+}
+.status-badge.active{color:var(--neon-green);border-color:rgba(0,255,136,0.25);background:rgba(0,255,136,0.07);}
+.status-badge.locked{color:var(--text-dim);border-color:rgba(255,255,255,0.08);}
+.status-badge.ready{color:var(--neon-yellow);border-color:rgba(255,221,0,0.25);background:rgba(255,221,0,0.06);}
+.status-badge.corrupted{color:var(--neon-red);border-color:rgba(255,34,68,0.3);background:rgba(255,34,68,0.08);}
+.mini-row{
+  display:flex;align-items:flex-start;gap:8px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);line-height:1.45;margin-top:4px;
+}
+.mini-label{
+  color:rgba(200,224,240,0.46);
+  min-width:58px;flex-shrink:0;text-transform:uppercase;letter-spacing:1px;
+}
+.mini-value{color:var(--text);min-width:0;}
+.hp-bar,.integrity-bar{
+  height:7px;background:rgba(255,255,255,0.06);
+  border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);
+}
+.hp-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,var(--neon-red),var(--neon-purple));
+  box-shadow:0 0 8px rgba(255,34,68,0.35);
+  transition:width 0.5s ease;
+}
+.integrity-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,var(--neon-green),var(--neon-cyan));
+  box-shadow:0 0 7px rgba(0,200,255,0.25);
+}
+.integrity-fill.low{background:linear-gradient(90deg,var(--neon-red),var(--neon-pink));}
+
+.enemy-card{
+  display:block;padding:12px 14px;border-color:rgba(255,34,68,0.18);
+  background:rgba(10,20,40,0.86);
+}
+.enemy-card::before{background:linear-gradient(180deg,var(--neon-red),var(--neon-purple));}
+.enemy-card.critical{
+  border-color:rgba(255,34,68,0.42);
+  box-shadow:0 0 14px rgba(255,34,68,0.1);
+}
+.enemy-card.weak{opacity:0.7;}
+.enemy-card.defeated{opacity:0.45;filter:saturate(0.45);}
+.enemy-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px;}
+.enemy-card-main{flex:1;min-width:0;}
+.enemy-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;}
+.enemy-hp-block{margin:0;min-width:0;text-align:left;}
+.enemy-hp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.enemy-hp-label{font-size:10px;color:var(--text-dim);}
+.enemy-spread-row{justify-content:flex-start;margin-top:0;}
+.enemy-detail-grid{display:grid;grid-template-columns:1fr;gap:2px;margin-top:8px;}
+.enemy-recent{color:rgba(255,221,0,0.72);}
+
+.virus-boss-card{
+  background:linear-gradient(180deg,rgba(170,68,255,0.08),rgba(255,34,68,0.035));
+  border-color:rgba(170,68,255,0.36);
+  box-shadow:0 0 18px rgba(170,68,255,0.08);
+}
+.virus-boss-kicker{color:var(--neon-red);border-color:rgba(255,34,68,0.32);background:rgba(255,34,68,0.08);}
+.virus-boss-grid{display:grid;grid-template-columns:1fr;gap:3px;margin-top:9px;}
+.virus-boss-hp-row{display:block;margin-bottom:8px;}
+.virus-boss-hp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+
+.world-event-card{
+  position:relative;overflow:hidden;border-left-width:3px;
+  transition:opacity var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+.world-event-card.active{
+  box-shadow:0 0 12px rgba(255,221,0,0.07);
+}
+.world-event-card.inactive{
+  opacity:0.42;filter:saturate(0.4);border-left-color:rgba(255,255,255,0.14);
+}
+.world-event-state{margin-top:4px;}
+
+.tactical-btn{border-color:rgba(0,200,255,0.15);}
+.tactical-btn::before{background:linear-gradient(180deg,var(--neon-cyan),var(--neon-yellow));}
+.tactical-btn.active{
+  border-color:rgba(0,255,136,0.26);
+  background:rgba(0,255,136,0.035);
+}
+.tactical-btn.active::before{background:var(--neon-green);}
+.tactical-btn.disabled{opacity:0.45;filter:saturate(0.35);}
+.tactical-btn .t-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+
+.war-log-entry{
+  padding:7px 10px;line-height:1.45;
+  display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;
+}
+.war-log-time{display:inline;margin:0;min-width:62px;}
+
+.proto-card{
+  display:block;padding:12px 14px;
+}
+.proto-card.locked{opacity:0.55;filter:saturate(0.35);}
+.proto-card.corrupted{
+  border-color:rgba(255,34,68,0.32);
+  background:rgba(255,34,68,0.04);
+  text-shadow:0 0 8px rgba(255,34,68,0.18);
+}
+.proto-card.corrupted::before{background:var(--neon-red);}
+.proto-top{display:flex;align-items:flex-start;gap:10px;}
+.proto-main{flex:1;min-width:0;}
+.proto-title-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.proto-meta-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.proto-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;}
+.proto-install-btn{
+  font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  color:var(--neon-yellow);background:rgba(255,221,0,0.07);
+  border:1px solid rgba(255,221,0,0.24);
+  border-radius:4px;padding:7px 10px;cursor:pointer;
+  flex-shrink:0;
+}
+.proto-install-btn:active{transform:scale(0.98);}
+.proto-install-btn.disabled{
+  color:var(--text-dim);border-color:rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.03);cursor:not-allowed;
+}
+.proto-maintain{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:rgba(0,255,136,0.58);line-height:1.4;
+}
+
+/* Protocol rows intentionally mirror .action-btn card anatomy */
+.protocol-action-card{
+  display:flex;align-items:center;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius);
+  padding:14px 16px;
+  text-align:left;width:100%;
+  position:relative;overflow:hidden;
+  margin-bottom:10px;
+  transition:all var(--transition);
+}
+.protocol-action-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--neon-cyan);
+}
+.protocol-action-card .btn-icon{
+  font-size:22px;margin-right:12px;flex-shrink:0;
+}
+.protocol-action-card .btn-body{
+  flex:1;min-width:0;
+}
+.protocol-action-card .btn-name{
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;
+  color:var(--text-bright);letter-spacing:0.5px;
+}
+.protocol-action-card .btn-fx{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:2px;line-height:1.35;
+}
+.protocol-action-card .btn-reward{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-yellow);
+  background:rgba(255,221,0,0.07);
+  border:1px solid rgba(255,221,0,0.2);
+  border-radius:3px;padding:3px 7px;
+  flex-shrink:0;margin-left:8px;white-space:nowrap;
+}
+.protocol-action-card.protocol-core::before{background:var(--neon-cyan);}
+.protocol-action-card.protocol-stability::before{background:var(--neon-green);}
+.protocol-action-card.protocol-tactical::before{background:var(--neon-yellow);}
+.protocol-action-card.protocol-locked{
+  opacity:0.52;filter:saturate(0.35);
+}
+.protocol-action-card.protocol-installable{
+  cursor:pointer;border-color:rgba(255,221,0,0.18);
+}
+.protocol-action-card.protocol-installable::before{background:var(--neon-yellow);}
+.protocol-action-card.protocol-installable:active{
+  transform:scale(0.98);filter:brightness(1.2);
+}
+.protocol-action-card.protocol-active{
+  background:rgba(0,255,136,0.035);
+  border-color:rgba(0,255,136,0.22);
+}
+.protocol-action-card.protocol-active::before{background:var(--neon-green);}
+.protocol-action-card.protocol-corrupted{
+  background:rgba(255,34,68,0.04);
+  border-color:rgba(255,34,68,0.28);
+  filter:hue-rotate(8deg);
+}
+.protocol-action-card.protocol-corrupted::before{background:var(--neon-red);}
+.protocol-action-card.protocol-corrupted .btn-name{color:var(--neon-red);}
+.protocol-action-card.protocol-expired{opacity:0.46;filter:saturate(0.3);}
+.protocol-action-card .btn-reward.active{
+  color:var(--neon-green);
+  background:rgba(0,255,136,0.08);
+  border-color:rgba(0,255,136,0.22);
+}
+.protocol-action-card .btn-reward.locked,
+.protocol-action-card .btn-reward.expired{
+  color:var(--text-dim);
+  background:rgba(255,255,255,0.03);
+  border-color:rgba(255,255,255,0.08);
+}
+.protocol-action-card .btn-reward.corrupted{
+  color:var(--neon-red);
+  background:rgba(255,34,68,0.08);
+  border-color:rgba(255,34,68,0.24);
+}
+.protocol-integrity-mini{
+  width:100%;max-width:190px;height:5px;margin-top:5px;
+  background:rgba(255,255,255,0.06);
+  border-radius:3px;overflow:hidden;
+}
+.protocol-integrity-fill{
+  height:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--neon-green),var(--neon-cyan));
+  box-shadow:0 0 5px rgba(0,200,255,0.28);
+}
+.protocol-integrity-fill.low{
+  background:linear-gradient(90deg,var(--neon-red),var(--neon-pink));
+}
+</style>
 </head>
 <body>
 
@@ -2773,7 +3082,7 @@ input[type=range].music-slider::-moz-range-thumb{
     </div>
     <!-- Meta -->
     <div class="meta-row">
-      <div class="meta-pill actions"><span class="val" id="todayCount">0</span><span class="lbl">ACTIONS</span></div>
+      <div class="meta-pill actions" onclick="openTodayActions()" title="View today's logged actions"><span class="val" id="todayCount">0</span><span class="lbl">ACTIONS</span></div>
       <div class="meta-pill"><span class="val" id="totalXPLabel" style="color:var(--neon-yellow)">0</span><span class="lbl">TOTAL XP</span></div>
       <div class="meta-pill" onclick="openMissionsModal()" style="cursor:pointer" title="Daily Missions"><span class="val" id="missionsPct" style="color:var(--neon-green)">0%</span><span class="lbl">📋 MISSIONS</span></div>
       <div class="meta-pill boss" onclick="openEventsModal()" style="cursor:pointer" title="View Events & Skills"><span class="val" id="bossProgress">0%</span><span class="lbl">⚡ EVENT</span></div>
@@ -3195,6 +3504,17 @@ input[type=range].music-slider::-moz-range-thumb{
   </div>
 </div>
 
+<!-- TODAY ACTIONS MODAL -->
+<div id="todayActionsModal" class="today-modal" onclick="if(event.target===this) closeTodayActions()">
+  <div class="today-drawer">
+    <div class="today-head">
+      <div class="today-title">TODAY'S ACTIONS</div>
+      <button class="today-close" onclick="closeTodayActions()">CLOSE</button>
+    </div>
+    <div id="todayActionsList" class="today-list"></div>
+  </div>
+</div>
+
 <!-- EVENTS MODAL -->
 <div id="eventsModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);overflow-y:auto;">
   <div style="max-width:480px;margin:0 auto;padding:16px 14px 80px;">
@@ -3545,6 +3865,10 @@ const ACTIONS = {
      fx:{health:3,soul:1}, xp:8, skillXp:{body:8},
      signal:6, energy:3,
      bonusSignal:{chance:0.25, amt:2}},
+    {id:'powerNap', name:'Power Nap', icon:'💤',
+     fx:{health:2,focus:3,soul:2,corruption:-1}, xp:8, skillXp:{body:4, recovery:4},
+     signal:8, energy:12, recovery:true,
+     bonusSignal:null},
   ],
   food: [
     {id:'cleanMeal', name:'Clean Meal', icon:'🥗',
@@ -3591,6 +3915,14 @@ const ACTIONS = {
      fx:{focus:8,control:5}, xp:35, skillXp:{grift:35},
      signal:30, energy:-12,
      bonusSignal:{guaranteed:15, bonusChance:0.3, bonusAmt:8}},
+    {id:'completeMinorTask', name:'Complete Minor Task', icon:'✅',
+     fx:{focus:2,control:1}, xp:8, skillXp:{grift:8, discipline:2},
+     signal:8, energy:-3,
+     bonusSignal:{chance:0.2, amt:3}},
+    {id:'completeMediumTask', name:'Complete Medium Task', icon:'💻',
+     fx:{focus:4,control:3}, xp:18, skillXp:{grift:16, discipline:4},
+     signal:18, energy:-8,
+     bonusSignal:{chance:0.3, amt:6}},
     {id:'shipOrders', name:'Ship Orders', icon:'📬',
      fx:{focus:5,control:3}, xp:20, skillXp:{grift:20},
      signal:18, energy:-8,
@@ -3759,7 +4091,10 @@ const RECOVERY_OPTS = [
 const MISSION_POOL = [
   {name:'Complete 10 Exercises', cat:'Body', action:'pushups', xpBonus:10, bonusSignal:{chance:0.3,amt:4}},
   {name:'Go for a walk', cat:'Body', action:'walk', xpBonus:15, bonusSignal:{chance:0.3,amt:4}},
+  {name:'Take a power nap', cat:'Body', action:'powerNap', xpBonus:8, bonusSignal:null},
   {name:'List 1 item for sale', cat:'Grift', action:'list1', xpBonus:12, bonusSignal:{chance:0.4,amt:4}},
+  {name:'Complete a minor task', cat:'Grift', action:'completeMinorTask', xpBonus:8, bonusSignal:{chance:0.2,amt:3}},
+  {name:'Complete a medium task', cat:'Grift', action:'completeMediumTask', xpBonus:12, bonusSignal:{chance:0.25,amt:5}},
   {name:'Drink water twice', cat:'Food', action:'water', xpBonus:6, bonusSignal:null},
   {name:'Eat a clean meal', cat:'Food', action:'cleanMeal', xpBonus:12, bonusSignal:{chance:0.2,amt:4}},
   {name:'Take an actual break', cat:'Soul', action:'realBreak', xpBonus:10, bonusSignal:null},
@@ -5215,6 +5550,64 @@ function completeMissionFromModal(idx) {
   if (el) el.textContent = getMissionsPct() + '%';
 }
 
+function openTodayActions() {
+  renderTodayActions();
+  const modal = document.getElementById('todayActionsModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeTodayActions() {
+  const modal = document.getElementById('todayActionsModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function getTodayHistoryIndexed() {
+  const now = new Date();
+  return (S.history || [])
+    .map((h, i) => ({ ...h, _idx: i }))
+    .filter(h => h.time && new Date(h.time).toDateString() === now.toDateString());
+}
+
+function renderTodayActions() {
+  const list = document.getElementById('todayActionsList');
+  if (!list) return;
+  const entries = getTodayHistoryIndexed();
+
+  if (!entries.length) {
+    list.innerHTML = '<div class="today-empty">No actions logged today.</div>';
+    return;
+  }
+
+  const now = new Date();
+  list.innerHTML = entries.map(h => {
+    const d = new Date(h.time);
+    const canDelete = h.type !== 'system' && (now - d) < 24 * 60 * 60 * 1000;
+    const timeStr = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    const xpStr = h.xp ? `<span class="today-chip">+${h.xp}XP</span>` : '';
+    const sigStr = h.signal > 0 ? `<span class="today-signal">SIG +${h.signal}</span>` : '';
+    const energyStr = h.energyDelta
+      ? `<span class="${h.energyDelta > 0 ? 'today-energy-pos' : 'today-energy-neg'}">ENG ${h.energyDelta > 0 ? '+' : ''}${h.energyDelta}</span>`
+      : '';
+    const statStr = h.effects ? escHtml(h.effects) : '';
+    const typeClass = h.type === 'negative' ? ' negative' : h.type === 'mission' ? ' mission' : '';
+    const deleteBtn = canDelete
+      ? `<button class="today-delete" onclick="deleteHistoryEntry(${h._idx}); renderTodayActions();" title="Remove entry and reverse stats">✕</button>`
+      : '';
+
+    return `<div class="today-entry${typeClass}">
+      <div class="today-entry-main">
+        <div class="today-entry-top">
+          <span class="today-time">${timeStr}</span>
+          <span class="today-cat">${escHtml(h.category || 'other')}</span>
+        </div>
+        <div class="today-action">${escHtml(h.action || 'Unknown Action')}</div>
+        <div class="today-effects">${statStr} ${xpStr} ${sigStr} ${energyStr}</div>
+      </div>
+      ${deleteBtn}
+    </div>`;
+  }).join('');
+}
+
 function renderHistory(filter='today') {
   const list = document.getElementById('historyList');
   const now = new Date();
@@ -5997,6 +6390,7 @@ function updateUI() {
   renderAchievements();
   renderOpLogSection();
   renderHistory('today');
+  renderTodayActions();
 }
 
 // ==========================================================================
@@ -8701,7 +9095,7 @@ const ENEMY_DEFS = {
     theme: 'Thrives in clutter, disorder, and unfinished systems.',
     startHp: 75, startMax: 75,
     feedActions:   ['avoidedTask','junkMeal','junkSnack','overeat','doomscrolled'],
-    weakActions:   ['organizeInventory','purge','upkeepTask','householdTask','cleanArea'],
+    weakActions:   ['organizeInventory','purge','upkeepTask','householdTask','cleanArea','completeMinorTask','completeMediumTask'],
     feedCategories:['corruption','food'],
     weakCategories:['discipline'],
     passiveLabel:  'Discipline gains -5% when strong',
@@ -8714,7 +9108,7 @@ const ENEMY_DEFS = {
     theme: 'Grows from overwork without recovery.',
     startHp: 90, startMax: 90,
     feedActions:   ['stayedUpLate','lostControl','skippedWorkout'],
-    weakActions:   ['familyTime','realBreak','meditate','sleepOnTime','stretch','spouseTime'],
+    weakActions:   ['familyTime','realBreak','meditate','sleepOnTime','stretch','spouseTime','powerNap'],
     feedCategories:['corruption'],
     weakCategories:['soul','recovery'],
     passiveLabel:  'High-effort XP -5% when strong',
@@ -8727,7 +9121,7 @@ const ENEMY_DEFS = {
     theme: 'Late-night instability. Corrupts sleep routines.',
     startHp: 80, startMax: 80,
     feedActions:   ['stayedUpLate','doomscrolled','lateSnack','lateSnack2'],
-    weakActions:   ['sleepOnTime','noDoomscroll','meditate','stretch'],
+    weakActions:   ['sleepOnTime','noDoomscroll','meditate','stretch','powerNap'],
     feedCategories:['corruption'],
     weakCategories:['discipline','recovery'],
     passiveLabel:  'Night corruption effects stronger',
@@ -8925,6 +9319,23 @@ function buildCombatToastSuffix(attackResults, feedResults) {
   return lines.slice(0, 2).join(' · '); // cap at 2 enemy interactions per toast
 }
 
+function escHtml(v) {
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
+function pctWidth(value, max) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+  return clamp(pct, 0, 100);
+}
+
+function formatRelativeHours(target) {
+  if (!Number.isFinite(target)) return 'unknown';
+  const hours = Math.max(0, Math.round((target - Date.now()) / 3600000));
+  return hours >= 24 ? `${Math.floor(hours/24)}d ${hours%24}h` : `${hours}h`;
+}
+
 // Render War Room panel
 function renderWarRoom() {
   ensureEnemies();
@@ -8933,84 +9344,97 @@ function renderWarRoom() {
   const wl = document.getElementById('warLogContainer');
   if (!ec || !wl) return;
 
-  // Signal balance
   const svEl = document.getElementById('warSignalVal');
   if (svEl) svEl.textContent = S.signal || 0;
 
-  // Virus Boss + World Events
   renderVirusBoss();
   renderWorldEvents();
-
-  // Tactical grid + buffs
   renderTacticalGrid();
   renderActiveBuffs();
 
   ec.innerHTML = Object.entries(S.corruptionEnemies).map(([id, e]) => {
-    const def     = ENEMY_DEFS[id];
+    const def = ENEMY_DEFS[id];
     if (!def) return '';
-    const hpPct   = Math.round((e.hp / e.maxHp) * 100);
+    const hpPct = pctWidth(e.hp || 0, e.maxHp || 0);
     const isDefeated = !e.active;
-    const isCrit  = !isDefeated && hpPct >= 80;
-    const isWeak  = !isDefeated && hpPct <= 25;
+    const isCrit = !isDefeated && hpPct >= 80;
+    const isWeak = !isDefeated && hpPct <= 25;
     let cardClass = 'enemy-card';
     if (isDefeated) cardClass += ' defeated';
     else if (isCrit) cardClass += ' critical';
     else if (isWeak) cardClass += ' weak';
 
+    const spread = Math.max(1, Math.min(5, Math.round(e.spread || 1)));
     const spreadDots = [1,2,3,4,5].map(i =>
-      `<div class="spread-dot${i <= Math.round(e.spread) ? ' active' : ''}"></div>`
+      `<div class="spread-dot${i <= spread ? ' active' : ''}"></div>`
     ).join('');
-    const fillClass  = hpPct <= 30 ? 'enemy-hp-fill low' : 'enemy-hp-fill';
-    const weakHints  = def.weakActions.slice(0,3).join(' · ');
-    const passiveTxt = !isDefeated && hpPct >= 70 ? def.passiveLabel : '';
+    const fillClass = hpPct <= 30 ? 'hp-fill low' : 'hp-fill';
+    const weakHints = (def.weakActions || []).slice(0,3).join(' / ') || 'Unknown';
+    const passiveTxt = !isDefeated && hpPct >= 70 ? (def.passiveLabel || 'Passive pressure active') : 'Dormant below 70% HP';
+    const statusTxt = isDefeated ? 'Defeated' : isCrit ? 'Critical' : isWeak ? 'Weakened' : 'Active';
+    const statusCls = isCrit ? 'corrupted' : isWeak ? 'ready' : 'locked';
+    const recentTxt = e.lastAffected ? `Touched ${formatRelativeHours(new Date(e.lastAffected).getTime())} ago` : 'No recent effect';
 
     if (isDefeated) {
-      const hours = Math.max(0, Math.round((e.respawnAt - Date.now()) / 3600000));
+      const respawn = formatRelativeHours(e.respawnAt || Date.now());
       return `<div class="${cardClass}">
-        <span class="enemy-icon">${def.icon}</span>
-        <div class="enemy-body">
-          <div class="enemy-name-row">
-            <span class="enemy-name">${e.name}</span>
-            <span class="enemy-level">LVL ${e.level}</span>
+        <div class="enemy-card-top">
+          <span class="enemy-icon">${def.icon}</span>
+          <div class="enemy-card-main">
+            <div class="enemy-name-row">
+              <span class="enemy-name">${escHtml(e.name)}</span>
+              <span class="enemy-level">LVL ${e.level || 1}</span>
+              <span class="status-badge active">DEFEATED</span>
+            </div>
+            <div class="enemy-sub">Respawns in ${respawn}</div>
           </div>
-          <div class="enemy-sub"><span class="enemy-defeated-label">✓ DEFEATED</span> — respawns in ${hours}h</div>
         </div>
       </div>`;
     }
 
     return `<div class="${cardClass}">
-      <span class="enemy-icon">${def.icon}</span>
-      <div class="enemy-body">
-        <div class="enemy-name-row">
-          <span class="enemy-name">${e.name}</span>
-          <span class="enemy-level">LVL ${e.level}</span>
-        </div>
-        <div class="enemy-sub">
-          <span class="weak-tag">◈ ${weakHints}</span>${passiveTxt ? `&nbsp;&nbsp;<span class="passive-tag">⚠ ${passiveTxt}</span>` : ''}
+      <div class="enemy-card-top">
+        <span class="enemy-icon">${def.icon}</span>
+        <div class="enemy-card-main">
+          <div class="enemy-name-row">
+            <span class="enemy-name">${escHtml(e.name)}</span>
+            <span class="enemy-level">LVL ${e.level || 1}</span>
+            <span class="status-badge ${statusCls}">${statusTxt}</span>
+          </div>
+          <div class="enemy-card-meta">
+            <span class="card-badge">Spread ${spread}/5</span>
+            <span class="card-badge">${hpPct}% HP</span>
+          </div>
         </div>
       </div>
       <div class="enemy-hp-block">
-        <div class="enemy-hp-bar"><div class="${fillClass}" style="width:${hpPct}%"></div></div>
-        <div class="enemy-hp-label">${e.hp}/${e.maxHp}</div>
-        <div class="enemy-spread-row">${spreadDots}</div>
+        <div class="enemy-hp-head">
+          <span class="mini-label">HP</span>
+          <span class="enemy-hp-label">${e.hp || 0}/${e.maxHp || 0}</span>
+        </div>
+        <div class="hp-bar"><div class="${fillClass}" style="width:${hpPct}%"></div></div>
+      </div>
+      <div class="enemy-detail-grid">
+        <div class="mini-row"><span class="mini-label">Weak</span><span class="mini-value weak-tag">${escHtml(weakHints)}</span></div>
+        <div class="mini-row"><span class="mini-label">Passive</span><span class="mini-value passive-tag">${escHtml(passiveTxt)}</span></div>
+        <div class="mini-row"><span class="mini-label">Recent</span><span class="mini-value enemy-recent">${escHtml(recentTxt)}</span></div>
+        <div class="mini-row"><span class="mini-label">Spread</span><span class="mini-value"><span class="enemy-spread-row">${spreadDots}</span></span></div>
       </div>
     </div>`;
   }).join('');
 
-  // War log — last 12 entries
   const recentLog = (S.warLog || []).slice(0, 12);
   if (recentLog.length === 0) {
     wl.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim);text-align:center;padding:12px;">No war log entries yet.</div>`;
   } else {
     wl.innerHTML = recentLog.map(entry => {
-      const t   = new Date(entry.timestamp);
-      const ts  = `${t.toLocaleDateString()} ${t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+      const t = new Date(entry.timestamp);
+      const ts = `${t.toLocaleDateString()} ${t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
       const cls = `war-log-entry ${entry.type === 'victory' ? 'victory' : entry.type === 'warning' ? 'warning' : entry.type === 'system' ? 'system' : ''}`;
-      return `<div class="${cls}"><span class="war-log-time">${ts}</span>${entry.message}</div>`;
+      return `<div class="${cls}"><span class="war-log-time">${ts}</span><span>${escHtml(entry.message)}</span></div>`;
     }).join('');
   }
 }
-
 // ==========================================================================
 // TACTICAL SIGNAL SPENDING + BUFF SYSTEM
 // ==========================================================================
@@ -9225,82 +9649,41 @@ function renderTacticalGrid() {
   const grid = document.getElementById('tacticalGrid');
   if (!grid) return;
   cleanupExpiredBuffs();
-  const sig        = S.signal || 0;
+  const sig = S.signal || 0;
   const canCorrupt = S.stats.corruption >= 50 || S.currentSystemState === 'CORRUPTED';
 
   const actions = [
-    {
-      id:     'neuralScan',
-      icon:   '◎',
-      name:   'Neural Scan',
-      cost:   25,
-      desc:   'Identify primary threat and get recommended counter-actions.',
-      fn:     'tacticalNeuralScan()',
-      danger: false,
-    },
-    {
-      id:     'signalBurst',
-      icon:   '⚡',
-      name:   'Signal Burst',
-      cost:   50,
-      desc:   'Direct damage strike on the strongest active threat.',
-      fn:     'tacticalSignalBurst()',
-      danger: false,
-    },
-    {
-      id:     'firewallReinforcement',
-      icon:   '🛡',
-      name:   'Firewall Reinforce',
-      cost:   75,
-      desc:   'Reduces enemy spread growth by 25% for 24 hours.',
-      fn:     'tacticalFirewallReinforcement()',
-      danger: false,
-      activeIfBuff: 'firewallReinforcement',
-    },
-    {
-      id:     'recoveryPulse',
-      icon:   '💊',
-      name:   'Recovery Pulse',
-      cost:   60,
-      desc:   'Corruption -5, Energy +10. Light AOE damage to all threats.',
-      fn:     'tacticalRecoveryPulse()',
-      danger: false,
-    },
-    {
-      id:     'emergencyShutdown',
-      icon:   '☠',
-      name:   'Emergency Shutdown',
-      cost:   100,
-      desc:   'Corruption -10, Control +5, Energy -10. Heavy targeted strike.',
-      fn:     'tacticalEmergencyShutdown()',
-      danger: true,
-      requireCorrupt: true,
-    },
+    { id:'neuralScan', icon:'◎', name:'Neural Scan', cost:25, desc:'Identify primary threat and recommended counters.', fn:'tacticalNeuralScan()', danger:false },
+    { id:'signalBurst', icon:'⚡', name:'Signal Burst', cost:50, desc:'Direct damage strike on the strongest active threat.', fn:'tacticalSignalBurst()', danger:false },
+    { id:'firewallReinforcement', icon:'▣', name:'Firewall Reinforce', cost:75, desc:'Enemy spread growth -25% for 24 hours.', fn:'tacticalFirewallReinforcement()', danger:false, activeIfBuff:'firewallReinforcement' },
+    { id:'recoveryPulse', icon:'+', name:'Recovery Pulse', cost:60, desc:'Corruption -5, Energy +10. Light AOE damage.', fn:'tacticalRecoveryPulse()', danger:false },
+    { id:'emergencyShutdown', icon:'!', name:'Emergency Shutdown', cost:100, desc:'Corruption -10, Control +5, Energy -10. Heavy strike.', fn:'tacticalEmergencyShutdown()', danger:true, requireCorrupt:true },
   ];
 
   grid.innerHTML = actions.map(a => {
-    const canAfford    = sig >= a.cost;
-    const unavailable  = a.requireCorrupt && !canCorrupt;
-    const disabled     = !canAfford || unavailable;
-    const isActive     = a.activeIfBuff && hasBuff(a.activeIfBuff);
-    const btnClass     = `tactical-btn${a.danger ? ' danger' : ''}${disabled ? ' disabled' : ''}`;
-    const noteHtml     = unavailable
-      ? `<div class="t-note">Requires corruption ≥50 or CORRUPTED state</div>`
+    const canAfford = sig >= a.cost;
+    const unavailable = a.requireCorrupt && !canCorrupt;
+    const disabled = !canAfford || unavailable;
+    const isActive = a.activeIfBuff && hasBuff(a.activeIfBuff);
+    const btnClass = `tactical-btn${a.danger ? ' danger' : ''}${disabled ? ' disabled' : ''}${isActive ? ' active' : ''}`;
+    const stateText = unavailable ? 'LOCKED' : isActive ? 'ACTIVE' : canAfford ? 'READY' : 'NO SIGNAL';
+    const stateClass = unavailable || !canAfford ? 'locked' : isActive ? 'active' : 'ready';
+    const noteHtml = unavailable
+      ? `<div class="t-note">Requires corruption >=50 or CORRUPTED state</div>`
       : isActive
-        ? `<div class="t-note ok">✓ Active buff running</div>`
+        ? `<div class="t-note ok">Active buff running</div>`
         : '';
     return `<div class="${btnClass}" ${disabled ? '' : `onclick="${a.fn}"`}>
       <span class="t-icon">${a.icon}</span>
       <div class="t-body">
-        <div class="t-name">${a.name}</div>
+        <div class="t-head"><span class="t-name">${a.name}</span><span class="status-badge ${stateClass}">${stateText}</span></div>
         <div class="t-desc">${a.desc}</div>
         ${noteHtml}
       </div>
-      <span class="t-cost${canAfford ? '' : ' cant-afford'}">📶${a.cost}</span>
+      <span class="t-cost${canAfford ? '' : ' cant-afford'}">SIG ${a.cost}</span>
     </div>`;
   }).join('');
 }
-
 // Render Active Buffs section
 function renderActiveBuffs() {
   cleanupExpiredBuffs();
@@ -9579,9 +9962,9 @@ function renderProtocols() {
   if (!container) return;
   ensureProtocols();
 
-  const sig       = S.signal || 0;
+  const sig = S.signal || 0;
   const installed = PROTOCOL_DEFS.filter(d => S.protocols[d.id]?.active).length;
-  const locked    = PROTOCOL_DEFS.filter(d => !S.protocols[d.id]?.unlocked && !S.protocols[d.id]?.active).length;
+  const locked = PROTOCOL_DEFS.filter(d => !S.protocols[d.id]?.unlocked && !S.protocols[d.id]?.active).length;
 
   const svEl = document.getElementById('protoSignalVal');
   const icEl = document.getElementById('protoInstalledCount');
@@ -9590,6 +9973,24 @@ function renderProtocols() {
   if (icEl) icEl.textContent = installed;
   if (lcEl) lcEl.textContent = locked;
 
+  const protocolType = def => {
+    if (['Firewall Systems','Recovery Systems','Discipline Systems'].includes(def.category)) return 'Stability';
+    if (def.category === 'Signal Systems') return 'Tactical';
+    return 'Core';
+  };
+  const protocolIcon = id => ({
+    trainingGi: '🥋',
+    mobilityCircuit: '🚶',
+    cleanWorkspace: '🧹',
+    deepWorkRig: '💻',
+    sleepFirewall: '🛡️',
+    recoveryDrone: '🛰️',
+    philosophyCache: '📚',
+    inventoryGrid: '📦',
+    controlAnchor: '⚓',
+    signalAmplifier: '📶',
+  }[id] || '');
+
   let html = '';
   for (const cat of PROTO_CATEGORIES) {
     const catDefs = PROTOCOL_DEFS.filter(d => d.category === cat);
@@ -9597,48 +9998,68 @@ function renderProtocols() {
     html += `<div class="proto-category-label">${PROTO_CAT_ICONS[cat]||''} ${cat}</div>`;
 
     for (const def of catDefs) {
-      const p         = S.protocols[def.id] || {};
-      const isActive  = p.active;
-      const isUnlocked= p.unlocked && !isActive;
-      const isLocked  = !p.unlocked && !isActive;
+      const p = S.protocols[def.id] || {};
+      const type = protocolType(def);
+      const typeSlug = type.toLowerCase();
+      const integrity = Number.isFinite(p.integrity) ? clamp(Math.round(p.integrity), 0, 100) : 100;
+      const isCorrupted = !!p.corrupted || integrity <= 0;
+      const isExpired = !!p.expiresAt && p.expiresAt <= Date.now();
+      const isActive = !!p.active && !isCorrupted && !isExpired;
+      const isUnlocked = p.unlocked && !isActive && !isCorrupted;
+      const isLocked = !p.unlocked && !isActive && !isCorrupted;
       const canAfford = sig >= def.cost;
+      const isStability = type === 'Stability';
 
-      let cardClass = 'proto-card';
-      if (isActive)                          cardClass += ' active';
-      else if (isUnlocked && !canAfford)     cardClass += ' unlocked no-signal';
-      else if (isUnlocked)                   cardClass += ' unlocked';
-      else                                   cardClass += ' locked';
+      let status = 'locked';
+      if (isCorrupted) status = 'corrupted';
+      else if (isExpired) status = 'expired';
+      else if (isActive) status = 'active';
+      else if (isUnlocked && canAfford) status = 'installable';
+      else if (isUnlocked) status = 'unlocked';
 
-      const onclickAttr = (isUnlocked && canAfford)
+      const statusText = isCorrupted ? 'CORRUPTED' : isExpired ? 'EXPIRED' : isActive ? 'ACTIVE' : isUnlocked ? 'UNLOCKED' : 'LOCKED';
+      const badgeText = isCorrupted ? 'CORRUPTED'
+        : isExpired ? 'EXPIRED'
+        : isActive ? 'ACTIVE'
+        : isUnlocked && canAfford ? `INSTALL ${def.cost}`
+        : isUnlocked ? `NEED ${def.cost}`
+        : 'LOCKED';
+      const badgeClass = isCorrupted ? 'corrupted' : isExpired ? 'expired' : isActive ? 'active' : isLocked ? 'locked' : '';
+      const clickAttr = isUnlocked && canAfford && !isExpired
         ? `onclick="installProtocol('${def.id}')"` : '';
+      const reqLine = isLocked
+        ? `Unlock: ${def.unlockReqText}`
+        : isActive && isStability
+          ? `Maintained by: ${def.unlockReqText.replace(/\.$/, '')}`
+          : isExpired
+            ? 'Expired: reinstall or recover when available.'
+            : isCorrupted
+              ? 'Integrity failure. Recovery required.'
+              : `Cost: ${def.cost} Signal`;
+      const integrityHtml = isStability
+        ? `<div class="btn-fx">Integrity ${integrity}%</div>
+           <div class="protocol-integrity-mini"><div class="protocol-integrity-fill${integrity <= 25 ? ' low' : ''}" style="width:${integrity}%"></div></div>`
+        : '';
+      const durationHtml = type === 'Tactical' && p.expiresAt
+        ? `<div class="btn-fx">Duration: ${formatRelativeHours(p.expiresAt)} remaining</div>`
+        : '';
 
-      // Single right-side chip — matches btn-reward pattern
-      let chipHtml = '';
-      if (isActive) {
-        chipHtml = `<span class="proto-chip active-chip">✓</span>`;
-      } else {
-        const chipClass = (!canAfford) ? 'proto-chip cant-afford' : 'proto-chip';
-        chipHtml = `<span class="${chipClass}">📶${def.cost}</span>`;
-      }
-
-      // Req hint shown only when locked, inline below effect
-      const reqHtml = isLocked
-        ? `<div class="proto-req">◈ ${def.unlockReqText}</div>` : '';
-
-      html += `<div class="${cardClass}" ${onclickAttr}>
-        <span class="proto-icon">${def.icon}</span>
-        <div class="proto-body">
-          <div class="proto-name">${def.name}</div>
-          <div class="proto-effect">${def.effectText}</div>
-          ${reqHtml}
+      html += `<div class="protocol-action-card protocol-${status} protocol-${typeSlug}" ${clickAttr}>
+        <div class="btn-icon">${protocolIcon(def.id) || def.icon}</div>
+        <div class="btn-body">
+          <div class="btn-name">${escHtml(def.name)}</div>
+          <div class="btn-fx">${type.toUpperCase()} · ${statusText}</div>
+          <div class="btn-fx">${escHtml(def.effectText)}</div>
+          <div class="btn-fx">${escHtml(reqLine)}</div>
+          ${durationHtml}
+          ${integrityHtml}
         </div>
-        ${chipHtml}
+        <div class="btn-reward ${badgeClass}">${badgeText}</div>
       </div>`;
     }
   }
   container.innerHTML = html;
 }
-
 // ==========================================================================
 // WORLD EVENTS SYSTEM
 // ==========================================================================
@@ -9792,28 +10213,31 @@ function renderWorldEvents() {
   const container = document.getElementById('worldEventsContainer');
   if (!container) return;
   cleanupExpiredWorldEvents();
-  const active = getActiveWorldEvents();
+  ensureWorldEvents();
+  const events = (S.worldEvents || []).slice(0, 4);
 
-  if (active.length === 0) {
-    container.innerHTML = `<div class="world-event-empty">No active world events. Check back tomorrow.</div>`;
+  if (events.length === 0) {
+    container.innerHTML = `<div class="world-event-empty">No world event records yet. Check back tomorrow.</div>`;
     return;
   }
 
-  container.innerHTML = active.map(ev => {
-    const hoursLeft = Math.max(0, Math.round((ev.expiresAt - Date.now()) / 3600000));
-    const timeStr   = hoursLeft >= 24 ? `${Math.floor(hoursLeft/24)}d ${hoursLeft%24}h` : `${hoursLeft}h`;
-    return `<div class="world-event-card${ev.negative ? ' negative' : ''}">
-      <span class="world-event-icon">${ev.icon}</span>
+  container.innerHTML = events.map(ev => {
+    const isActive = !!(ev.active && ev.expiresAt > Date.now());
+    const timeStr = isActive ? `${formatRelativeHours(ev.expiresAt)} left` : 'inactive';
+    const stateClass = isActive ? 'active' : 'inactive';
+    const badgeClass = isActive ? 'ready' : 'locked';
+    return `<div class="world-event-card ${stateClass}${ev.negative ? ' negative' : ''}">
+      <span class="world-event-icon">${ev.icon || '*'}</span>
       <div class="world-event-body">
-        <div class="world-event-name">${ev.name}</div>
-        <div class="world-event-flavor">${ev.flavor}</div>
-        <div class="world-event-effect">${ev.effectText}</div>
+        <div class="world-event-name">${escHtml(ev.name)}</div>
+        <div class="world-event-state"><span class="status-badge ${badgeClass}">${isActive ? 'ACTIVE' : 'INACTIVE'}</span></div>
+        <div class="world-event-effect">${escHtml(ev.effectText)}</div>
+        <div class="world-event-flavor">${escHtml(ev.flavor)}</div>
       </div>
-      <div class="world-event-timer">${timeStr} left</div>
+      <div class="world-event-timer">${timeStr}</div>
     </div>`;
   }).join('');
 }
-
 // Check if we need to generate a new event (daily-ish cadence)
 function checkWorldEventGeneration() {
   ensureWorldEvents();
@@ -10018,41 +10442,43 @@ function renderVirusBoss() {
   const boss = S.weeklyBoss;
   if (!boss) return;
 
-  const hpPct    = Math.round((boss.hp / boss.maxHp) * 100);
+  const hpPct = pctWidth(boss.hp || 0, boss.maxHp || 0);
   const daysLeft = Math.max(0, Math.ceil((boss.expiresAt - Date.now()) / 86400000));
 
   if (boss.defeated) {
     container.innerHTML = `<div class="virus-boss-card defeated">
       <div class="virus-boss-header">
-        <span class="virus-boss-name">✓ ${boss.name}</span>
-        <span class="virus-boss-level" style="color:var(--neon-green)">DEFEATED</span>
+        <span class="virus-boss-name">${escHtml(boss.name)}</span>
+        <span class="status-badge active">DEFEATED</span>
       </div>
       <div class="virus-boss-meta">New boss spawns next week.</div>
     </div>`;
     return;
   }
 
-  const weakStr = (boss.weaknesses||[]).slice(0,3).join(' · ');
+  const weakStr = (boss.weaknesses || []).slice(0,4).join(' / ') || 'Unknown';
+  const feedsOn = (boss.feedActions || []).slice(0,3).join(' / ') || (boss.feedCategories || []).join(' / ') || 'Unknown';
   container.innerHTML = `<div class="virus-boss-card">
     <div class="virus-boss-header">
-      <span class="virus-boss-name">${boss.icon} ${boss.name}</span>
-      <span class="virus-boss-level">LVL ${boss.level}</span>
+      <span class="virus-boss-name">${boss.icon || '!'} ${escHtml(boss.name)}</span>
+      <span class="status-badge virus-boss-kicker">BOSS</span>
     </div>
     <div class="virus-boss-hp-row">
-      <div class="virus-boss-hp-bar">
-        <div class="virus-boss-hp-fill" style="width:${hpPct}%"></div>
+      <div class="virus-boss-hp-head">
+        <span class="virus-boss-level">LVL ${boss.level || 1}</span>
+        <span class="virus-boss-hp-label">${boss.hp || 0}/${boss.maxHp || 0} HP</span>
       </div>
-      <span class="virus-boss-hp-label">${boss.hp}/${boss.maxHp} HP</span>
+      <div class="virus-boss-hp-bar"><div class="virus-boss-hp-fill" style="width:${hpPct}%"></div></div>
     </div>
-    <div class="virus-boss-meta">
-      <span class="weak-tag">◈ Weak to: ${weakStr}</span><br>
-      <span class="passive-tag">⚠ ${boss.passiveEffectText}</span><br>
-      <span class="reward-tag">✦ Victory: 📶+${VIRUS_BOSS_SIGNAL_REWARD} · +${VIRUS_BOSS_XP_REWARD}XP · Corruption -10</span><br>
-      <span class="days-tag">${daysLeft}d remaining</span>
+    <div class="virus-boss-grid">
+      <div class="mini-row"><span class="mini-label">Time</span><span class="mini-value days-tag">${daysLeft}d remaining</span></div>
+      <div class="mini-row"><span class="mini-label">Weak</span><span class="mini-value weak-tag">${escHtml(weakStr)}</span></div>
+      <div class="mini-row"><span class="mini-label">Feeds</span><span class="mini-value passive-tag">${escHtml(feedsOn)}</span></div>
+      <div class="mini-row"><span class="mini-label">Passive</span><span class="mini-value passive-tag">${escHtml(boss.passiveEffectText)}</span></div>
+      <div class="mini-row"><span class="mini-label">Reward</span><span class="mini-value reward-tag">SIG +${VIRUS_BOSS_SIGNAL_REWARD} / +${VIRUS_BOSS_XP_REWARD}XP / Corruption -10</span></div>
     </div>
   </div>`;
 }
-
 function init() {
   loadState();
   applyDecay();
