@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v3.9</title>
+<title>NEON SELF PROTOCOL v4.0</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -2521,6 +2521,107 @@ input[type=range].music-slider::-moz-range-thumb{
 .war-log-time{
   font-size:8px;color:var(--text-dim);display:block;margin-bottom:3px;
   letter-spacing:1px;
+}
+/* ===== PROTOCOLS ===== */
+.proto-header-row{
+  display:flex;gap:8px;margin-bottom:16px;
+}
+.proto-stat{
+  flex:1;text-align:center;
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:var(--radius);padding:8px 4px;
+}
+.proto-stat-val{
+  font-family:'Orbitron',monospace;font-size:16px;font-weight:700;
+  color:var(--neon-green);display:block;
+}
+.proto-stat-lbl{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);letter-spacing:1px;
+}
+.proto-category-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;
+  margin:14px 0 8px;display:flex;align-items:center;gap:8px;
+}
+.proto-category-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);}
+.proto-card{
+  display:flex;align-items:flex-start;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-left:3px solid var(--text-dim);
+  border-radius:var(--radius);
+  padding:12px 14px;margin-bottom:8px;
+  position:relative;transition:all 0.15s;
+}
+/* State: locked */
+.proto-card.locked{
+  opacity:0.45;
+  filter:saturate(0.3);
+}
+/* State: unlocked (purchasable) */
+.proto-card.unlocked{
+  border-left-color:var(--neon-yellow);
+}
+.proto-card.unlocked:not(.no-signal){
+  cursor:pointer;
+}
+.proto-card.unlocked:not(.no-signal):hover{
+  border-left-color:var(--neon-cyan);
+  box-shadow:0 0 8px rgba(0,200,255,0.06);
+}
+.proto-card.unlocked.no-signal{
+  opacity:0.45;
+  filter:saturate(0.3);
+}
+/* State: active/installed */
+.proto-card.active{
+  border-left-color:var(--neon-green);
+  background:rgba(0,255,136,0.03);
+}
+.proto-icon{font-size:20px;flex-shrink:0;margin-right:12px;margin-top:1px;}
+.proto-body{flex:1;min-width:0;}
+.proto-name{
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;
+  color:var(--text-bright);letter-spacing:0.3px;
+}
+.proto-cat-tag{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);letter-spacing:1px;margin-bottom:4px;display:block;
+}
+.proto-desc{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);line-height:1.55;margin-bottom:5px;
+}
+.proto-effect{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-cyan);line-height:1.5;
+}
+.proto-req{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:rgba(255,221,0,0.55);margin-top:3px;
+}
+.proto-right{
+  display:flex;flex-direction:column;align-items:flex-end;
+  gap:6px;flex-shrink:0;margin-left:10px;
+}
+.proto-status-badge{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:1px;padding:2px 8px;border-radius:3px;display:inline-block;
+}
+.proto-status-badge.active  {background:rgba(0,255,136,0.1);color:var(--neon-green);border:1px solid rgba(0,255,136,0.2);}
+.proto-status-badge.unlocked{background:rgba(255,221,0,0.08);color:var(--neon-yellow);border:1px solid rgba(255,221,0,0.18);}
+.proto-status-badge.locked  {background:rgba(255,255,255,0.04);color:var(--text-dim);border:1px solid rgba(255,255,255,0.07);}
+.proto-cost{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-cyan);
+  background:rgba(0,200,255,0.07);
+  border:1px solid rgba(0,200,255,0.18);
+  border-radius:3px;padding:3px 7px;white-space:nowrap;
+}
+.proto-cost.cant-afford{
+  color:var(--text-dim);background:rgba(255,255,255,0.03);
+  border-color:rgba(255,255,255,0.07);
 }</style>
 </head>
 <body>
@@ -2659,6 +2760,7 @@ input[type=range].music-slider::-moz-range-thumb{
   <button class="nav-btn" onclick="showPanel('corruption')">Corrupt</button>
   <button class="nav-btn" onclick="showPanel('seasonal')">🌐 Arc</button>
   <button class="nav-btn" onclick="showPanel('warroom')">☠ War</button>
+  <button class="nav-btn" onclick="showPanel('protocols')">◈ Proto</button>
   <button class="nav-btn" onclick="showPanel('creativity')">Create</button>
   <button class="nav-btn" onclick="showPanel('custom')">Custom</button>
   <button class="nav-btn" onclick="showPanel('trends')">Trends</button>
@@ -2841,6 +2943,17 @@ input[type=range].music-slider::-moz-range-thumb{
 
       <div class="section-label" style="margin-top:14px">War Log</div>
       <div id="warLogContainer"></div>
+    </div>
+
+    <!-- PROTOCOLS -->
+    <div class="panel" id="panel-protocols">
+      <div class="panel-title" style="color:var(--neon-cyan);">◈ PROTOCOLS</div>
+      <div class="proto-header-row">
+        <div class="proto-stat"><span class="proto-stat-val" id="protoInstalledCount">0</span><span class="proto-stat-lbl">INSTALLED</span></div>
+        <div class="proto-stat"><span class="proto-stat-val" style="color:var(--neon-cyan)" id="protoSignalVal">0</span><span class="proto-stat-lbl">SIGNAL</span></div>
+        <div class="proto-stat"><span class="proto-stat-val" style="color:var(--text-dim)" id="protoLockedCount">0</span><span class="proto-stat-lbl">LOCKED</span></div>
+      </div>
+      <div id="protocolsContainer"></div>
     </div>
 
     <!-- SETTINGS -->
@@ -3211,6 +3324,7 @@ const DEFAULT_STATE = {
   warLog: [],
   corruptionEnemies: {},
   activeBuffs: [],
+  protocols: {},
 };
 
 let S = {};
@@ -3651,7 +3765,7 @@ function showPanel(id) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   const btns = document.querySelectorAll('.nav-btn');
-  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','seasonal','warroom','creativity','custom','trends','achievements','settings','history'];
+  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','seasonal','warroom','protocols','creativity','custom','trends','achievements','settings','history'];
   const idx = labels.indexOf(id);
   if (idx >= 0) btns[idx].classList.add('active');
   if (id === 'caffeine') updateCaffeineMeter();
@@ -3671,8 +3785,11 @@ function applyFX(fx) {
   for (const [key, val] of Object.entries(fx)) {
     if (key in S.stats) {
       if (key === 'corruption') {
-        // Archetype can reduce corruption gains (Monk, Father, Strategist, Survivor)
-        const modded = val > 0 ? Math.ceil(val * archetypeCorruptMod()) : val;
+        // Archetype can reduce corruption gains (Monk, etc.)
+        const archMod  = archetypeCorruptMod();
+        // Protocol: Control Anchor — reduces corruption gain from negatives
+        const protoMod = val > 0 ? (1 - (getProtocolEffects().corruptionGainReduction || 0)) : 1;
+        const modded   = val > 0 ? Math.ceil(val * archMod * protoMod) : val;
         S.stats.corruption = clamp(S.stats.corruption + modded, 0, 100);
       } else {
         S.stats[key] = clamp(S.stats[key] + val, 0, 100);
@@ -3750,6 +3867,10 @@ function executeAction(action, source='button') {
   } else {
     const baseXP = Math.round((action.xp || 0) * stateXPMult() * comboXPMult());
     let arcXP    = archetypeXPBonus(action.category, baseXP);
+    // Protocol: Training Gi — BJJ body XP boost
+    if (action.id === 'bjj' && isProtocolActive('trainingGi')) {
+      arcXP = Math.round(arcXP * (getProtocolEffects().bjjBodyXPBoost || 1.0));
+    }
     // Enemy passive penalties (subtle, max 5%)
     const emods  = getEnemyPassiveMods();
     const isFocus      = ['grift','creativity'].includes(action.category);
@@ -3791,7 +3912,29 @@ function executeAction(action, source='button') {
   const gainedSignal = action.negative ? 0 : Math.round(rawSignal * signalMod);
   const energyDelta  = Math.round(rawEnergy * (rawEnergy < 0 ? energyMod : 1.0));
 
-  S.signal += gainedSignal + bonusSignalDrop;
+  // Protocol effects on signal and energy
+  const pfx = getProtocolEffects();
+  let finalSignal = gainedSignal;
+  if (!action.negative) {
+    // Global signal amplifier
+    if (pfx.globalSignalBoost > 1) finalSignal = Math.round(finalSignal * pfx.globalSignalBoost);
+    // Grift signal boost
+    if (action.category === 'grift' && pfx.griftSignalBoost > 1)
+      finalSignal = Math.round(finalSignal * pfx.griftSignalBoost);
+    // Philosophy Cache bonus
+    if ((action.action||action.name||'').includes('Philosophy') && pfx.philosophySignalBonus > 0) {
+      finalSignal += pfx.philosophySignalBonus;
+      applyFX({ soul: pfx.philosophySoulBonus }); // extra soul
+    }
+    // Inventory Grid bonus
+    if ((action.action||action.name||'').includes('Organize Inventory') && pfx.inventorySignalBonus > 0)
+      finalSignal += pfx.inventorySignalBonus;
+    // Stretch/Walk energy bonus
+    if (['Walk','Stretch'].includes(action.name||action.action||'') && pfx.stretchWalkEnergyBonus > 0)
+      S.energy.current = clamp(S.energy.current + pfx.stretchWalkEnergyBonus, 0, S.energy.max);
+  }
+
+  S.signal += finalSignal + bonusSignalDrop;
   S.energy.current = clamp(S.energy.current + energyDelta, 0, S.energy.max);
 
   // Evaluate system state and archetype after action
@@ -3848,7 +3991,7 @@ function executeAction(action, source='button') {
     fxParts.push(`${icons[k]||''}${k} ${v>0?'+':''}${v}`);
   }
   if (gainedXP > 0)           fxParts.push(`✨ +${gainedXP}XP`);
-  if (gainedSignal > 0)       fxParts.push(`📶 +${gainedSignal}`);
+  if (finalSignal > 0)        fxParts.push(`📶 +${finalSignal}`);
   if (bonusSignalDrop > 0)    fxParts.push(`📶 +${bonusSignalDrop} bonus`);
   if (energyDelta !== 0)      fxParts.push(`⚡ ${energyDelta > 0 ? '+' : ''}${energyDelta}`);
 
@@ -3899,9 +4042,10 @@ function executeAction(action, source='button') {
     updateCatStreaks(action.category);
     updateSeasonalArc(action.category);
     maybeShowOpLogPrompt();
+    checkProtocolUnlocks();
   }
   // War system hook — fires last, after all state is updated
-  const combatSuffix = processWarAction(action, gainedSignal + bonusSignalDrop, energyDelta);
+  const combatSuffix = processWarAction(action, finalSignal + bonusSignalDrop, energyDelta);
   // Append combat result to toast body if present
   if (combatSuffix) {
     setTimeout(() => toast('⚔ COMBAT', combatSuffix, '', action.negative ? 'warn' : 'success'), 600);
@@ -4603,6 +4747,12 @@ function applyDecay() {
     if (sleptOnTime)      regenAmt = 25;
     else if (noLateNegs)  regenAmt = 10;
     S.energy.current = clamp(S.energy.current + regenAmt, 0, S.energy.max);
+  }
+
+  // Protocol: Recovery Drone — passive daily Corruption reduction
+  if (isProtocolActive('recoveryDrone') && S.stats.corruption > 25) {
+    const pfx = getProtocolEffects();
+    S.stats.corruption = Math.max(0, S.stats.corruption - (pfx.dailyCorruptionReduction || 1));
   }
 
   // Enemy daily decay — grows if neglected
@@ -5726,6 +5876,8 @@ function updateUI() {
   renderWarHUD();
   // War Room panel
   renderWarRoom();
+  // Protocols panel
+  renderProtocols();
 
   // Re-render dynamic panels
   renderMissions();
@@ -8553,6 +8705,12 @@ function calcEnemyDamage(action, enemy) {
   const variance= Math.floor(Math.random() * 5);
   let dmg       = base + variance;
   if (isWeak) dmg = Math.round(dmg * 1.5); // weakness multiplier
+  // Protocol: Training Gi — BJJ deals extra damage to Burnout Wraith
+  if (action.id === 'bjj' && enemy.id === 'burnoutWraith' && isProtocolActive('trainingGi'))
+    dmg = Math.round(dmg * (getProtocolEffects().bjjBurnoutDamageBoost || 1.0));
+  // Protocol: Inventory Grid — Organize Inventory deals extra to Entropy Bloom
+  if (action.id === 'organizeInventory' && enemy.id === 'entropyBloom' && isProtocolActive('inventoryGrid'))
+    dmg = Math.round(dmg * (getProtocolEffects().inventoryEntropyDamageBoost || 1.0));
   return Math.max(1, Math.min(dmg, 60));   // clamp 1–60
 }
 
@@ -8621,9 +8779,17 @@ function feedEnemies(action) {
 
     const heal   = calcEnemyHeal(action, e);
     e.hp         = Math.min(e.maxHp, e.hp + heal);
-    // Firewall Reinforcement reduces spread growth
-    const spreadGain = hasBuff('firewallReinforcement') ? 0.3 * 0.75 : 0.3;
-    e.spread     = Math.min(5, e.spread + spreadGain);
+    // Protocol: Firewall Reinforcement buff reduces spread growth
+    const pfx        = getProtocolEffects();
+    // Protocol: Sleep Firewall — Deep Night Signal feeds less
+    const isSleepProt = id === 'deepNightSignal' && isProtocolActive('sleepFirewall');
+    const sleepMod    = isSleepProt ? (1 - pfx.deepNightFeedReduction) : 1;
+    // Protocol: Clean Workspace — Entropy Bloom spread reduced
+    const isCleanProt = id === 'entropyBloom' && isProtocolActive('cleanWorkspace');
+    const cleanMod    = isCleanProt ? (1 - pfx.entropySpreadReduction) : 1;
+    let spreadGain    = hasBuff('firewallReinforcement') ? 0.3 * 0.75 : 0.3;
+    spreadGain       *= sleepMod * cleanMod;
+    e.spread          = Math.min(5, e.spread + spreadGain);
     e.lastAffected = new Date().toISOString();
 
     addWarLog('corruption',
@@ -9039,6 +9205,330 @@ function renderActiveBuffs() {
   }).join('');
 }
 
+// ==========================================================================
+// PROTOCOL SYSTEM
+// ==========================================================================
+
+const PROTOCOL_DEFS = [
+  {
+    id: 'trainingGi',
+    name: 'Training Gi',
+    icon: '🥋',
+    category: 'Body Systems',
+    cost: 150,
+    description: 'Physical combat ritual encoded into the system. BJJ actions carry stronger stabilization force.',
+    effectText: 'BJJ gives +10% Body XP and +10% damage vs Burnout Wraith.',
+    unlockReqText: 'Log BJJ 3 times.',
+    check: () => (S.history||[]).filter(h=>h.action==='BJJ'||(h.action||'').toLowerCase().includes('bjj')||h.category==='body'&&(h.action||'').includes('BJJ')).length >= 3
+      || (S.history||[]).filter(h=>h.type==='positive'&&(h.action||'').toLowerCase()==='bjj').length >= 3,
+    checkExact: () => {
+      const bjjLogs = (S.history||[]).filter(h => h.type==='positive' && (h.action==='BJJ' || h.action?.includes('BJJ')));
+      return bjjLogs.length >= 3;
+    },
+    effects: { bjjBodyXPBoost:1.10, bjjBurnoutDamageBoost:1.10 },
+  },
+  {
+    id: 'mobilityCircuit',
+    name: 'Mobility Circuit',
+    icon: '🚶',
+    category: 'Body Systems',
+    cost: 100,
+    description: 'Low-impact movement restores system mobility and keeps decay from hardening.',
+    effectText: 'Stretch and Walk restore +2 additional Energy.',
+    unlockReqText: 'Log Stretch or Walk 5 times.',
+    checkExact: () => {
+      const logs = (S.history||[]).filter(h => h.type==='positive' && (h.action==='Walk'||h.action==='Stretch'));
+      return logs.length >= 5;
+    },
+    effects: { stretchWalkEnergyBonus: 2 },
+  },
+  {
+    id: 'cleanWorkspace',
+    name: 'Clean Workspace Protocol',
+    icon: '🧹',
+    category: 'Discipline Systems',
+    cost: 175,
+    description: 'Environmental chaos dampened. Disorder has less room to reproduce.',
+    effectText: 'Entropy Bloom spread reduced by 15%.',
+    unlockReqText: 'Log cleanup/organization actions 5 times.',
+    checkExact: () => {
+      const cleanIds = ['upkeepTask','cleanArea','organizeInventory','purge','householdTask'];
+      const logs = (S.history||[]).filter(h => h.type==='positive' && cleanIds.some(id => h.action?.toLowerCase().includes(id.toLowerCase())||
+        ['Complete Upkeep Task','Clean One Area','Organize Inventory','Purge Possessions','Household Progress Task'].some(n=>h.action?.includes(n))));
+      return logs.length >= 5;
+    },
+    effects: { entropySpreadReduction: 0.15 },
+  },
+  {
+    id: 'deepWorkRig',
+    name: 'Deep Work Rig',
+    icon: '📡',
+    category: 'Grift Systems',
+    cost: 200,
+    description: 'Operational output routed through a higher-efficiency work channel.',
+    effectText: 'Grift actions generate +10% Signal.',
+    unlockReqText: 'Log 5 Grift actions.',
+    checkExact: () => {
+      return (S.history||[]).filter(h => h.type==='positive' && h.category==='grift').length >= 5;
+    },
+    effects: { griftSignalBoost: 1.10 },
+  },
+  {
+    id: 'sleepFirewall',
+    name: 'Sleep Firewall',
+    icon: '😴',
+    category: 'Firewall Systems',
+    cost: 200,
+    description: 'Night-cycle defenses reinforced. Sleep corruption has less access.',
+    effectText: 'Deep Night Signal feeds 25% less from late-night behavior.',
+    unlockReqText: 'Log Sleep On Time 3 times.',
+    checkExact: () => {
+      return (S.history||[]).filter(h => h.type==='positive' && h.action?.includes('Sleep On Time')).length >= 3;
+    },
+    effects: { deepNightFeedReduction: 0.25 },
+  },
+  {
+    id: 'recoveryDrone',
+    name: 'Recovery Drone',
+    icon: '🛡️',
+    category: 'Recovery Systems',
+    cost: 225,
+    description: 'Passive stabilization drone runs minor repairs at system boot.',
+    effectText: 'On app open: reduce Corruption by 1 if above 25.',
+    unlockReqText: 'Log Recovery actions 5 times.',
+    checkExact: () => {
+      return (S.history||[]).filter(h => h.type==='positive' && h.category==='recovery').length >= 5;
+    },
+    effects: { dailyCorruptionReduction: 1 },
+  },
+  {
+    id: 'philosophyCache',
+    name: 'Philosophy Cache',
+    icon: '📖',
+    category: 'Recovery Systems',
+    cost: 125,
+    description: 'Stored wisdom archive improves reflective processing.',
+    effectText: 'Study Philosophy gives +2 Soul and +5 Signal.',
+    unlockReqText: 'Log Study Philosophy 3 times.',
+    checkExact: () => {
+      return (S.history||[]).filter(h => h.type==='positive' && h.action?.includes('Philosophy')).length >= 3;
+    },
+    effects: { philosophySoulBonus: 2, philosophySignalBonus: 5 },
+  },
+  {
+    id: 'inventoryGrid',
+    name: 'Inventory Grid',
+    icon: '🗃️',
+    category: 'Grift Systems',
+    cost: 150,
+    description: 'Inventory systems reduce operational chaos and strengthen anti-entropy output.',
+    effectText: 'Organize Inventory damages Entropy Bloom +20% and gives +5 Signal.',
+    unlockReqText: 'Log Organize Inventory 3 times.',
+    checkExact: () => {
+      return (S.history||[]).filter(h => h.type==='positive' && h.action?.includes('Organize Inventory')).length >= 3;
+    },
+    effects: { inventoryEntropyDamageBoost: 1.20, inventorySignalBonus: 5 },
+  },
+  {
+    id: 'controlAnchor',
+    name: 'Control Anchor',
+    icon: '⚓',
+    category: 'Firewall Systems',
+    cost: 250,
+    description: 'Emotional containment anchor installed. Instability still registers, but spreads less.',
+    effectText: 'Negative actions increase Corruption 10% less.',
+    unlockReqText: 'Log Apologize/Repair, Meditate, or No Doomscroll Block 5 times.',
+    checkExact: () => {
+      const anchors = ['Apologize','Meditate','No Doomscroll Block'];
+      return (S.history||[]).filter(h => h.type==='positive' && anchors.some(a => h.action?.includes(a))).length >= 5;
+    },
+    effects: { corruptionGainReduction: 0.10 },
+  },
+  {
+    id: 'signalAmplifier',
+    name: 'Signal Amplifier',
+    icon: '📶',
+    category: 'Signal Systems',
+    cost: 300,
+    description: 'Core reward architecture amplified. Real action converts more efficiently into usable Signal.',
+    effectText: 'All positive actions generate +5% Signal.',
+    unlockReqText: 'Reach Level 5.',
+    checkExact: () => (S.level || 1) >= 5,
+    effects: { globalSignalBoost: 1.05 },
+  },
+];
+
+// Category display order
+const PROTO_CATEGORIES = ['Body Systems','Grift Systems','Recovery Systems','Discipline Systems','Firewall Systems','Signal Systems'];
+const PROTO_CAT_ICONS  = {'Body Systems':'💪','Grift Systems':'📡','Recovery Systems':'🛡️','Discipline Systems':'🔒','Firewall Systems':'🧱','Signal Systems':'📶'};
+
+function ensureProtocols() {
+  if (!S.protocols) S.protocols = {};
+  for (const def of PROTOCOL_DEFS) {
+    if (!S.protocols[def.id]) {
+      S.protocols[def.id] = {
+        id:           def.id,
+        unlocked:     false,
+        purchased:    false,
+        active:       false,
+        unlockedAt:   null,
+        purchasedAt:  null,
+      };
+    }
+  }
+}
+
+function isProtocolActive(id) {
+  return !!(S.protocols?.[id]?.active);
+}
+
+// Get merged effects of all active protocols
+function getProtocolEffects() {
+  ensureProtocols();
+  const fx = {
+    globalSignalBoost: 1.0,
+    griftSignalBoost: 1.0,
+    bjjBodyXPBoost: 1.0,
+    bjjBurnoutDamageBoost: 1.0,
+    stretchWalkEnergyBonus: 0,
+    entropySpreadReduction: 0,
+    deepNightFeedReduction: 0,
+    dailyCorruptionReduction: 0,
+    philosophySoulBonus: 0,
+    philosophySignalBonus: 0,
+    inventoryEntropyDamageBoost: 1.0,
+    inventorySignalBonus: 0,
+    corruptionGainReduction: 0,
+  };
+  for (const def of PROTOCOL_DEFS) {
+    if (!isProtocolActive(def.id)) continue;
+    for (const [k,v] of Object.entries(def.effects)) {
+      if (k in fx) {
+        // Multiplicative for boosts (>= 1), additive for reductions/bonuses
+        if (k.endsWith('Boost') && v > 1) fx[k] *= v;
+        else if (k.endsWith('Reduction') || k.endsWith('Bonus') || k === 'stretchWalkEnergyBonus' || k === 'dailyCorruptionReduction') fx[k] += v;
+        else fx[k] = v;
+      }
+    }
+  }
+  return fx;
+}
+
+// Check all protocols for new unlocks after an action
+function checkProtocolUnlocks() {
+  ensureProtocols();
+  for (const def of PROTOCOL_DEFS) {
+    const p = S.protocols[def.id];
+    if (p.unlocked || p.purchased) continue;
+    try {
+      if (def.checkExact()) {
+        p.unlocked   = true;
+        p.unlockedAt = new Date().toISOString();
+        toast('◈ PROTOCOL UNLOCKED', def.name, def.unlockReqText, 'success');
+        addWarLog('system', `Protocol blueprint recovered: ${def.name}.`, { id: def.id });
+        saveState();
+      }
+    } catch(e) {}
+  }
+}
+
+// Install a protocol with Signal
+function installProtocol(id) {
+  ensureProtocols();
+  const def = PROTOCOL_DEFS.find(d => d.id === id);
+  const p   = S.protocols[id];
+  if (!def || !p) return;
+  if (!p.unlocked) { toast('◈ LOCKED', def.name, 'Unlock requirement not met.', 'warn'); return; }
+  if (p.active)    { toast('◈ ACTIVE', def.name, 'Already installed.', ''); return; }
+  if (!spendSignal(def.cost, `Install: ${def.name}`)) return;
+
+  p.purchased  = true;
+  p.active     = true;
+  p.purchasedAt = new Date().toISOString();
+
+  S.history.unshift({
+    time: new Date().toISOString(), action: `[PROTOCOL] Installed: ${def.name}`,
+    category:'system', effects:'', xp:0, signal:-def.cost, type:'system',
+  });
+  addWarLog('system', `${def.name} installed. ${def.effectText}`, { id });
+  toast('◈ PROTOCOL INSTALLED', def.name, def.effectText, 'success');
+  if (!_audioMuted) {
+    playTone({ freq:660, type:'triangle', gain:0.09, attack:0.01, sustain:0.08, decay:0.35 });
+    playTone({ freq:880, type:'sine', gain:0.06, attack:0.01, sustain:0.06, decay:0.30, startDelay:0.10 });
+  }
+  saveState(); updateUI(); renderProtocols();
+}
+
+// Render the Protocols panel
+function renderProtocols() {
+  const container = document.getElementById('protocolsContainer');
+  if (!container) return;
+  ensureProtocols();
+
+  const sig       = S.signal || 0;
+  const installed = PROTOCOL_DEFS.filter(d => S.protocols[d.id]?.active).length;
+  const locked    = PROTOCOL_DEFS.filter(d => !S.protocols[d.id]?.unlocked && !S.protocols[d.id]?.active).length;
+
+  const svEl = document.getElementById('protoSignalVal');
+  const icEl = document.getElementById('protoInstalledCount');
+  const lcEl = document.getElementById('protoLockedCount');
+  if (svEl) svEl.textContent = sig;
+  if (icEl) icEl.textContent = installed;
+  if (lcEl) lcEl.textContent = locked;
+
+  let html = '';
+  for (const cat of PROTO_CATEGORIES) {
+    const catDefs = PROTOCOL_DEFS.filter(d => d.category === cat);
+    if (!catDefs.length) continue;
+    html += `<div class="proto-category-label">${PROTO_CAT_ICONS[cat]||''} ${cat}</div>`;
+
+    for (const def of catDefs) {
+      const p         = S.protocols[def.id] || {};
+      const isActive  = p.active;
+      const isUnlocked= p.unlocked && !isActive;
+      const isLocked  = !p.unlocked && !isActive;
+      const canAfford = sig >= def.cost;
+
+      let cardClass = 'proto-card';
+      if (isActive)                          cardClass += ' active';
+      else if (isUnlocked && !canAfford)     cardClass += ' unlocked no-signal';
+      else if (isUnlocked)                   cardClass += ' unlocked';
+      else                                   cardClass += ' locked';
+
+      const onclickAttr = (isUnlocked && canAfford)
+        ? `onclick="installProtocol('${def.id}')"` : '';
+
+      let badgeHtml = '';
+      if (isActive)    badgeHtml = `<span class="proto-status-badge active">✓ INSTALLED</span>`;
+      else if(isUnlocked) badgeHtml = `<span class="proto-status-badge unlocked">UNLOCKED</span>`;
+      else             badgeHtml = `<span class="proto-status-badge locked">LOCKED</span>`;
+
+      const costHtml = !isActive
+        ? `<span class="proto-cost${(!canAfford && isUnlocked) ? ' cant-afford' : ''}">📶${def.cost}</span>`
+        : '';
+
+      const reqHtml  = isLocked
+        ? `<div class="proto-req">◈ ${def.unlockReqText}</div>` : '';
+
+      html += `<div class="${cardClass}" ${onclickAttr}>
+        <span class="proto-icon">${def.icon}</span>
+        <div class="proto-body">
+          <span class="proto-cat-tag">${def.category.toUpperCase()}</span>
+          <div class="proto-name">${def.name}</div>
+          <div class="proto-desc">${def.description}</div>
+          <div class="proto-effect">${def.effectText}</div>
+          ${reqHtml}
+        </div>
+        <div class="proto-right">
+          ${badgeHtml}
+          ${costHtml}
+        </div>
+      </div>`;
+    }
+  }
+  container.innerHTML = html;
+}
+
 function init() {
   loadState();
   applyDecay();
@@ -9057,6 +9547,7 @@ function init() {
   ensureWarLog();
   ensureEnemies();
   ensureActiveBuffs();
+  ensureProtocols();
   cleanupExpiredBuffs();
   checkEnemyRespawns();
   ensureAchievements();
@@ -9070,6 +9561,8 @@ function init() {
   ensureSeasonalArc();
   ensureOpLog();
   // Bootstrap records from existing history on first load
+  // Check protocol unlocks on load (retroactive)
+  setTimeout(() => { checkProtocolUnlocks(); renderProtocols(); }, 900);
   setTimeout(() => checkPersonalRecords(), 800);
   // Check if a new monthly report should be generated
   setTimeout(() => checkAndGenerateMonthlyReport(), 1200);
