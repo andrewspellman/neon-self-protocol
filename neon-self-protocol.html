@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v3.6</title>
+<title>NEON SELF PROTOCOL v3.9</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -2316,7 +2316,212 @@ input[type=range].music-slider::-moz-range-thumb{
   95%{transform:translateX(-2px);}
   97%{transform:none;}
 }
-.enemy-card.critical .enemy-name{animation:enemyGlitch 4s infinite;}</style>
+.enemy-card.critical .enemy-name{animation:enemyGlitch 4s infinite;}
+
+/* ===== WAR ROOM — TACTICAL REDESIGN ===== */
+
+/* Signal balance strip */
+.war-signal-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 12px;margin-bottom:14px;
+  background:rgba(0,200,255,0.05);
+  border:1px solid rgba(0,200,255,0.15);
+  border-radius:var(--radius);
+}
+.war-signal-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--text-dim);
+}
+.war-signal-val{
+  font-family:'Orbitron',monospace;font-size:18px;font-weight:700;
+  color:var(--neon-cyan);
+}
+
+/* Tactical action buttons — match action-btn pattern */
+.tactical-grid{
+  display:flex;flex-direction:column;gap:0;
+}
+.tactical-btn{
+  display:flex;align-items:center;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius);
+  padding:13px 14px;
+  cursor:pointer;
+  transition:all var(--transition);
+  text-align:left;width:100%;
+  position:relative;overflow:hidden;
+  margin-bottom:8px;
+}
+.tactical-btn::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--neon-purple);
+}
+.tactical-btn.danger::before{ background:var(--neon-red); }
+.tactical-btn:active:not(.disabled){
+  transform:scale(0.98);filter:brightness(1.2);
+}
+.tactical-btn:not(.disabled):hover{
+  border-color:rgba(170,68,255,0.3);
+  box-shadow:0 0 10px rgba(170,68,255,0.05);
+}
+.tactical-btn.danger:not(.disabled):hover{
+  border-color:rgba(255,34,68,0.3);
+  box-shadow:0 0 10px rgba(255,34,68,0.05);
+}
+/* Disabled — insufficient signal or condition not met */
+.tactical-btn.disabled{
+  opacity:0.35;
+  cursor:not-allowed;
+  pointer-events:none;
+}
+.tactical-btn .t-icon{
+  font-size:20px;margin-right:12px;flex-shrink:0;
+}
+.tactical-btn .t-body{flex:1;min-width:0;}
+.tactical-btn .t-name{
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;
+  color:var(--text-bright);letter-spacing:0.5px;
+}
+.tactical-btn .t-desc{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:2px;line-height:1.5;
+}
+.tactical-btn .t-note{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:rgba(255,34,68,0.6);margin-top:3px;letter-spacing:0.5px;
+}
+.tactical-btn .t-note.ok{color:rgba(0,255,136,0.6);}
+.t-cost{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--neon-cyan);
+  background:rgba(0,200,255,0.07);
+  border:1px solid rgba(0,200,255,0.18);
+  border-radius:3px;padding:3px 7px;
+  flex-shrink:0;margin-left:8px;
+  white-space:nowrap;
+}
+.t-cost.cant-afford{
+  color:var(--text-dim);
+  background:rgba(255,255,255,0.03);
+  border-color:rgba(255,255,255,0.07);
+}
+
+/* Enemy cards — tighten up */
+.enemy-card{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-left:3px solid var(--neon-red);
+  border-radius:var(--radius);padding:12px 14px;
+  margin-bottom:8px;
+  position:relative;overflow:hidden;
+  transition:border-color 0.3s;
+}
+.enemy-card.weak  { border-left-color:rgba(255,34,68,0.25); opacity:0.55; }
+.enemy-card.critical{
+  border-left-color:var(--neon-red);
+  box-shadow:0 0 10px rgba(255,34,68,0.08);
+}
+.enemy-card.defeated{
+  opacity:0.3;border-left-color:rgba(255,255,255,0.05);
+}
+.enemy-card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;
+}
+.enemy-name{
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  color:var(--text-bright);letter-spacing:0.5px;
+}
+.enemy-level{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-red);
+}
+.enemy-hp-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.enemy-hp-bar{
+  flex:1;height:6px;background:rgba(255,255,255,0.06);
+  border-radius:3px;overflow:hidden;
+}
+.enemy-hp-fill{
+  height:100%;border-radius:3px;
+  background:var(--neon-red);
+  transition:width 0.5s ease;
+}
+.enemy-hp-fill.low{background:var(--neon-orange);}
+.enemy-hp-fill.critical-fill{background:#ff4400;}
+.enemy-hp-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);white-space:nowrap;min-width:56px;text-align:right;
+}
+.enemy-spread-row{
+  display:flex;align-items:center;gap:6px;margin-bottom:5px;
+}
+.enemy-spread-label{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);letter-spacing:1px;
+}
+.enemy-spread-dots{ display:flex;gap:3px; }
+.spread-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.08);
+}
+.spread-dot.active{
+  background:rgba(255,34,68,0.65);
+  border-color:rgba(255,34,68,0.3);
+}
+.enemy-meta{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);margin-top:4px;
+  display:flex;flex-wrap:wrap;gap:8px;
+}
+.enemy-meta .weak-tag{color:rgba(0,255,136,0.55);}
+.enemy-meta .passive-tag{color:rgba(255,106,0,0.65);}
+.enemy-meta .status-tag{color:var(--text-dim);}
+.enemy-defeated-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-green);letter-spacing:2px;
+  margin-bottom:2px;
+}
+
+/* Active buff cards */
+.buff-card{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-left:3px solid var(--neon-green);
+  border-radius:var(--radius);margin-bottom:6px;
+}
+.buff-name{
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  color:var(--text-bright);flex:1;
+}
+.buff-expires{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--neon-green);white-space:nowrap;
+}
+
+/* War log entries */
+.war-log-entry{
+  padding:8px 12px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-left:2px solid rgba(255,34,68,0.35);
+  border-radius:var(--radius);
+  margin-bottom:5px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text);line-height:1.6;
+}
+.war-log-entry.victory  { border-left-color:var(--neon-green);  color:var(--neon-green);  background:rgba(0,255,136,0.03); }
+.war-log-entry.warning  { border-left-color:var(--neon-orange); color:var(--neon-orange); background:rgba(255,106,0,0.03);  }
+.war-log-entry.system   { border-left-color:var(--neon-cyan);   color:var(--neon-cyan);   background:rgba(0,200,255,0.03);  }
+.war-log-time{
+  font-size:8px;color:var(--text-dim);display:block;margin-bottom:3px;
+  letter-spacing:1px;
+}</style>
 </head>
 <body>
 
@@ -2611,8 +2816,29 @@ input[type=range].music-slider::-moz-range-thumb{
     <!-- WAR ROOM -->
     <div class="panel" id="panel-warroom">
       <div class="panel-title" style="color:var(--neon-red);text-shadow:0 0 8px rgba(255,34,68,0.3);">☠ WAR ROOM</div>
-      <div class="section-label">Active Threats</div>
+
+      <!-- Signal Balance -->
+      <div class="war-signal-row">
+        <span class="war-signal-label">📶 AVAILABLE SIGNAL</span>
+        <span class="war-signal-val" id="warSignalVal">0</span>
+      </div>
+
+      <!-- Active Buffs -->
+      <div id="activeBuffsSection" style="display:none;margin-bottom:10px;">
+        <div class="section-label">Active Buffs</div>
+        <div id="activeBuffsContainer"></div>
+      </div>
+
+      <!-- Tactical Actions -->
+      <div class="section-label">Tactical Actions</div>
+      <div class="tactical-grid" id="tacticalGrid">
+        <!-- Populated by renderWarRoom() -->
+      </div>
+
+      <!-- Enemy Threat Display -->
+      <div class="section-label" style="margin-top:14px">Active Threats</div>
       <div id="enemyContainer"></div>
+
       <div class="section-label" style="margin-top:14px">War Log</div>
       <div id="warLogContainer"></div>
     </div>
@@ -2984,6 +3210,7 @@ const DEFAULT_STATE = {
   },
   warLog: [],
   corruptionEnemies: {},
+  activeBuffs: [],
 };
 
 let S = {};
@@ -8394,7 +8621,9 @@ function feedEnemies(action) {
 
     const heal   = calcEnemyHeal(action, e);
     e.hp         = Math.min(e.maxHp, e.hp + heal);
-    e.spread     = Math.min(5, e.spread + 0.3);
+    // Firewall Reinforcement reduces spread growth
+    const spreadGain = hasBuff('firewallReinforcement') ? 0.3 * 0.75 : 0.3;
+    e.spread     = Math.min(5, e.spread + spreadGain);
     e.lastAffected = new Date().toISOString();
 
     addWarLog('corruption',
@@ -8423,11 +8652,18 @@ function buildCombatToastSuffix(attackResults, feedResults) {
 // Render War Room panel
 function renderWarRoom() {
   ensureEnemies();
+  cleanupExpiredBuffs();
   const ec = document.getElementById('enemyContainer');
   const wl = document.getElementById('warLogContainer');
   if (!ec || !wl) return;
 
-  const SPREAD_LABELS = ['','Minimal','Low','Moderate','High','Critical'];
+  // Signal balance
+  const svEl = document.getElementById('warSignalVal');
+  if (svEl) svEl.textContent = S.signal || 0;
+
+  // Tactical grid + buffs
+  renderTacticalGrid();
+  renderActiveBuffs();
 
   ec.innerHTML = Object.entries(S.corruptionEnemies).map(([id, e]) => {
     const def     = ENEMY_DEFS[id];
@@ -8441,19 +8677,19 @@ function renderWarRoom() {
     else if (isCrit) cardClass += ' critical';
     else if (isWeak) cardClass += ' weak';
 
-    const spreadLabel = SPREAD_LABELS[Math.min(5, Math.round(e.spread))] || 'Minimal';
-    const spreadDots  = [1,2,3,4,5].map(i =>
+    const spreadLabel  = ['','Minimal','Low','Moderate','High','Critical'][Math.min(5, Math.round(e.spread))] || 'Minimal';
+    const spreadDots   = [1,2,3,4,5].map(i =>
       `<div class="spread-dot${i <= Math.round(e.spread) ? ' active' : ''}"></div>`
     ).join('');
-
-    const weakHints = def.weakActions.slice(0,3).join(', ');
-    const passiveTxt = hpPct >= 70 ? `⚠ ${def.passiveLabel}` : '';
-    const statusTxt  = isDefeated
+    const fillClass    = hpPct <= 25 ? 'enemy-hp-fill low' : hpPct >= 80 ? 'enemy-hp-fill critical-fill' : 'enemy-hp-fill';
+    const weakHints    = def.weakActions.slice(0,3).join(' · ');
+    const passiveTxt   = hpPct >= 70 && !isDefeated ? def.passiveLabel : '';
+    const statusTxt    = isDefeated
       ? `Respawning in ~${Math.max(0,Math.round((e.respawnAt - Date.now())/3600000))}h`
       : hpPct >= 80 ? 'Thriving — priority target'
       : hpPct >= 50 ? 'Active'
       : hpPct >= 25 ? 'Weakened'
-      : 'Near defeat';
+      : 'Near defeat — keep pushing';
 
     return `<div class="${cardClass}">
       <div class="enemy-card-header">
@@ -8461,19 +8697,21 @@ function renderWarRoom() {
         <span class="enemy-level">LVL ${e.level}</span>
       </div>
       ${isDefeated
-        ? `<div class="enemy-defeated-label">✓ DEFEATED</div><div class="enemy-status">${statusTxt}</div>`
+        ? `<div class="enemy-defeated-label">✓ DEFEATED</div><div class="enemy-meta"><span class="status-tag">${statusTxt}</span></div>`
         : `<div class="enemy-hp-row">
-            <div class="enemy-hp-bar"><div class="enemy-hp-fill${hpPct<=30?' low':''}" style="width:${hpPct}%"></div></div>
-            <span class="enemy-hp-label">HP ${e.hp}/${e.maxHp}</span>
+            <div class="enemy-hp-bar"><div class="${fillClass}" style="width:${hpPct}%"></div></div>
+            <span class="enemy-hp-label">${e.hp}/${e.maxHp} HP</span>
            </div>
            <div class="enemy-spread-row">
-             <span class="enemy-spread-label">SPREAD:</span>
+             <span class="enemy-spread-label">SPREAD</span>
              <div class="enemy-spread-dots">${spreadDots}</div>
-             <span class="enemy-spread-label" style="margin-left:4px">${spreadLabel}</span>
+             <span class="enemy-spread-label" style="margin-left:4px;letter-spacing:0">${spreadLabel}</span>
            </div>
-           ${passiveTxt ? `<div class="enemy-passive">${passiveTxt}</div>` : ''}
-           <div class="enemy-weak">◈ Weak to: ${weakHints}</div>
-           <div class="enemy-status">${statusTxt}</div>`
+           <div class="enemy-meta">
+             <span class="weak-tag">◈ ${weakHints}</span>
+             ${passiveTxt ? `<span class="passive-tag">⚠ ${passiveTxt}</span>` : ''}
+             <span class="status-tag">${statusTxt}</span>
+           </div>`
       }
     </div>`;
   }).join('');
@@ -8490,6 +8728,315 @@ function renderWarRoom() {
       return `<div class="${cls}"><span class="war-log-time">${ts}</span>${entry.message}</div>`;
     }).join('');
   }
+}
+
+// ==========================================================================
+// TACTICAL SIGNAL SPENDING + BUFF SYSTEM
+// ==========================================================================
+
+function ensureActiveBuffs() {
+  if (!S.activeBuffs) S.activeBuffs = [];
+}
+
+function addBuff(buff) {
+  ensureActiveBuffs();
+  // Remove any existing buff with same id before adding
+  S.activeBuffs = S.activeBuffs.filter(b => b.id !== buff.id);
+  S.activeBuffs.push({
+    id:          buff.id,
+    name:        buff.name,
+    description: buff.description || '',
+    createdAt:   Date.now(),
+    expiresAt:   buff.expiresAt,
+    effects:     buff.effects || {},
+  });
+}
+
+function getActiveBuffs() {
+  ensureActiveBuffs();
+  cleanupExpiredBuffs();
+  return S.activeBuffs;
+}
+
+function cleanupExpiredBuffs() {
+  ensureActiveBuffs();
+  const before = S.activeBuffs.length;
+  S.activeBuffs = S.activeBuffs.filter(b => b.expiresAt > Date.now());
+  if (S.activeBuffs.length < before) saveState();
+}
+
+function hasBuff(id) {
+  ensureActiveBuffs();
+  return S.activeBuffs.some(b => b.id === id && b.expiresAt > Date.now());
+}
+
+// Core Signal spending helper
+function spendSignal(amount, reason) {
+  if (S.signal < amount) {
+    toast('⚠ INSUFFICIENT SIGNAL',
+      `Need ${amount} Signal. You have ${S.signal}.`,
+      'Real actions required.', 'warn');
+    return false;
+  }
+  S.signal -= amount;
+  S.history.unshift({
+    time:     new Date().toISOString(),
+    action:   `[TACTICAL] ${reason}`,
+    category: 'system',
+    effects:  '',
+    xp:       0,
+    signal:   -amount,
+    type:     'system',
+  });
+  addWarLog('system', `Signal spent: -${amount}. ${reason}`, { spent: amount });
+  return true;
+}
+
+// Get the strongest active enemy by HP ratio
+function getStrongestEnemy() {
+  ensureEnemies();
+  let best = null, bestRatio = -1;
+  for (const [id, e] of Object.entries(S.corruptionEnemies)) {
+    if (!e.active || e.hp <= 0) continue;
+    const ratio = e.hp / e.maxHp;
+    if (ratio > bestRatio) { bestRatio = ratio; best = e; }
+  }
+  return best;
+}
+
+// ── TACTICAL ACTION 1 — Neural Scan ──────────────────────────────────────
+function tacticalNeuralScan() {
+  if (!spendSignal(25, 'Neural Scan')) return;
+  const enemy = getStrongestEnemy();
+  const def   = enemy ? ENEMY_DEFS[enemy.id] : null;
+  if (!enemy || !def) {
+    toast('◎ NEURAL SCAN', 'No active threats detected.', 'Ecosystem clear.', 'success');
+    addWarLog('scan', 'Neural Scan: no active threats detected.', {});
+    saveState(); updateUI(); return;
+  }
+  const counters = def.weakActions.slice(0, 3).join(', ');
+  const hpPct   = Math.round((enemy.hp / enemy.maxHp) * 100);
+  const msg     = `Primary threat: ${enemy.name}. HP: ${enemy.hp}/${enemy.maxHp} (${hpPct}%). Counters: ${counters}.`;
+  toast('◎ NEURAL SCAN', enemy.name, `Recommend: ${counters}`, 'success');
+  addWarLog('scan',
+    `Neural Scan complete. ${msg}`,
+    { id: enemy.id, hpPct }
+  );
+  saveState(); updateUI();
+}
+
+// ── TACTICAL ACTION 2 — Signal Burst ─────────────────────────────────────
+function tacticalSignalBurst() {
+  if (!spendSignal(50, 'Signal Burst')) return;
+  const enemy = getStrongestEnemy();
+  if (!enemy) {
+    toast('◎ SIGNAL BURST', 'No active threats.', '', 'success');
+    saveState(); updateUI(); return;
+  }
+  const cs  = getCombatStats();
+  const dmg = Math.max(8, Math.round(15 + cs.signalStrength * 0.25 + cs.strike * 0.1));
+  enemy.hp  = Math.max(0, enemy.hp - dmg);
+  enemy.totalDamageTaken += dmg;
+  enemy.lastAffected = new Date().toISOString();
+
+  if (enemy.hp <= 0) {
+    enemy.active    = false;
+    enemy.hp        = 0;
+    enemy.totalTimesDefeated++;
+    enemy.level     = Math.min(enemy.level + 1, 10);
+    enemy.maxHp     = Math.round(enemy.maxHp * 1.15);
+    enemy.respawnAt = Date.now() + 24 * 60 * 60 * 1000;
+    S.signal       += ENEMY_DEFEAT_SIGNAL;
+    S.stats.corruption = Math.max(0, S.stats.corruption - 5);
+    toast('⚡ SIGNAL BURST', `${enemy.name} DEFEATED`, `+${ENEMY_DEFEAT_SIGNAL} Signal returned`, 'success');
+    addWarLog('victory', `Signal Burst destroyed ${enemy.name}. +${ENEMY_DEFEAT_SIGNAL} Signal.`, { id: enemy.id });
+  } else {
+    toast('⚡ SIGNAL BURST', `${enemy.name} hit for ${dmg}`, `HP: ${enemy.hp}/${enemy.maxHp}`, 'success');
+    addWarLog('action', `Signal Burst struck ${enemy.name} for ${dmg} damage. HP: ${enemy.hp}/${enemy.maxHp}.`, { id: enemy.id, dmg });
+  }
+  saveState(); updateUI();
+}
+
+// ── TACTICAL ACTION 3 — Firewall Reinforcement ───────────────────────────
+function tacticalFirewallReinforcement() {
+  if (!spendSignal(75, 'Firewall Reinforcement')) return;
+  const exp = Date.now() + 24 * 60 * 60 * 1000;
+  addBuff({
+    id:          'firewallReinforcement',
+    name:        'Firewall Reinforcement',
+    description: 'Enemy spread reduced 25% for 24h',
+    expiresAt:   exp,
+    effects:     { enemySpreadReduction: 0.25 },
+  });
+  // Immediately reduce all active enemy spreads
+  ensureEnemies();
+  for (const e of Object.values(S.corruptionEnemies)) {
+    if (e.active) e.spread = Math.max(1, e.spread * 0.75);
+  }
+  toast('🛡 FIREWALL REINFORCEMENT', 'Spread dampened for 24h.', 'Enemy spread -25%', 'success');
+  addWarLog('system', 'Firewall Reinforcement deployed. Enemy spread reduced by 25% for 24 hours.', {});
+  saveState(); updateUI();
+}
+
+// ── TACTICAL ACTION 4 — Recovery Pulse ───────────────────────────────────
+function tacticalRecoveryPulse() {
+  if (!spendSignal(60, 'Recovery Pulse')) return;
+  const cs = getCombatStats();
+  // Restore stats
+  S.stats.corruption = Math.max(0, S.stats.corruption - 5);
+  S.energy.current   = Math.min(S.energy.max, S.energy.current + 10);
+  // Light damage to all active enemies
+  ensureEnemies();
+  const dmg = Math.max(4, Math.round(8 + cs.recoveryPower * 0.15));
+  let hits  = 0;
+  for (const e of Object.values(S.corruptionEnemies)) {
+    if (!e.active) continue;
+    e.hp = Math.max(0, e.hp - dmg);
+    e.totalDamageTaken += dmg;
+    if (e.hp <= 0) { e.active = false; e.respawnAt = Date.now() + 24*60*60*1000; }
+    hits++;
+  }
+  toast('💊 RECOVERY PULSE', `Corruption -5  Energy +10`, `All enemies -${dmg} (${hits} hit)`, 'success');
+  addWarLog('recovery',
+    `Recovery Pulse fired. Corruption -5, Energy +10. All ${hits} active enemies took ${dmg} damage.`, {});
+  saveState(); updateUI();
+}
+
+// ── TACTICAL ACTION 5 — Emergency Shutdown ───────────────────────────────
+function tacticalEmergencyShutdown() {
+  const canUse = S.stats.corruption >= 50 || S.currentSystemState === 'CORRUPTED';
+  if (!canUse) {
+    toast('⚠ UNAVAILABLE', 'Emergency Shutdown', 'Available at corruption ≥50 or CORRUPTED state.', 'warn');
+    return;
+  }
+  if (!spendSignal(100, 'Emergency Shutdown')) return;
+  // Energy cost
+  S.energy.current = Math.max(0, S.energy.current - 10);
+  // Stat recovery
+  S.stats.corruption = Math.max(0, S.stats.corruption - 10);
+  S.stats.control    = Math.min(100, S.stats.control + 5);
+  // Heavy damage to strongest enemy
+  const enemy = getStrongestEnemy();
+  let enemyLine = '';
+  if (enemy) {
+    const cs  = getCombatStats();
+    const dmg = Math.max(15, Math.round(25 + cs.strike * 0.2 + cs.signalStrength * 0.15));
+    enemy.hp  = Math.max(0, enemy.hp - dmg);
+    enemy.totalDamageTaken += dmg;
+    if (enemy.hp <= 0) {
+      enemy.active = false; enemy.respawnAt = Date.now() + 24*60*60*1000;
+      enemy.totalTimesDefeated++; enemy.level = Math.min(enemy.level+1,10);
+      enemy.maxHp = Math.round(enemy.maxHp * 1.15);
+      S.signal += ENEMY_DEFEAT_SIGNAL;
+      enemyLine = `${enemy.name} DEFEATED.`;
+    } else {
+      enemyLine = `${enemy.name} -${dmg}.`;
+    }
+  }
+  toast('☠ EMERGENCY SHUTDOWN', `Corruption -10  Control +5`, enemyLine || 'System stabilized.', 'success');
+  addWarLog('system',
+    `Emergency Shutdown initiated. Corruption -10, Control +5, Energy -10. ${enemyLine}`, {});
+  saveState(); updateUI();
+}
+
+// Render Tactical Grid
+function renderTacticalGrid() {
+  const grid = document.getElementById('tacticalGrid');
+  if (!grid) return;
+  cleanupExpiredBuffs();
+  const sig        = S.signal || 0;
+  const canCorrupt = S.stats.corruption >= 50 || S.currentSystemState === 'CORRUPTED';
+
+  const actions = [
+    {
+      id:     'neuralScan',
+      icon:   '◎',
+      name:   'Neural Scan',
+      cost:   25,
+      desc:   'Identify primary threat and get recommended counter-actions.',
+      fn:     'tacticalNeuralScan()',
+      danger: false,
+    },
+    {
+      id:     'signalBurst',
+      icon:   '⚡',
+      name:   'Signal Burst',
+      cost:   50,
+      desc:   'Direct damage strike on the strongest active threat.',
+      fn:     'tacticalSignalBurst()',
+      danger: false,
+    },
+    {
+      id:     'firewallReinforcement',
+      icon:   '🛡',
+      name:   'Firewall Reinforce',
+      cost:   75,
+      desc:   'Reduces enemy spread growth by 25% for 24 hours.',
+      fn:     'tacticalFirewallReinforcement()',
+      danger: false,
+      activeIfBuff: 'firewallReinforcement',
+    },
+    {
+      id:     'recoveryPulse',
+      icon:   '💊',
+      name:   'Recovery Pulse',
+      cost:   60,
+      desc:   'Corruption -5, Energy +10. Light AOE damage to all threats.',
+      fn:     'tacticalRecoveryPulse()',
+      danger: false,
+    },
+    {
+      id:     'emergencyShutdown',
+      icon:   '☠',
+      name:   'Emergency Shutdown',
+      cost:   100,
+      desc:   'Corruption -10, Control +5, Energy -10. Heavy targeted strike.',
+      fn:     'tacticalEmergencyShutdown()',
+      danger: true,
+      requireCorrupt: true,
+    },
+  ];
+
+  grid.innerHTML = actions.map(a => {
+    const canAfford    = sig >= a.cost;
+    const unavailable  = a.requireCorrupt && !canCorrupt;
+    const disabled     = !canAfford || unavailable;
+    const isActive     = a.activeIfBuff && hasBuff(a.activeIfBuff);
+    const btnClass     = `tactical-btn${a.danger ? ' danger' : ''}${disabled ? ' disabled' : ''}`;
+    const noteHtml     = unavailable
+      ? `<div class="t-note">Requires corruption ≥50 or CORRUPTED state</div>`
+      : isActive
+        ? `<div class="t-note ok">✓ Active buff running</div>`
+        : '';
+    return `<div class="${btnClass}" ${disabled ? '' : `onclick="${a.fn}"`}>
+      <span class="t-icon">${a.icon}</span>
+      <div class="t-body">
+        <div class="t-name">${a.name}</div>
+        <div class="t-desc">${a.desc}</div>
+        ${noteHtml}
+      </div>
+      <span class="t-cost${canAfford ? '' : ' cant-afford'}">📶${a.cost}</span>
+    </div>`;
+  }).join('');
+}
+
+// Render Active Buffs section
+function renderActiveBuffs() {
+  cleanupExpiredBuffs();
+  const section  = document.getElementById('activeBuffsSection');
+  const container= document.getElementById('activeBuffsContainer');
+  if (!section || !container) return;
+  const buffs = getActiveBuffs();
+  if (buffs.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  container.innerHTML = buffs.map(b => {
+    const remaining = Math.max(0, Math.ceil((b.expiresAt - Date.now()) / 3600000));
+    return `<div class="buff-card">
+      <span style="font-size:16px">🛡</span>
+      <span class="buff-name">${b.name}</span>
+      <span class="buff-expires">${remaining}h left</span>
+    </div>`;
+  }).join('');
 }
 
 function init() {
@@ -8509,6 +9056,8 @@ function init() {
   ensureSignalEnergy();
   ensureWarLog();
   ensureEnemies();
+  ensureActiveBuffs();
+  cleanupExpiredBuffs();
   checkEnemyRespawns();
   ensureAchievements();
   ensureCombo();
