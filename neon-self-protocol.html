@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>NEON SELF PROTOCOL v4.0</title>
+<title>NEON SELF PROTOCOL v4.2</title>
 <style>
 /* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
@@ -2407,83 +2407,69 @@ input[type=range].music-slider::-moz-range-thumb{
   border-color:rgba(255,255,255,0.07);
 }
 
-/* Enemy cards — tighten up */
+/* Enemy cards — action-btn pattern */
 .enemy-card{
+  display:flex;align-items:center;
   background:var(--panel);
   border:1px solid var(--panel-border);
-  border-left:3px solid var(--neon-red);
-  border-radius:var(--radius);padding:12px 14px;
-  margin-bottom:8px;
+  border-radius:var(--radius);
+  padding:14px 16px;margin-bottom:10px;
   position:relative;overflow:hidden;
-  transition:border-color 0.3s;
+  transition:all var(--transition);
 }
-.enemy-card.weak  { border-left-color:rgba(255,34,68,0.25); opacity:0.55; }
-.enemy-card.critical{
-  border-left-color:var(--neon-red);
-  box-shadow:0 0 10px rgba(255,34,68,0.08);
+.enemy-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--neon-red);
 }
-.enemy-card.defeated{
-  opacity:0.3;border-left-color:rgba(255,255,255,0.05);
-}
-.enemy-card-header{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:8px;
-}
+.enemy-card.weak  { opacity:0.55; }
+.enemy-card.critical::before{ box-shadow:0 0 8px rgba(255,34,68,0.5); }
+.enemy-card.defeated{ opacity:0.3; }
+.enemy-card.defeated::before{ background:rgba(255,255,255,0.08); }
+.enemy-icon{ font-size:22px; margin-right:12px; flex-shrink:0; }
+.enemy-body{ flex:1; min-width:0; }
+.enemy-name-row{ display:flex; align-items:center; gap:8px; }
 .enemy-name{
-  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
-  color:var(--text-bright);letter-spacing:0.5px;
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;
+  color:var(--text-bright);
 }
 .enemy-level{
   font-family:'Share Tech Mono',monospace;font-size:10px;
   color:var(--neon-red);
 }
-.enemy-hp-row{
-  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+.enemy-sub{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:2px;line-height:1.5;
 }
+.enemy-sub .weak-tag { color:rgba(0,255,136,0.55); }
+.enemy-sub .passive-tag{ color:rgba(255,106,0,0.65); }
+/* HP bar — compact, right-aligned */
+.enemy-hp-block{ flex-shrink:0; margin-left:10px; text-align:right; min-width:80px; }
 .enemy-hp-bar{
-  flex:1;height:6px;background:rgba(255,255,255,0.06);
-  border-radius:3px;overflow:hidden;
+  height:5px; background:rgba(255,255,255,0.07);
+  border-radius:3px; overflow:hidden; margin-bottom:3px;
 }
 .enemy-hp-fill{
-  height:100%;border-radius:3px;
-  background:var(--neon-red);
-  transition:width 0.5s ease;
+  height:100%; border-radius:3px;
+  background:var(--neon-red); transition:width 0.5s ease;
 }
-.enemy-hp-fill.low{background:var(--neon-orange);}
-.enemy-hp-fill.critical-fill{background:#ff4400;}
+.enemy-hp-fill.low { background:var(--neon-orange); }
 .enemy-hp-label{
   font-family:'Share Tech Mono',monospace;font-size:10px;
-  color:var(--text-dim);white-space:nowrap;min-width:56px;text-align:right;
+  color:var(--text-dim); white-space:nowrap;
 }
 .enemy-spread-row{
-  display:flex;align-items:center;gap:6px;margin-bottom:5px;
+  display:flex;align-items:center;gap:3px;justify-content:flex-end;margin-top:3px;
 }
-.enemy-spread-label{
-  font-family:'Share Tech Mono',monospace;font-size:9px;
-  color:var(--text-dim);letter-spacing:1px;
-}
-.enemy-spread-dots{ display:flex;gap:3px; }
 .spread-dot{
-  width:7px;height:7px;border-radius:50%;
-  background:rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.08);
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
 }
 .spread-dot.active{
-  background:rgba(255,34,68,0.65);
-  border-color:rgba(255,34,68,0.3);
+  background:rgba(255,34,68,0.65);border-color:rgba(255,34,68,0.3);
 }
-.enemy-meta{
-  font-family:'Share Tech Mono',monospace;font-size:9px;
-  color:var(--text-dim);margin-top:4px;
-  display:flex;flex-wrap:wrap;gap:8px;
-}
-.enemy-meta .weak-tag{color:rgba(0,255,136,0.55);}
-.enemy-meta .passive-tag{color:rgba(255,106,0,0.65);}
-.enemy-meta .status-tag{color:var(--text-dim);}
 .enemy-defeated-label{
   font-family:'Share Tech Mono',monospace;font-size:10px;
   color:var(--neon-green);letter-spacing:2px;
-  margin-bottom:2px;
 }
 
 /* Active buff cards */
@@ -2522,7 +2508,104 @@ input[type=range].music-slider::-moz-range-thumb{
   font-size:8px;color:var(--text-dim);display:block;margin-bottom:3px;
   letter-spacing:1px;
 }
-/* ===== PROTOCOLS ===== */
+/* ===== VIRUS BOSS ===== */
+.virus-boss-card{
+  background:rgba(170,68,255,0.04);
+  border:1px solid rgba(170,68,255,0.3);
+  border-radius:var(--radius);
+  padding:16px 14px;margin-bottom:8px;
+  position:relative;overflow:hidden;
+}
+.virus-boss-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%, rgba(170,68,255,0.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.virus-boss-card.defeated{
+  opacity:0.4;border-color:rgba(0,255,136,0.2);
+  background:rgba(0,255,136,0.02);
+}
+.virus-boss-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.virus-boss-name{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;
+  color:var(--neon-purple);letter-spacing:1px;
+  animation:virusPulse 3s ease-in-out infinite;
+}
+@keyframes virusPulse{
+  0%,100%{text-shadow:0 0 6px rgba(170,68,255,0.4);}
+  50%{text-shadow:0 0 14px rgba(170,68,255,0.8),0 0 30px rgba(170,68,255,0.2);}
+}
+.virus-boss-card.defeated .virus-boss-name{
+  animation:none;color:var(--neon-green);
+}
+.virus-boss-level{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-red);
+}
+.virus-boss-hp-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;
+}
+.virus-boss-hp-bar{
+  flex:1;height:10px;background:rgba(255,255,255,0.06);
+  border-radius:5px;overflow:hidden;
+  border:1px solid rgba(170,68,255,0.15);
+}
+.virus-boss-hp-fill{
+  height:100%;border-radius:5px;
+  background:linear-gradient(90deg,var(--neon-red),var(--neon-purple));
+  transition:width 0.6s ease;
+  box-shadow:0 0 8px rgba(170,68,255,0.3);
+}
+.virus-boss-hp-label{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);white-space:nowrap;min-width:72px;text-align:right;
+}
+.virus-boss-meta{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);line-height:1.7;
+}
+.virus-boss-meta .weak-tag  {color:rgba(0,255,136,0.6);}
+.virus-boss-meta .passive-tag{color:rgba(255,106,0,0.65);}
+.virus-boss-meta .reward-tag{color:var(--neon-yellow);}
+.virus-boss-meta .days-tag  {color:var(--neon-purple);}
+
+/* ===== WORLD EVENTS ===== */
+.world-event-card{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-left:3px solid var(--neon-yellow);
+  border-radius:var(--radius);
+  padding:11px 14px;margin-bottom:8px;
+}
+.world-event-card.negative{border-left-color:var(--neon-red);}
+.world-event-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.world-event-body{flex:1;}
+.world-event-name{
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  color:var(--text-bright);
+}
+.world-event-flavor{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:2px;line-height:1.5;
+}
+.world-event-effect{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-cyan);margin-top:3px;
+}
+.world-event-timer{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--neon-yellow);white-space:nowrap;flex-shrink:0;
+  text-align:right;
+}
+.world-event-empty{
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text-dim);text-align:center;padding:12px;
+  border:1px dashed rgba(255,255,255,0.07);border-radius:var(--radius);
+}
 .proto-header-row{
   display:flex;gap:8px;margin-bottom:16px;
 }
@@ -2545,83 +2628,71 @@ input[type=range].music-slider::-moz-range-thumb{
   margin:14px 0 8px;display:flex;align-items:center;gap:8px;
 }
 .proto-category-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);}
+/* Base card — mirrors .action-btn exactly */
 .proto-card{
-  display:flex;align-items:flex-start;
+  display:flex;align-items:center;
   background:var(--panel);
   border:1px solid var(--panel-border);
-  border-left:3px solid var(--text-dim);
   border-radius:var(--radius);
-  padding:12px 14px;margin-bottom:8px;
-  position:relative;transition:all 0.15s;
+  padding:14px 16px;
+  position:relative;overflow:hidden;
+  margin-bottom:10px;
+  transition:all var(--transition);
 }
-/* State: locked */
-.proto-card.locked{
-  opacity:0.45;
-  filter:saturate(0.3);
+.proto-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--text-dim);
 }
-/* State: unlocked (purchasable) */
-.proto-card.unlocked{
-  border-left-color:var(--neon-yellow);
-}
-.proto-card.unlocked:not(.no-signal){
-  cursor:pointer;
-}
+.proto-card.locked{ opacity:0.4; filter:saturate(0.25); }
+.proto-card.unlocked::before{ background:var(--neon-yellow); }
+.proto-card.unlocked:not(.no-signal){ cursor:pointer; }
 .proto-card.unlocked:not(.no-signal):hover{
-  border-left-color:var(--neon-cyan);
-  box-shadow:0 0 8px rgba(0,200,255,0.06);
+  border-color:rgba(255,221,0,0.3);
+  box-shadow:0 0 10px rgba(255,221,0,0.05);
 }
-.proto-card.unlocked.no-signal{
-  opacity:0.45;
-  filter:saturate(0.3);
+.proto-card.unlocked.no-signal{ opacity:0.35; filter:saturate(0.25); pointer-events:none; }
+.proto-card.active::before{ background:var(--neon-green); }
+.proto-card.active{ background:rgba(0,255,136,0.025); }
+.proto-card.active:hover{
+  border-color:rgba(0,255,136,0.25);
+  box-shadow:0 0 10px rgba(0,255,136,0.04);
 }
-/* State: active/installed */
-.proto-card.active{
-  border-left-color:var(--neon-green);
-  background:rgba(0,255,136,0.03);
-}
-.proto-icon{font-size:20px;flex-shrink:0;margin-right:12px;margin-top:1px;}
-.proto-body{flex:1;min-width:0;}
+/* Icon — matches .btn-icon */
+.proto-icon{ font-size:22px; margin-right:12px; flex-shrink:0; }
+/* Body — matches .btn-body */
+.proto-body{ flex:1; min-width:0; }
 .proto-name{
   font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;
-  color:var(--text-bright);letter-spacing:0.3px;
+  color:var(--text-bright);letter-spacing:0.5px;
 }
-.proto-cat-tag{
-  font-family:'Share Tech Mono',monospace;font-size:9px;
-  color:var(--text-dim);letter-spacing:1px;margin-bottom:4px;display:block;
-}
-.proto-desc{
-  font-family:'Share Tech Mono',monospace;font-size:10px;
-  color:var(--text-dim);line-height:1.55;margin-bottom:5px;
-}
+/* Effect text — matches .btn-fx */
 .proto-effect{
   font-family:'Share Tech Mono',monospace;font-size:10px;
-  color:var(--neon-cyan);line-height:1.5;
+  color:var(--text-dim);margin-top:2px;line-height:1.4;
 }
+/* Unlock requirement — only shown when locked */
 .proto-req{
   font-family:'Share Tech Mono',monospace;font-size:9px;
-  color:rgba(255,221,0,0.55);margin-top:3px;
+  color:rgba(255,221,0,0.5);margin-top:3px;
 }
-.proto-right{
-  display:flex;flex-direction:column;align-items:flex-end;
-  gap:6px;flex-shrink:0;margin-left:10px;
-}
-.proto-status-badge{
-  font-family:'Share Tech Mono',monospace;font-size:9px;
-  letter-spacing:1px;padding:2px 8px;border-radius:3px;display:inline-block;
-}
-.proto-status-badge.active  {background:rgba(0,255,136,0.1);color:var(--neon-green);border:1px solid rgba(0,255,136,0.2);}
-.proto-status-badge.unlocked{background:rgba(255,221,0,0.08);color:var(--neon-yellow);border:1px solid rgba(255,221,0,0.18);}
-.proto-status-badge.locked  {background:rgba(255,255,255,0.04);color:var(--text-dim);border:1px solid rgba(255,255,255,0.07);}
-.proto-cost{
+/* Single chip on right — mirrors .btn-reward */
+.proto-chip{
   font-family:'Share Tech Mono',monospace;font-size:11px;
   color:var(--neon-cyan);
   background:rgba(0,200,255,0.07);
-  border:1px solid rgba(0,200,255,0.18);
-  border-radius:3px;padding:3px 7px;white-space:nowrap;
+  border:1px solid rgba(0,200,255,0.2);
+  border-radius:3px;padding:3px 8px;
+  flex-shrink:0;margin-left:10px;white-space:nowrap;
 }
-.proto-cost.cant-afford{
+.proto-chip.cant-afford{
   color:var(--text-dim);background:rgba(255,255,255,0.03);
   border-color:rgba(255,255,255,0.07);
+}
+.proto-chip.active-chip{
+  color:var(--neon-green);
+  background:rgba(0,255,136,0.08);
+  border-color:rgba(0,255,136,0.22);
+  font-size:13px;padding:2px 10px;
 }</style>
 </head>
 <body>
@@ -2924,6 +2995,14 @@ input[type=range].music-slider::-moz-range-thumb{
         <span class="war-signal-label">📶 AVAILABLE SIGNAL</span>
         <span class="war-signal-val" id="warSignalVal">0</span>
       </div>
+
+      <!-- Weekly Virus Boss -->
+      <div class="section-label">Weekly Virus Boss</div>
+      <div id="virusBossContainer"></div>
+
+      <!-- World Events -->
+      <div class="section-label" style="margin-top:14px">World Events</div>
+      <div id="worldEventsContainer"></div>
 
       <!-- Active Buffs -->
       <div id="activeBuffsSection" style="display:none;margin-bottom:10px;">
@@ -3325,6 +3404,8 @@ const DEFAULT_STATE = {
   corruptionEnemies: {},
   activeBuffs: [],
   protocols: {},
+  worldEvents: [],
+  weeklyBoss: null,
 };
 
 let S = {};
@@ -3406,12 +3487,13 @@ function getWeekStr() {
 // ==========================================================================
 
 function ensureSignalEnergy() {
-  if (S.signal === undefined || S.signal === null) S.signal = 0;
+  if (S.signal === undefined || S.signal === null || isNaN(S.signal)) S.signal = 0;
+  S.signal = Math.max(0, Math.round(S.signal)); // clamp ≥0, no NaN, no floats
   if (!S.energy) S.energy = { current:70, max:100, lastRegenDate:null };
   if (S.energy.current === undefined) S.energy.current = 70;
   if (S.energy.max     === undefined) S.energy.max     = 100;
   if (S.energy.lastRegenDate === undefined) S.energy.lastRegenDate = null;
-  // Clamp in case of data corruption
+  if (isNaN(S.energy.current)) S.energy.current = 70;
   S.energy.current = clamp(S.energy.current, 0, S.energy.max);
 }
 
@@ -3785,11 +3867,15 @@ function applyFX(fx) {
   for (const [key, val] of Object.entries(fx)) {
     if (key in S.stats) {
       if (key === 'corruption') {
-        // Archetype can reduce corruption gains (Monk, etc.)
-        const archMod  = archetypeCorruptMod();
-        // Protocol: Control Anchor — reduces corruption gain from negatives
-        const protoMod = val > 0 ? (1 - (getProtocolEffects().corruptionGainReduction || 0)) : 1;
-        const modded   = val > 0 ? Math.ceil(val * archMod * protoMod) : val;
+        const archMod   = archetypeCorruptMod();
+        const protoRed  = isProtocolActive('controlAnchor') ? 0.10 : 0;
+        const protoMod  = val > 0 ? (1 - protoRed) : 1;
+        // World event discipline protocol reduces corruption gain
+        const activeEvt = (S.worldEvents||[]).filter(e => e.active && e.id === 'disciplineProtocol' && e.expiresAt > Date.now());
+        const wEventMod = (val > 0 && activeEvt.length > 0) ? (activeEvt[0].effects?.corruptionGainMalus || 1.0) : 1.0;
+        // Virus boss Fracture Signal passive boosts corruption gain
+        const bossBoost = (S.weeklyBoss && !S.weeklyBoss.defeated && S.weeklyBoss.passiveType === 'corruptBoost' && (S.weeklyBoss.hp / S.weeklyBoss.maxHp) > 0.25) ? 1.10 : 1.0;
+        const modded    = val > 0 ? Math.ceil(val * archMod * protoMod * wEventMod * bossBoost) : val;
         S.stats.corruption = clamp(S.stats.corruption + modded, 0, 100);
       } else {
         S.stats[key] = clamp(S.stats[key] + val, 0, 100);
@@ -3860,7 +3946,13 @@ function executeAction(action, source='button') {
   // === COMBO PROCESSING (before XP so multiplier is ready) ===
   const comboBonuses = processCombo(action);
 
-  // XP — apply state, combo, and archetype multipliers + enemy passives
+  // Compute all modifier objects once per action — avoids 7 redundant calls
+  const _pfx  = getProtocolEffects();
+  const _wfx  = getWorldEventEffects();
+  const _emods = getEnemyPassiveMods();
+  const _bpfx = getVirusBossPassiveMods();
+
+  // XP — apply state, combo, archetype, enemy passives, world events
   let gainedXP = 0;
   if (action.negative) {
     gainedXP = action.awarenessXp || 0;
@@ -3868,29 +3960,34 @@ function executeAction(action, source='button') {
     const baseXP = Math.round((action.xp || 0) * stateXPMult() * comboXPMult());
     let arcXP    = archetypeXPBonus(action.category, baseXP);
     // Protocol: Training Gi — BJJ body XP boost
-    if (action.id === 'bjj' && isProtocolActive('trainingGi')) {
-      arcXP = Math.round(arcXP * (getProtocolEffects().bjjBodyXPBoost || 1.0));
-    }
-    // Enemy passive penalties (subtle, max 5%)
-    const emods  = getEnemyPassiveMods();
-    const isFocus      = ['grift','creativity'].includes(action.category);
-    const isDisc       = action.category === 'discipline';
-    const isHiEffort   = (action.xp || 0) >= 20;
-    if (isFocus)    arcXP = Math.round(arcXP * emods.focusXPMult);
-    if (isDisc)     arcXP = Math.round(arcXP * emods.disciplineXPMult);
-    if (isHiEffort) arcXP = Math.round(arcXP * emods.effortXPMult);
+    if (action.id === 'bjj' && isProtocolActive('trainingGi'))
+      arcXP = Math.round(arcXP * (_pfx.bjjBodyXPBoost || 1.0));
+    // World Event: Discipline Protocol XP boost
+    if (action.category === 'discipline' && _wfx.disciplineXPBoost > 1)
+      arcXP = Math.round(arcXP * _wfx.disciplineXPBoost);
+    // World Event: Neural Static — focus XP malus
+    if (['grift','creativity'].includes(action.category) && _wfx.focusXPMalus < 1)
+      arcXP = Math.round(arcXP * _wfx.focusXPMalus);
+    // Enemy passive penalties (max 5%)
+    const isFocus    = ['grift','creativity'].includes(action.category);
+    const isDisc     = action.category === 'discipline';
+    const isHiEffort = (action.xp || 0) >= 20;
+    if (isFocus)    arcXP = Math.round(arcXP * _emods.focusXPMult);
+    if (isDisc)     arcXP = Math.round(arcXP * _emods.disciplineXPMult);
+    if (isHiEffort) arcXP = Math.round(arcXP * _emods.effortXPMult);
     gainedXP = arcXP;
   }
+  gainedXP = Math.round(gainedXP) || 0; // NaN guard
   if (source === 'mission') gainedXP += 10;
 
   addXP(gainedXP);
   addSkillXP(action.skillXp || {});
 
-  // ── Bonus Signal drop (replaces credit system) ──
+  // ── Bonus Signal drop ──
   let bonusSignalDrop = 0;
   if (!action.negative) {
     const rawBonus = calcBonusSignal(action.bonusSignal);
-    bonusSignalDrop = archetypeBonusSignal(action.category, rawBonus);
+    bonusSignalDrop = Math.round(archetypeBonusSignal(action.category, rawBonus)) || 0;
   }
 
   // ── Signal & Operational Energy ──
@@ -3898,43 +3995,44 @@ function executeAction(action, source='button') {
   const energyCurrent = S.energy.current;
   const isRecovery    = !!(action.recovery || action.category === 'recovery');
 
-  // Energy modifier based on current level
   let energyMod = 1.0;
   let signalMod = 1.0;
   if (energyCurrent < 10 && !isRecovery) { energyMod = 1.0; signalMod = 0.80; }
   else if (energyCurrent < 30 && !isRecovery) { signalMod = 0.90; }
   if (energyCurrent < 10 && isRecovery)  { signalMod = 1.20; }
 
-  // Infer signal/energy if not explicitly defined
-  const rawSignal  = action.signal  ?? inferSignal(action);
-  const rawEnergy  = action.energy  ?? inferEnergy(action);
+  const rawSignal = action.signal  ?? inferSignal(action);
+  const rawEnergy = action.energy  ?? inferEnergy(action);
 
   const gainedSignal = action.negative ? 0 : Math.round(rawSignal * signalMod);
   const energyDelta  = Math.round(rawEnergy * (rawEnergy < 0 ? energyMod : 1.0));
 
-  // Protocol effects on signal and energy
-  const pfx = getProtocolEffects();
   let finalSignal = gainedSignal;
   if (!action.negative) {
-    // Global signal amplifier
-    if (pfx.globalSignalBoost > 1) finalSignal = Math.round(finalSignal * pfx.globalSignalBoost);
-    // Grift signal boost
-    if (action.category === 'grift' && pfx.griftSignalBoost > 1)
-      finalSignal = Math.round(finalSignal * pfx.griftSignalBoost);
-    // Philosophy Cache bonus
-    if ((action.action||action.name||'').includes('Philosophy') && pfx.philosophySignalBonus > 0) {
-      finalSignal += pfx.philosophySignalBonus;
-      applyFX({ soul: pfx.philosophySoulBonus }); // extra soul
+    // Protocol boosts
+    if (_pfx.globalSignalBoost > 1) finalSignal = Math.round(finalSignal * _pfx.globalSignalBoost);
+    if (action.category === 'grift' && _pfx.griftSignalBoost > 1)
+      finalSignal = Math.round(finalSignal * _pfx.griftSignalBoost);
+    // World events
+    if (['body','discipline'].includes(action.category) && _wfx.bodyDiscSignalBoost > 1)
+      finalSignal = Math.round(finalSignal * _wfx.bodyDiscSignalBoost);
+    if (action.category === 'grift' && _wfx.griftSignalBoost > 1)
+      finalSignal = Math.round(finalSignal * _wfx.griftSignalBoost);
+    // Virus boss passive malus
+    if (_bpfx.signalMalus) finalSignal = Math.round(finalSignal * _bpfx.signalMalus);
+    // Protocol per-action bonuses
+    if ((action.name||'').includes('Philosophy') && _pfx.philosophySignalBonus > 0) {
+      finalSignal += _pfx.philosophySignalBonus;
+      applyFX({ soul: _pfx.philosophySoulBonus || 0 });
     }
-    // Inventory Grid bonus
-    if ((action.action||action.name||'').includes('Organize Inventory') && pfx.inventorySignalBonus > 0)
-      finalSignal += pfx.inventorySignalBonus;
-    // Stretch/Walk energy bonus
-    if (['Walk','Stretch'].includes(action.name||action.action||'') && pfx.stretchWalkEnergyBonus > 0)
-      S.energy.current = clamp(S.energy.current + pfx.stretchWalkEnergyBonus, 0, S.energy.max);
+    if ((action.name||'').includes('Organize Inventory') && _pfx.inventorySignalBonus > 0)
+      finalSignal += _pfx.inventorySignalBonus;
+    if (['Walk','Stretch'].includes(action.name||'') && _pfx.stretchWalkEnergyBonus > 0)
+      S.energy.current = clamp(S.energy.current + _pfx.stretchWalkEnergyBonus, 0, S.energy.max);
   }
+  finalSignal = Math.round(finalSignal) || 0; // NaN guard
 
-  S.signal += finalSignal + bonusSignalDrop;
+  S.signal = Math.max(0, (S.signal || 0) + finalSignal + bonusSignalDrop); // clamp ≥0 + NaN guard
   S.energy.current = clamp(S.energy.current + energyDelta, 0, S.energy.max);
 
   // Evaluate system state and archetype after action
@@ -4044,6 +4142,10 @@ function executeAction(action, source='button') {
     maybeShowOpLogPrompt();
     checkProtocolUnlocks();
   }
+  // Virus boss interaction
+  processVirusBossAction(action);
+  // World event check
+  cleanupExpiredWorldEvents();
   // War system hook — fires last, after all state is updated
   const combatSuffix = processWarAction(action, finalSignal + bonusSignalDrop, energyDelta);
   // Append combat result to toast body if present
@@ -5812,6 +5914,10 @@ function applyVisualVibe() {
 }
 
 function updateUI() {
+  // Defensive: ensure critical resources are always sane before rendering
+  ensureSignalEnergy();
+  if (isNaN(S.xp) || S.xp < 0) S.xp = 0;
+  if (isNaN(S.level) || S.level < 1) S.level = 1;
   const {health,focus,control,soul,corruption} = S.stats;
 
   // Stats — update fill width only (values shown via long-press popup)
@@ -8522,36 +8628,43 @@ function processWarAction(action, gainedSignal, energyDelta) {
 
   if (action.negative) {
     const feedResults = feedEnemies(action);
-    addWarLog('corruption',
-      'Corruption vector detected. Enemy ecosystem adapting.',
-      { category: action.category, corruption: S.stats.corruption }
-    );
+    // Only log generic corruption line if no specific enemy feed happened
+    if (feedResults.length === 0) {
+      addWarLog('corruption', 'Corruption vector detected.', { category: action.category });
+    }
     if (S.stats.corruption >= 60) {
-      addWarLog('warning',
-        `ALERT: Corruption at ${S.stats.corruption}%. System integrity compromised.`,
-        { corruption: S.stats.corruption }
-      );
+      // Rate-limit: only log this warning once per 5 war log entries
+      const recentWarnings = (S.warLog||[]).slice(0,5).filter(e => e.type==='warning' && e.message.startsWith('ALERT'));
+      if (recentWarnings.length === 0) {
+        addWarLog('warning', `ALERT: Corruption at ${S.stats.corruption}%.`, { corruption: S.stats.corruption });
+      }
     }
     combatSuffix = buildCombatToastSuffix([], feedResults);
   } else {
     const attackResults = attackEnemies(action);
-    const flavor = WAR_FLAVOR[action.category] || 'Signal activity logged.';
-    addWarLog('action', flavor, { category: action.category, signal: gainedSignal });
-    if (gainedSignal >= 25) {
-      addWarLog('system',
-        `Signal surge (+${gainedSignal}). War readiness increased.`,
-        { signalGain: gainedSignal }
-      );
+    // Only add flavor log if no specific combat entry was generated
+    if (attackResults.length === 0) {
+      const flavor = WAR_FLAVOR[action.category];
+      if (flavor) addWarLog('action', flavor, { category: action.category });
+    }
+    // Signal surge: only log if very high, and rate-limit (once per 10 entries)
+    if (gainedSignal >= 40) {
+      const recentSurge = (S.warLog||[]).slice(0,10).filter(e => e.message?.includes('Signal surge'));
+      if (recentSurge.length === 0) {
+        addWarLog('system', `Signal surge (+${gainedSignal}).`, { signalGain: gainedSignal });
+      }
     }
     combatSuffix = buildCombatToastSuffix(attackResults, []);
   }
 
+  // Energy warning: only when crossing threshold, rate-limited
   if ((S.energy?.current ?? 100) < 30) {
-    addWarLog('warning', 'Operational Energy low. Recovery recommended.',
-      { energy: S.energy?.current });
+    const recentEnergyWarn = (S.warLog||[]).slice(0,8).filter(e => e.message?.includes('Energy low'));
+    if (recentEnergyWarn.length === 0) {
+      addWarLog('warning', 'Operational Energy low. Recovery recommended.', { energy: S.energy?.current });
+    }
   }
 
-  // Return suffix for toast injection (called by executeAction)
   return combatSuffix;
 }
 
@@ -8707,10 +8820,10 @@ function calcEnemyDamage(action, enemy) {
   if (isWeak) dmg = Math.round(dmg * 1.5); // weakness multiplier
   // Protocol: Training Gi — BJJ deals extra damage to Burnout Wraith
   if (action.id === 'bjj' && enemy.id === 'burnoutWraith' && isProtocolActive('trainingGi'))
-    dmg = Math.round(dmg * (getProtocolEffects().bjjBurnoutDamageBoost || 1.0));
+    dmg = Math.round(dmg * 1.10); // fixed value, avoids redundant getProtocolEffects()
   // Protocol: Inventory Grid — Organize Inventory deals extra to Entropy Bloom
   if (action.id === 'organizeInventory' && enemy.id === 'entropyBloom' && isProtocolActive('inventoryGrid'))
-    dmg = Math.round(dmg * (getProtocolEffects().inventoryEntropyDamageBoost || 1.0));
+    dmg = Math.round(dmg * 1.20); // fixed value
   return Math.max(1, Math.min(dmg, 60));   // clamp 1–60
 }
 
@@ -8779,18 +8892,15 @@ function feedEnemies(action) {
 
     const heal   = calcEnemyHeal(action, e);
     e.hp         = Math.min(e.maxHp, e.hp + heal);
-    // Protocol: Firewall Reinforcement buff reduces spread growth
-    const pfx        = getProtocolEffects();
-    // Protocol: Sleep Firewall — Deep Night Signal feeds less
-    const isSleepProt = id === 'deepNightSignal' && isProtocolActive('sleepFirewall');
-    const sleepMod    = isSleepProt ? (1 - pfx.deepNightFeedReduction) : 1;
-    // Protocol: Clean Workspace — Entropy Bloom spread reduced
-    const isCleanProt = id === 'entropyBloom' && isProtocolActive('cleanWorkspace');
-    const cleanMod    = isCleanProt ? (1 - pfx.entropySpreadReduction) : 1;
-    let spreadGain    = hasBuff('firewallReinforcement') ? 0.3 * 0.75 : 0.3;
-    spreadGain       *= sleepMod * cleanMod;
-    e.spread          = Math.min(5, e.spread + spreadGain);
-    e.lastAffected = new Date().toISOString();
+    // Protocol: Sleep Firewall — Deep Night Signal feeds less (fixed 25% reduction)
+    const sleepMod  = (id === 'deepNightSignal' && isProtocolActive('sleepFirewall')) ? 0.75 : 1;
+    // Protocol: Clean Workspace — Entropy Bloom spread reduced (fixed 15% reduction)
+    const cleanMod  = (id === 'entropyBloom' && isProtocolActive('cleanWorkspace')) ? 0.85 : 1;
+    // Buff: Firewall Reinforcement
+    let spreadGain  = hasBuff('firewallReinforcement') ? 0.3 * 0.75 : 0.3;
+    spreadGain     *= sleepMod * cleanMod;
+    e.spread        = Math.min(5, Math.max(1, e.spread + spreadGain));
+    e.lastAffected  = new Date().toISOString();
 
     addWarLog('corruption',
       `${e.name} fed on ${action.name}. +${heal} HP. Spread increasing.`,
@@ -8827,6 +8937,10 @@ function renderWarRoom() {
   const svEl = document.getElementById('warSignalVal');
   if (svEl) svEl.textContent = S.signal || 0;
 
+  // Virus Boss + World Events
+  renderVirusBoss();
+  renderWorldEvents();
+
   // Tactical grid + buffs
   renderTacticalGrid();
   renderActiveBuffs();
@@ -8843,42 +8957,43 @@ function renderWarRoom() {
     else if (isCrit) cardClass += ' critical';
     else if (isWeak) cardClass += ' weak';
 
-    const spreadLabel  = ['','Minimal','Low','Moderate','High','Critical'][Math.min(5, Math.round(e.spread))] || 'Minimal';
-    const spreadDots   = [1,2,3,4,5].map(i =>
+    const spreadDots = [1,2,3,4,5].map(i =>
       `<div class="spread-dot${i <= Math.round(e.spread) ? ' active' : ''}"></div>`
     ).join('');
-    const fillClass    = hpPct <= 25 ? 'enemy-hp-fill low' : hpPct >= 80 ? 'enemy-hp-fill critical-fill' : 'enemy-hp-fill';
-    const weakHints    = def.weakActions.slice(0,3).join(' · ');
-    const passiveTxt   = hpPct >= 70 && !isDefeated ? def.passiveLabel : '';
-    const statusTxt    = isDefeated
-      ? `Respawning in ~${Math.max(0,Math.round((e.respawnAt - Date.now())/3600000))}h`
-      : hpPct >= 80 ? 'Thriving — priority target'
-      : hpPct >= 50 ? 'Active'
-      : hpPct >= 25 ? 'Weakened'
-      : 'Near defeat — keep pushing';
+    const fillClass  = hpPct <= 30 ? 'enemy-hp-fill low' : 'enemy-hp-fill';
+    const weakHints  = def.weakActions.slice(0,3).join(' · ');
+    const passiveTxt = !isDefeated && hpPct >= 70 ? def.passiveLabel : '';
+
+    if (isDefeated) {
+      const hours = Math.max(0, Math.round((e.respawnAt - Date.now()) / 3600000));
+      return `<div class="${cardClass}">
+        <span class="enemy-icon">${def.icon}</span>
+        <div class="enemy-body">
+          <div class="enemy-name-row">
+            <span class="enemy-name">${e.name}</span>
+            <span class="enemy-level">LVL ${e.level}</span>
+          </div>
+          <div class="enemy-sub"><span class="enemy-defeated-label">✓ DEFEATED</span> — respawns in ${hours}h</div>
+        </div>
+      </div>`;
+    }
 
     return `<div class="${cardClass}">
-      <div class="enemy-card-header">
-        <span class="enemy-name">${def.icon} ${e.name}</span>
-        <span class="enemy-level">LVL ${e.level}</span>
+      <span class="enemy-icon">${def.icon}</span>
+      <div class="enemy-body">
+        <div class="enemy-name-row">
+          <span class="enemy-name">${e.name}</span>
+          <span class="enemy-level">LVL ${e.level}</span>
+        </div>
+        <div class="enemy-sub">
+          <span class="weak-tag">◈ ${weakHints}</span>${passiveTxt ? `&nbsp;&nbsp;<span class="passive-tag">⚠ ${passiveTxt}</span>` : ''}
+        </div>
       </div>
-      ${isDefeated
-        ? `<div class="enemy-defeated-label">✓ DEFEATED</div><div class="enemy-meta"><span class="status-tag">${statusTxt}</span></div>`
-        : `<div class="enemy-hp-row">
-            <div class="enemy-hp-bar"><div class="${fillClass}" style="width:${hpPct}%"></div></div>
-            <span class="enemy-hp-label">${e.hp}/${e.maxHp} HP</span>
-           </div>
-           <div class="enemy-spread-row">
-             <span class="enemy-spread-label">SPREAD</span>
-             <div class="enemy-spread-dots">${spreadDots}</div>
-             <span class="enemy-spread-label" style="margin-left:4px;letter-spacing:0">${spreadLabel}</span>
-           </div>
-           <div class="enemy-meta">
-             <span class="weak-tag">◈ ${weakHints}</span>
-             ${passiveTxt ? `<span class="passive-tag">⚠ ${passiveTxt}</span>` : ''}
-             <span class="status-tag">${statusTxt}</span>
-           </div>`
-      }
+      <div class="enemy-hp-block">
+        <div class="enemy-hp-bar"><div class="${fillClass}" style="width:${hpPct}%"></div></div>
+        <div class="enemy-hp-label">${e.hp}/${e.maxHp}</div>
+        <div class="enemy-spread-row">${spreadDots}</div>
+      </div>
     </div>`;
   }).join('');
 
@@ -9050,7 +9165,7 @@ function tacticalRecoveryPulse() {
   const cs = getCombatStats();
   // Restore stats
   S.stats.corruption = Math.max(0, S.stats.corruption - 5);
-  S.energy.current   = Math.min(S.energy.max, S.energy.current + 10);
+  S.energy.current   = clamp(S.energy.current + 10, 0, S.energy.max);
   // Light damage to all active enemies
   ensureEnemies();
   const dmg = Math.max(4, Math.round(8 + cs.recoveryPower * 0.15));
@@ -9077,7 +9192,7 @@ function tacticalEmergencyShutdown() {
   }
   if (!spendSignal(100, 'Emergency Shutdown')) return;
   // Energy cost
-  S.energy.current = Math.max(0, S.energy.current - 10);
+  S.energy.current = clamp(S.energy.current - 10, 0, S.energy.max);
   // Stat recovery
   S.stats.corruption = Math.max(0, S.stats.corruption - 10);
   S.stats.control    = Math.min(100, S.stats.control + 5);
@@ -9222,8 +9337,7 @@ const PROTOCOL_DEFS = [
     check: () => (S.history||[]).filter(h=>h.action==='BJJ'||(h.action||'').toLowerCase().includes('bjj')||h.category==='body'&&(h.action||'').includes('BJJ')).length >= 3
       || (S.history||[]).filter(h=>h.type==='positive'&&(h.action||'').toLowerCase()==='bjj').length >= 3,
     checkExact: () => {
-      const bjjLogs = (S.history||[]).filter(h => h.type==='positive' && (h.action==='BJJ' || h.action?.includes('BJJ')));
-      return bjjLogs.length >= 3;
+      return (S.history||[]).filter(h => h.type==='positive' && h.action==='BJJ').length >= 3;
     },
     effects: { bjjBodyXPBoost:1.10, bjjBurnoutDamageBoost:1.10 },
   },
@@ -9498,35 +9612,445 @@ function renderProtocols() {
       const onclickAttr = (isUnlocked && canAfford)
         ? `onclick="installProtocol('${def.id}')"` : '';
 
-      let badgeHtml = '';
-      if (isActive)    badgeHtml = `<span class="proto-status-badge active">✓ INSTALLED</span>`;
-      else if(isUnlocked) badgeHtml = `<span class="proto-status-badge unlocked">UNLOCKED</span>`;
-      else             badgeHtml = `<span class="proto-status-badge locked">LOCKED</span>`;
+      // Single right-side chip — matches btn-reward pattern
+      let chipHtml = '';
+      if (isActive) {
+        chipHtml = `<span class="proto-chip active-chip">✓</span>`;
+      } else {
+        const chipClass = (!canAfford) ? 'proto-chip cant-afford' : 'proto-chip';
+        chipHtml = `<span class="${chipClass}">📶${def.cost}</span>`;
+      }
 
-      const costHtml = !isActive
-        ? `<span class="proto-cost${(!canAfford && isUnlocked) ? ' cant-afford' : ''}">📶${def.cost}</span>`
-        : '';
-
-      const reqHtml  = isLocked
+      // Req hint shown only when locked, inline below effect
+      const reqHtml = isLocked
         ? `<div class="proto-req">◈ ${def.unlockReqText}</div>` : '';
 
       html += `<div class="${cardClass}" ${onclickAttr}>
         <span class="proto-icon">${def.icon}</span>
         <div class="proto-body">
-          <span class="proto-cat-tag">${def.category.toUpperCase()}</span>
           <div class="proto-name">${def.name}</div>
-          <div class="proto-desc">${def.description}</div>
           <div class="proto-effect">${def.effectText}</div>
           ${reqHtml}
         </div>
-        <div class="proto-right">
-          ${badgeHtml}
-          ${costHtml}
-        </div>
+        ${chipHtml}
       </div>`;
     }
   }
   container.innerHTML = html;
+}
+
+// ==========================================================================
+// WORLD EVENTS SYSTEM
+// ==========================================================================
+
+const WORLD_EVENT_DEFS = [
+  {
+    id: 'signalSurge',
+    name: 'SIGNAL SURGE',
+    icon: '⚡',
+    negative: false,
+    durationDays: 1,
+    flavor: 'A powerful signal wave moves through the network.',
+    effectText: 'Body & Discipline +25% Signal. Strike +10%.',
+    effects: { bodyDiscSignalBoost:1.25, strikeBoost:10 },
+  },
+  {
+    id: 'blackMarketWindow',
+    name: 'BLACK MARKET WINDOW',
+    icon: '📦',
+    negative: false,
+    durationDays: 2,
+    flavor: 'Underground market channels have opened.',
+    effectText: 'Grift +20% Signal. Organize Inventory deals extra Entropy damage.',
+    effects: { griftSignalBoost:1.20, inventoryEntropyDamageBoost:1.25 },
+  },
+  {
+    id: 'recoveryBeacon',
+    name: 'RECOVERY BEACON',
+    icon: '🛡️',
+    negative: false,
+    durationDays: 2,
+    flavor: 'Recovery frequencies detected across the system.',
+    effectText: 'Recovery actions +50% Energy. +25% damage vs corruption enemies.',
+    effects: { recoveryEnergyBoost:1.50, recoveryDamageBoost:1.25 },
+  },
+  {
+    id: 'neuralStatic',
+    name: 'NEURAL STATIC',
+    icon: '📡',
+    negative: true,
+    durationDays: [1,2],
+    flavor: 'Signal interference destabilizing focus systems.',
+    effectText: 'Focus XP -10%. Doomscroll Parasite spread increased.',
+    effects: { focusXPMalus:0.90, parasiteSpreadBoost:1.20 },
+  },
+  {
+    id: 'disciplineProtocol',
+    name: 'DISCIPLINE PROTOCOL',
+    icon: '🔒',
+    negative: false,
+    durationDays: 3,
+    flavor: 'High-order discipline architecture deployed.',
+    effectText: 'Discipline XP +20%. Corruption gain slightly reduced.',
+    effects: { disciplineXPBoost:1.20, corruptionGainMalus:0.90 },
+  },
+  {
+    id: 'deepNightInterference',
+    name: 'DEEP NIGHT INTERFERENCE',
+    icon: '🌑',
+    negative: true,
+    durationDays: [1,2],
+    flavor: 'Night-cycle corruption intensifying.',
+    effectText: 'Deep Night Signal spreads faster. Sleep On Time deals extra damage.',
+    effects: { deepNightSpreadBoost:1.30, sleepOnTimeDamageBoost:1.50 },
+  },
+];
+
+function ensureWorldEvents() {
+  if (!S.worldEvents) S.worldEvents = [];
+}
+
+function getActiveWorldEvents() {
+  ensureWorldEvents();
+  const now = Date.now();
+  return S.worldEvents.filter(e => e.active && e.expiresAt > now);
+}
+
+function cleanupExpiredWorldEvents() {
+  ensureWorldEvents();
+  const now = Date.now();
+  let anyExpired = false;
+  for (const ev of S.worldEvents) {
+    if (ev.active && ev.expiresAt <= now) {
+      ev.active = false;
+      anyExpired = true;
+      addWarLog('system', `World Event expired: ${ev.name}.`, { id: ev.id });
+    }
+  }
+  // Trim history to last 20 events
+  S.worldEvents = S.worldEvents.filter(e => e.active).concat(
+    S.worldEvents.filter(e => !e.active).slice(0, 10)
+  );
+  if (anyExpired) saveState();
+}
+
+function generateWorldEvent() {
+  ensureWorldEvents();
+  const active = getActiveWorldEvents();
+  if (active.length >= 2) return; // cap at 2
+
+  const activeIds = new Set(active.map(e => e.id));
+  const eligible  = WORLD_EVENT_DEFS.filter(d => !activeIds.has(d.id));
+  if (!eligible.length) return;
+
+  const def = eligible[Math.floor(Math.random() * eligible.length)];
+  const duration = Array.isArray(def.durationDays)
+    ? def.durationDays[0] + Math.floor(Math.random() * (def.durationDays[1] - def.durationDays[0] + 1))
+    : def.durationDays;
+
+  const ev = {
+    id:          def.id,
+    name:        def.name,
+    icon:        def.icon,
+    negative:    def.negative,
+    active:      true,
+    flavor:      def.flavor,
+    effectText:  def.effectText,
+    effects:     { ...def.effects },
+    createdAt:   Date.now(),
+    expiresAt:   Date.now() + duration * 24 * 60 * 60 * 1000,
+    durationDays: duration,
+  };
+
+  S.worldEvents.unshift(ev);
+  addWarLog('system', `World Event active: ${ev.name}. Duration: ${duration}d.`, { id: ev.id });
+  toast('🌐 WORLD EVENT', ev.name, ev.effectText, ev.negative ? 'warn' : 'success');
+  saveState();
+}
+
+// Get merged world event effects
+function getWorldEventEffects() {
+  const fx = {
+    bodyDiscSignalBoost:1.0, griftSignalBoost:1.0, recoveryEnergyBoost:1.0,
+    recoveryDamageBoost:1.0, focusXPMalus:1.0, parasiteSpreadBoost:1.0,
+    disciplineXPBoost:1.0, corruptionGainMalus:1.0, deepNightSpreadBoost:1.0,
+    sleepOnTimeDamageBoost:1.0, inventoryEntropyDamageBoost:1.0, strikeBoost:0,
+  };
+  for (const ev of getActiveWorldEvents()) {
+    for (const [k,v] of Object.entries(ev.effects||{})) {
+      if (k in fx) {
+        if (k === 'strikeBoost') fx[k] += v;
+        else fx[k] *= v; // multiplicative
+      }
+    }
+  }
+  return fx;
+}
+
+// Render World Events section
+function renderWorldEvents() {
+  const container = document.getElementById('worldEventsContainer');
+  if (!container) return;
+  cleanupExpiredWorldEvents();
+  const active = getActiveWorldEvents();
+
+  if (active.length === 0) {
+    container.innerHTML = `<div class="world-event-empty">No active world events. Check back tomorrow.</div>`;
+    return;
+  }
+
+  container.innerHTML = active.map(ev => {
+    const hoursLeft = Math.max(0, Math.round((ev.expiresAt - Date.now()) / 3600000));
+    const timeStr   = hoursLeft >= 24 ? `${Math.floor(hoursLeft/24)}d ${hoursLeft%24}h` : `${hoursLeft}h`;
+    return `<div class="world-event-card${ev.negative ? ' negative' : ''}">
+      <span class="world-event-icon">${ev.icon}</span>
+      <div class="world-event-body">
+        <div class="world-event-name">${ev.name}</div>
+        <div class="world-event-flavor">${ev.flavor}</div>
+        <div class="world-event-effect">${ev.effectText}</div>
+      </div>
+      <div class="world-event-timer">${timeStr} left</div>
+    </div>`;
+  }).join('');
+}
+
+// Check if we need to generate a new event (daily-ish cadence)
+function checkWorldEventGeneration() {
+  ensureWorldEvents();
+  cleanupExpiredWorldEvents();
+  // Gate: only generate once per calendar day to prevent spam on repeated opens
+  const today = todayStr();
+  if (S.worldEvents._lastGenDate === today) return;
+  const active = getActiveWorldEvents();
+  if (active.length < 2) {
+    S.worldEvents._lastGenDate = today;
+    generateWorldEvent();
+    if (active.length < 1 && Math.random() < 0.35) generateWorldEvent(); // 35% chance of second only when empty
+  }
+}
+
+// ==========================================================================
+// WEEKLY VIRUS BOSS SYSTEM
+// ==========================================================================
+
+const VIRUS_BOSS_DEFS = [
+  {
+    id: 'avoidanceWraith',
+    name: 'THE AVOIDANCE WRAITH',
+    icon: '🙈',
+    baseHp: [280, 360],
+    feedActions:   ['avoidedTask','doomscrolled','skippedWorkout'],
+    feedCategories:['corruption'],
+    weakActions:   ['backlogTask','list1','list10','upkeepTask','workBlock30'],
+    weakCategories:['grift','discipline'],
+    passiveEffectText: 'Signal generation slightly reduced while active.',
+    passiveType: 'signalMalus',
+    feedHeal: 15,
+  },
+  {
+    id: 'gluttonEngine',
+    name: 'THE GLUTTON ENGINE',
+    icon: '🍔',
+    baseHp: [250, 330],
+    feedActions:   ['junkSnack','junkMeal','lateSnack','overeat','junkSnack2','junkMeal2','lateSnack2','overeat2'],
+    feedCategories:['food'],
+    weakActions:   ['cleanMeal','water','walk','pushups'],
+    weakCategories:['body','food'],
+    passiveEffectText: 'Energy drain slightly increased.',
+    passiveType: 'energyDrainBoost',
+    feedHeal: 12,
+  },
+  {
+    id: 'fractureSignal',
+    name: 'THE FRACTURE SIGNAL',
+    icon: '💔',
+    baseHp: [300, 380],
+    feedActions:   ['lostControl','doomscrolled','stayedUpLate'],
+    feedCategories:['corruption'],
+    weakActions:   ['apologize','familyTime','meditate','readPhilosophy','spouseTime'],
+    weakCategories:['soul','recovery'],
+    passiveEffectText: 'Corruption gain slightly increased.',
+    passiveType: 'corruptBoost',
+    feedHeal: 18,
+  },
+  {
+    id: 'staticTyrant',
+    name: 'THE STATIC TYRANT',
+    icon: '⚡',
+    baseHp: [320, 420],
+    feedActions:   ['stayedUpLate','doomscrolled','lateSnack','lateSnack2'],
+    feedCategories:['corruption'],
+    weakActions:   ['sleepOnTime','realBreak','stretch','meditate','spouseTime'],
+    weakCategories:['recovery','soul'],
+    passiveEffectText: 'Energy regeneration slightly reduced.',
+    passiveType: 'energyRegenMalus',
+    feedHeal: 20,
+  },
+];
+
+const VIRUS_BOSS_SIGNAL_REWARD = 200;
+const VIRUS_BOSS_XP_REWARD     = 150;
+
+function ensureWeeklyBoss() {
+  const week = getWeekStr();
+  if (!S.weeklyBoss || S.weeklyBoss.weekStart !== week) {
+    spawnVirusBoss(week);
+  }
+}
+
+function spawnVirusBoss(week) {
+  const def   = VIRUS_BOSS_DEFS[Math.floor(Math.random() * VIRUS_BOSS_DEFS.length)];
+  const level = Math.max(1, Math.min(10, (S.level || 1)));
+  const hpRange = def.baseHp;
+  const baseHp  = hpRange[0] + Math.floor(Math.random() * (hpRange[1] - hpRange[0]));
+  const maxHp   = Math.round(baseHp * (1 + (level - 1) * 0.05)); // scales with level
+
+  const weekEnd = new Date();
+  weekEnd.setDate(weekEnd.getDate() + (7 - weekEnd.getDay())); // next Sunday
+  weekEnd.setHours(23,59,59,0);
+
+  S.weeklyBoss = {
+    id:               def.id,
+    name:             def.name,
+    icon:             def.icon,
+    level,
+    hp:               maxHp,
+    maxHp,
+    weekStart:        week,
+    expiresAt:        weekEnd.getTime(),
+    weaknesses:       def.weakActions.slice(0,4),
+    weakCategories:   def.weakCategories,
+    feedActions:      def.feedActions,
+    feedCategories:   def.feedCategories,
+    passiveEffectText:def.passiveEffectText,
+    passiveType:      def.passiveType,
+    feedHeal:         def.feedHeal,
+    totalDamageTaken: 0,
+    defeated:         false,
+    defId:            def.id,
+  };
+  saveState();
+  addWarLog('warning', `Weekly Virus Boss spawned: ${def.name}. HP: ${maxHp}. Defeat before week ends.`, { id: def.id });
+  toast('☠ VIRUS BOSS', def.name, `${def.icon} Level ${level} · ${maxHp} HP · Weaknesses logged`, 'warn');
+}
+
+function getVirusBossPassiveMods() {
+  if (!S.weeklyBoss || S.weeklyBoss.defeated || !S.weeklyBoss.hp) return {};
+  const hpPct = S.weeklyBoss.hp / S.weeklyBoss.maxHp;
+  if (hpPct <= 0.25) return {}; // weakened enough, no passive
+  const type = S.weeklyBoss.passiveType;
+  switch(type) {
+    case 'signalMalus':     return { signalMalus: 0.95 };
+    case 'energyDrainBoost':return { energyDrainBoost: 1.10 };
+    case 'corruptBoost':    return { corruptBoost: 1.10 };
+    case 'energyRegenMalus':return { energyRegenMalus: 0.90 };
+    default: return {};
+  }
+}
+
+function processVirusBossAction(action) {
+  if (!S.weeklyBoss || S.weeklyBoss.defeated) return null;
+  const boss = S.weeklyBoss;
+  const def  = VIRUS_BOSS_DEFS.find(d => d.id === boss.defId);
+  if (!def) return null;
+
+  const isWeak = def.weakActions.includes(action.id) ||
+                 def.weakCategories.includes(action.category);
+  const isFeed = def.feedActions.includes(action.id) ||
+                 (action.negative && def.feedCategories.includes(action.category));
+
+  let result = null;
+
+  if (action.negative && isFeed) {
+    const heal = Math.min(boss.feedHeal, boss.maxHp - boss.hp);
+    boss.hp = Math.min(boss.maxHp, boss.hp + heal);
+    addWarLog('corruption', `${boss.name} fed on ${action.name}. +${heal} HP.`, { heal });
+    result = { type:'feed', heal };
+  } else if (!action.negative && isWeak) {
+    const cs       = getCombatStats();
+    const wfx      = getWorldEventEffects();
+    let dmg        = Math.round(cs.strike * 0.20 + (action.xp || 10));
+    dmg            = Math.round(dmg * 1.5); // weakness bonus always applies
+    // World event: Sleep On Time gets extra damage during Deep Night Interference
+    if (action.id === 'sleepOnTime' && wfx.sleepOnTimeDamageBoost > 1) dmg = Math.round(dmg * wfx.sleepOnTimeDamageBoost);
+    dmg            = Math.max(1, Math.min(dmg, 120));
+    boss.hp        = Math.max(0, boss.hp - dmg);
+    boss.totalDamageTaken += dmg;
+
+    addWarLog('action', `${action.name} struck ${boss.name} for ${dmg}. HP: ${boss.hp}/${boss.maxHp}.`, { dmg });
+    result = { type:'damage', dmg };
+
+    if (boss.hp <= 0) {
+      defeatVirusBoss();
+    }
+  }
+
+  return result;
+}
+
+function defeatVirusBoss() {
+  const boss = S.weeklyBoss;
+  boss.defeated = true;
+  boss.hp       = 0;
+  S.signal     += VIRUS_BOSS_SIGNAL_REWARD;
+  addXP(VIRUS_BOSS_XP_REWARD);
+  S.stats.corruption = Math.max(0, S.stats.corruption - 10);
+  S.history.unshift({
+    time: new Date().toISOString(),
+    action: `[VIRUS BOSS DEFEATED] ${boss.name}`,
+    category:'boss', effects:'', xp: VIRUS_BOSS_XP_REWARD,
+    signal: VIRUS_BOSS_SIGNAL_REWARD, type:'boss',
+  });
+  saveState();
+  updateUI();
+  addWarLog('victory', `VIRUS BOSS DEFEATED: ${boss.name}. +${VIRUS_BOSS_SIGNAL_REWARD} Signal, +${VIRUS_BOSS_XP_REWARD} XP, Corruption -10.`, {});
+  setTimeout(() => {
+    toast('☠ VIRUS BOSS DEFEATED', boss.name,
+      `+${VIRUS_BOSS_XP_REWARD}XP  📶 +${VIRUS_BOSS_SIGNAL_REWARD}  Corruption -10`, 'success');
+    sfxBossDefeated();
+  }, 300);
+}
+
+function renderVirusBoss() {
+  const container = document.getElementById('virusBossContainer');
+  if (!container) return;
+  ensureWeeklyBoss();
+  const boss = S.weeklyBoss;
+  if (!boss) return;
+
+  const hpPct    = Math.round((boss.hp / boss.maxHp) * 100);
+  const daysLeft = Math.max(0, Math.ceil((boss.expiresAt - Date.now()) / 86400000));
+
+  if (boss.defeated) {
+    container.innerHTML = `<div class="virus-boss-card defeated">
+      <div class="virus-boss-header">
+        <span class="virus-boss-name">✓ ${boss.name}</span>
+        <span class="virus-boss-level" style="color:var(--neon-green)">DEFEATED</span>
+      </div>
+      <div class="virus-boss-meta">New boss spawns next week.</div>
+    </div>`;
+    return;
+  }
+
+  const weakStr = (boss.weaknesses||[]).slice(0,3).join(' · ');
+  container.innerHTML = `<div class="virus-boss-card">
+    <div class="virus-boss-header">
+      <span class="virus-boss-name">${boss.icon} ${boss.name}</span>
+      <span class="virus-boss-level">LVL ${boss.level}</span>
+    </div>
+    <div class="virus-boss-hp-row">
+      <div class="virus-boss-hp-bar">
+        <div class="virus-boss-hp-fill" style="width:${hpPct}%"></div>
+      </div>
+      <span class="virus-boss-hp-label">${boss.hp}/${boss.maxHp} HP</span>
+    </div>
+    <div class="virus-boss-meta">
+      <span class="weak-tag">◈ Weak to: ${weakStr}</span><br>
+      <span class="passive-tag">⚠ ${boss.passiveEffectText}</span><br>
+      <span class="reward-tag">✦ Victory: 📶+${VIRUS_BOSS_SIGNAL_REWARD} · +${VIRUS_BOSS_XP_REWARD}XP · Corruption -10</span><br>
+      <span class="days-tag">${daysLeft}d remaining</span>
+    </div>
+  </div>`;
 }
 
 function init() {
@@ -9548,8 +10072,12 @@ function init() {
   ensureEnemies();
   ensureActiveBuffs();
   ensureProtocols();
+  ensureWorldEvents();
+  cleanupExpiredWorldEvents();
+  checkWorldEventGeneration();
   cleanupExpiredBuffs();
   checkEnemyRespawns();
+  ensureWeeklyBoss();
   ensureAchievements();
   ensureCombo();
   ensureStreakFreeze();
