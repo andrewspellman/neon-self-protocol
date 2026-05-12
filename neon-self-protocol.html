@@ -127,6 +127,9 @@ body::before{
   white-space:nowrap;flex-shrink:0;
   transition:all 0.2s;
 }
+.combo-chip.clickable{cursor:pointer;}
+.combo-chip.clickable::after{content:'›';font-size:12px;color:currentColor;opacity:0.75;margin-left:2px;}
+.combo-chip.clickable:active{transform:scale(0.97);filter:brightness(1.2);}
 .combo-chip.hot { color:var(--neon-cyan);border-color:rgba(0,200,255,0.35);background:rgba(0,200,255,0.08); }
 .combo-chip.max { color:var(--neon-purple);border-color:rgba(170,68,255,0.4);background:rgba(170,68,255,0.1); }
 
@@ -358,9 +361,18 @@ body[class*="phase-"]::after{
   border-radius:var(--radius);
   padding:12px 14px;margin-bottom:8px;
   transition:all var(--transition);
+  position:relative;overflow:hidden;
 }
 .mission-card.completed{
   opacity:0.5;border-color:rgba(0,255,136,0.2);
+}
+.mission-card.constant{
+  border-color:rgba(0,200,255,0.22);
+  box-shadow:0 0 12px rgba(0,200,255,0.05);
+}
+.mission-card.constant::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--neon-cyan);
 }
 .mission-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .mission-name{
@@ -390,6 +402,27 @@ body[class*="phase-"]::after{
   padding:8px;font-family:'Share Tech Mono',monospace;font-size:11px;
   text-align:center;color:var(--text-dim);
   letter-spacing:2px;
+}
+.mission-progress-meta{
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);margin-top:8px;
+}
+.mission-progress-bar{
+  height:5px;background:rgba(255,255,255,0.06);
+  border-radius:3px;overflow:hidden;margin-top:4px;
+}
+.mission-progress-fill{
+  height:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--neon-cyan),var(--neon-green));
+  box-shadow:0 0 5px rgba(0,200,255,0.28);
+}
+.mission-status-badge{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--neon-green);
+  border:1px solid rgba(0,255,136,0.22);
+  background:rgba(0,255,136,0.06);
+  border-radius:3px;padding:2px 6px;letter-spacing:1px;
 }
 
 /* ===== BOSS PANEL ===== */
@@ -625,6 +658,51 @@ body[class*="phase-"]::after{
   padding:18px 10px;
   border:1px dashed rgba(255,255,255,0.08);
   border-radius:var(--radius);
+}
+
+/* ===== COMBO DETAILS MODAL ===== */
+.combo-detail-modal{
+  display:none;position:fixed;inset:0;z-index:475;
+  background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);
+  align-items:flex-end;justify-content:center;padding:0;
+}
+.combo-detail-card{
+  width:100%;max-width:480px;
+  background:rgba(8,13,24,0.98);
+  border:1px solid rgba(255,221,0,0.18);
+  border-bottom:none;border-radius:8px 8px 0 0;
+  box-shadow:0 -10px 36px rgba(0,0,0,0.75),0 0 18px rgba(255,221,0,0.08);
+  padding:14px 14px calc(18px + env(safe-area-inset-bottom, 0px));
+}
+.combo-detail-head{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+}
+.combo-detail-title{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;
+  color:var(--neon-yellow);letter-spacing:2px;text-shadow:0 0 8px rgba(255,221,0,0.28);
+}
+.combo-detail-close{
+  font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim);
+  background:transparent;border:1px solid rgba(255,255,255,0.1);
+  border-radius:4px;padding:6px 10px;cursor:pointer;
+}
+.combo-detail-grid{display:grid;grid-template-columns:1fr;gap:7px;}
+.combo-detail-row{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-left:3px solid var(--neon-yellow);
+  border-radius:var(--radius);padding:8px 10px;
+}
+.combo-detail-label{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;
+}
+.combo-detail-val{
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  color:var(--text-bright);margin-top:2px;
+}
+.combo-detail-note{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);line-height:1.5;margin-top:8px;
 }
 .h-delete-btn{
   background:transparent;border:none;
@@ -3053,7 +3131,7 @@ input[type=range].music-slider::-moz-range-thumb{
         </div>
       </div>
       <!-- Combo indicator top-right of level bar -->
-      <div id="comboChip" style="display:none" class="combo-chip">
+      <div id="comboChip" style="display:none" class="combo-chip clickable" onclick="openComboDetails()" title="View combo bonus details">
         <span id="comboChipIcon">⚡</span><span id="comboChipLabel">x1</span>
       </div>
     </div>
@@ -3515,6 +3593,17 @@ input[type=range].music-slider::-moz-range-thumb{
   </div>
 </div>
 
+<!-- COMBO DETAILS MODAL -->
+<div id="comboDetailsModal" class="combo-detail-modal" onclick="if(event.target===this) closeComboDetails()">
+  <div class="combo-detail-card">
+    <div class="combo-detail-head">
+      <div class="combo-detail-title">HOT STREAK DATA</div>
+      <button class="combo-detail-close" onclick="closeComboDetails()">CLOSE</button>
+    </div>
+    <div id="comboDetailsContent"></div>
+  </div>
+</div>
+
 <!-- EVENTS MODAL -->
 <div id="eventsModal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.88);backdrop-filter:blur(4px);overflow-y:auto;">
   <div style="max-width:480px;margin:0 auto;padding:16px 14px 80px;">
@@ -3642,6 +3731,7 @@ const DEFAULT_STATE = {
   level: 1,
   signal: 0,
   energy: { current:70, max:100, lastRegenDate:null },
+  energyRecoveryDebt: 0,
   skills: {
     body:{xp:0,level:1},
     grift:{xp:0,level:1},
@@ -3660,6 +3750,8 @@ const DEFAULT_STATE = {
   caffeineDate: null,
   missions: [],
   missionsDate: null,
+  dailyExerciseMission: null,
+  movementDecay: { date:null, applied:[] },
   boss: {
     name: '',
     week: '',
@@ -3815,6 +3907,7 @@ function ensureSignalEnergy() {
   if (S.energy.lastRegenDate === undefined) S.energy.lastRegenDate = null;
   if (isNaN(S.energy.current)) S.energy.current = 70;
   S.energy.current = clamp(S.energy.current, 0, S.energy.max);
+  if (!Number.isFinite(S.energyRecoveryDebt)) S.energyRecoveryDebt = 0;
 }
 
 // Infer signal if not explicitly set on action
@@ -3834,6 +3927,28 @@ function inferEnergy(action) {
   if (xp >= 25) return -10;
   if (xp >= 12) return  -5;
   return 2; // tiny actions are neutral/slightly restorative
+}
+
+function getTodayActionCount(actionId) {
+  const today = new Date().toDateString();
+  return (S.history || []).filter(h =>
+    h.actionId === actionId &&
+    h.time &&
+    new Date(h.time).toDateString() === today
+  ).length;
+}
+
+function signalEconomyMultiplier(action) {
+  if (!action || action.negative) return 1;
+  const xp = action.xp || 0;
+  let mult = xp >= 25 ? 0.92 : xp >= 12 ? 0.86 : 0.76;
+  if (['bjj','list10','stream','backlogTask','householdTask','workBlock30'].includes(action.id)) mult = Math.max(mult, 0.95);
+
+  const repeats = getTodayActionCount(action.id);
+  if (xp <= 10 && repeats >= 6) mult *= 0.55;
+  else if (xp <= 10 && repeats >= 3) mult *= 0.75;
+  else if (xp <= 18 && repeats >= 5) mult *= 0.85;
+  return mult;
 }
 
 // ==========================================================================
@@ -3915,6 +4030,10 @@ const ACTIONS = {
      fx:{focus:8,control:5}, xp:35, skillXp:{grift:35},
      signal:30, energy:-12,
      bonusSignal:{guaranteed:15, bonusChance:0.3, bonusAmt:8}},
+    {id:'stream', name:'Stream', icon:'📺',
+     fx:{focus:5,control:4,soul:1}, xp:30, skillXp:{grift:30, discipline:6},
+     signal:38, energy:-20,
+     bonusSignal:{chance:0.25, amt:8}},
     {id:'completeMinorTask', name:'Complete Minor Task', icon:'✅',
      fx:{focus:2,control:1}, xp:8, skillXp:{grift:8, discipline:2},
      signal:8, energy:-3,
@@ -4046,6 +4165,10 @@ const ACTIONS = {
     {id:'avoidedTask', name:'Avoided Important Task', icon:'🙈',
      negative:true, fx:{focus:-5,control:-4,corruption:6}, xp:0, awarenessXp:1,
      signal:0, energy:-6,
+     skillXp:{}, bonusSignal:null},
+    {id:'procrastinate', name:'Procrastinate', icon:'⏳',
+     negative:true, fx:{focus:-3,control:-4,corruption:5}, xp:0, awarenessXp:1,
+     signal:0, energy:-4,
      skillXp:{}, bonusSignal:null},
     {id:'triedOverspend', name:'Tried to Overspend', icon:'💸',
      negative:true, fx:{control:-3,corruption:5}, xp:0, awarenessXp:1,
@@ -4339,7 +4462,7 @@ function executeAction(action, source='button') {
   const rawSignal = action.signal  ?? inferSignal(action);
   const rawEnergy = action.energy  ?? inferEnergy(action);
 
-  const gainedSignal = action.negative ? 0 : Math.round(rawSignal * signalMod);
+  const gainedSignal = action.negative ? 0 : Math.round(rawSignal * signalMod * signalEconomyMultiplier(action));
   const energyDelta  = Math.round(rawEnergy * (rawEnergy < 0 ? energyMod : 1.0));
 
   let finalSignal = gainedSignal;
@@ -4394,15 +4517,18 @@ function executeAction(action, source='button') {
   S.history.unshift({
     time: new Date().toISOString(),
     action: action.name,
+    actionId: action.id,
     category: action.category || 'other',
     effects: effectsStr,
     xp: gainedXP,
-    signal: gainedSignal + bonusSignalDrop,
+    signal: finalSignal + bonusSignalDrop,
     bonusSignal: bonusSignalDrop,
     energyDelta,
     type: action.negative ? 'negative' : 'positive'
   });
   if (S.history.length > 500) S.history = S.history.slice(0,500);
+
+  if (!action.negative) updateDailyMissionProgress(action);
 
   saveState();
   updateUI();
@@ -4483,6 +4609,7 @@ function executeAction(action, source='button') {
   cleanupExpiredWorldEvents();
   // War system hook — fires last, after all state is updated
   const combatSuffix = processWarAction(action, finalSignal + bonusSignalDrop, energyDelta);
+  checkMovementDecay();
   // Append combat result to toast body if present
   if (combatSuffix) {
     setTimeout(() => toast('⚔ COMBAT', combatSuffix, '', action.negative ? 'warn' : 'success'), 600);
@@ -4548,9 +4675,11 @@ function updateCaffeineMeter() {
 }
 
 function executeCaffeineAction(action) {
+  ensureSignalEnergy();
   const today = todayStr();
   if (S.caffeineDate !== today) { S.caffeineMg = 0; S.caffeineDate = today; }
   const late = isAfter3PM();
+  const hour = new Date().getHours();
   const prevMg = S.caffeineMg || 0;
   const addMg = action.caffeineMg;
   const newMg = prevMg + addMg;
@@ -4564,12 +4693,16 @@ function executeCaffeineAction(action) {
 
   if (late) {
     // After 3pm: always negative
+    const latePenalty = hour >= 21 ? 6 : hour >= 18 ? 4 : 3;
     fx.focus = -3;
     fx.health = -2;
-    fx.corruption = 3;
+    fx.corruption = 3 + latePenalty;
     gainedXP = 1; // awareness XP
-    toastNote = `Late caffeine — Focus-3 Health-2 Corruption+3`;
+    toastNote = `Late caffeine — Focus-3 Health-2 Corruption+${fx.corruption}. Borrowing energy from tomorrow.`;
     toastType = 'warn';
+    S.energyRecoveryDebt = Math.min(12, (S.energyRecoveryDebt || 0) + (hour >= 21 ? 6 : hour >= 18 ? 4 : 2));
+    S.energy.current = clamp((S.energy?.current ?? 70) - Math.min(6, Math.max(2, Math.floor(fx.corruption / 2))), 0, S.energy?.max || 100);
+    applyLateCaffeineWarPressure(latePenalty);
   } else if (newMg > CAFFEINE_LIMIT) {
     // Over daily limit: negative
     const overBy = newMg - CAFFEINE_LIMIT;
@@ -4593,9 +4726,11 @@ function executeCaffeineAction(action) {
     time: new Date().toISOString(),
     action: `${action.name} (${newMg}mg total)`,
     category: 'caffeine',
+    actionId: action.id,
     effects: Object.entries(fx).map(([k,v])=>`${k}${v>0?'+':''}${v}`).join(' ') || 'neutral',
     xp: gainedXP,
     credits: 0,
+    energyDelta: late ? -Math.min(6, Math.max(2, Math.floor((fx.corruption || 0) / 2))) : 0,
     type: late || newMg > CAFFEINE_LIMIT ? 'negative' : 'neutral'
   });
 
@@ -4603,6 +4738,28 @@ function executeCaffeineAction(action) {
   updateUI();
   updateCaffeineMeter();
   toast(late || newMg > CAFFEINE_LIMIT ? '⚠ CAFFEINE' : '☕ CAFFEINE', action.name, toastNote, toastType);
+}
+
+function applyLateCaffeineWarPressure(corruptionPenalty) {
+  ensureEnemies();
+  const deep = S.corruptionEnemies?.deepNightSignal;
+  const burnout = S.corruptionEnemies?.burnoutWraith;
+  const deepHeal = Math.max(2, Math.round(corruptionPenalty * 1.2));
+  const burnoutHeal = Math.max(1, Math.round(corruptionPenalty * 0.7));
+  if (deep?.active) {
+    deep.hp = Math.min(deep.maxHp, deep.hp + deepHeal);
+    deep.spread = Math.min(5, (deep.spread || 1) + 0.25);
+    deep.lastAffected = new Date().toISOString();
+  }
+  if (burnout?.active) {
+    burnout.hp = Math.min(burnout.maxHp, burnout.hp + burnoutHeal);
+    burnout.spread = Math.min(5, (burnout.spread || 1) + 0.15);
+    burnout.lastAffected = new Date().toISOString();
+  }
+  addWarLog('warning',
+    `Late caffeine destabilized sleep-cycle defenses. Deep Night +${deepHeal}${burnout?.active ? `, Burnout +${burnoutHeal}` : ''}.`,
+    { deepHeal, burnoutHeal }
+  );
 }
 
 
@@ -4654,9 +4811,179 @@ function renderAllActions() {
 // ==========================================================================
 // MISSIONS
 // ==========================================================================
+function normalizeMission(m, idx=0) {
+  if (!m) m = {};
+  if (!m.id) m.id = (m.action || m.name || `mission-${idx}`).toString().replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+  if (!m.name && m.title) m.name = m.title;
+  if (!m.title && m.name) m.title = m.name;
+  if (!m.cat && m.category) m.cat = m.category;
+  if (!m.category && m.cat) m.category = m.cat;
+  if (!m.targetAction && m.action) m.targetAction = m.action;
+  if (!m.targetActionName && m.name) m.targetActionName = m.name;
+  if (!Number.isFinite(m.targetCount)) m.targetCount = 1;
+  if (!Number.isFinite(m.currentCount)) m.currentCount = m.completed ? m.targetCount : 0;
+  if (m.rewardGiven === undefined) m.rewardGiven = !!m.completed;
+  if (m.autoComplete === undefined) m.autoComplete = !!m.targetAction;
+  return m;
+}
+
+function normalizeMissions() {
+  if (!S.missions) S.missions = [];
+  S.missions.forEach((m, i) => normalizeMission(m, i));
+}
+
+function createDailyExerciseMission() {
+  const today = todayStr();
+  return normalizeMission({
+    id: 'complete-100-exercises',
+    date: today,
+    name: 'Complete 100 Exercises',
+    title: 'Complete 100 Exercises',
+    cat: 'Body',
+    category: 'Body',
+    action: 'pushups',
+    targetAction: 'pushups',
+    targetActionName: '10 Exercises',
+    targetCount: 10,
+    currentCount: 0,
+    completed: false,
+    rewardGiven: false,
+    autoComplete: true,
+    xpBonus: 35,
+    bonusSignal: { guaranteed: 35 },
+    skillXp: { body: 20 },
+  });
+}
+
+function ensureDailyExerciseMission() {
+  const today = todayStr();
+  if (!S.dailyExerciseMission || S.dailyExerciseMission.date !== today) {
+    S.dailyExerciseMission = createDailyExerciseMission();
+  } else {
+    normalizeMission(S.dailyExerciseMission);
+    S.dailyExerciseMission.id = 'complete-100-exercises';
+    S.dailyExerciseMission.name = 'Complete 100 Exercises';
+    S.dailyExerciseMission.title = 'Complete 100 Exercises';
+    S.dailyExerciseMission.cat = 'Body';
+    S.dailyExerciseMission.category = 'Body';
+    S.dailyExerciseMission.action = 'pushups';
+    S.dailyExerciseMission.targetAction = 'pushups';
+    S.dailyExerciseMission.targetActionName = '10 Exercises';
+    S.dailyExerciseMission.targetCount = 10;
+    S.dailyExerciseMission.autoComplete = true;
+    S.dailyExerciseMission.xpBonus = 35;
+    S.dailyExerciseMission.bonusSignal = { guaranteed: 35 };
+    S.dailyExerciseMission.skillXp = { body: 20 };
+  }
+  return S.dailyExerciseMission;
+}
+
+function removeExerciseMissionFromRandomMissions() {
+  if (!S.missions) S.missions = [];
+  S.missions = S.missions.filter(m => m && m.name !== 'Complete 100 Exercises' && m.id !== 'complete-100-exercises');
+}
+
+function countTodayActionForMission(m) {
+  const target = m.targetAction || m.action;
+  if (!target) return m.completed ? (m.targetCount || 1) : 0;
+  const actionDef = findActionById(target);
+  const targetName = actionDef?.name || m.targetActionName || target;
+  const today = new Date().toDateString();
+  return (S.history || []).filter(h => {
+    if (!h.time || new Date(h.time).toDateString() !== today) return false;
+    if (!(h.type === 'positive' || h.type === 'mission')) return false;
+    return h.actionId === target || h.action === targetName || h.action === target;
+  }).length;
+}
+
+function refreshMissionProgressFromHistory() {
+  normalizeMissions();
+  for (const m of S.missions) {
+    if (!m.autoComplete && !m.targetAction) continue;
+    const count = countTodayActionForMission(m);
+    m.currentCount = Math.min(count, m.targetCount || 1);
+  }
+  const daily = ensureDailyExerciseMission();
+  const count = countTodayActionForMission(daily);
+  daily.currentCount = Math.min(count, daily.targetCount || 10);
+  if (daily.rewardGiven) daily.completed = true;
+}
+
+function findActionById(id) {
+  for (const acts of Object.values(ACTIONS)) {
+    const found = acts.find(a => a.id === id);
+    if (found) return found;
+  }
+  return null;
+}
+
+function grantAutoMissionReward(m) {
+  if (!m || m.rewardGiven) return;
+  const xp = m.xpBonus || 0;
+  const signal = m.bonusSignal?.guaranteed ?? xp;
+  if (xp > 0) addXP(xp);
+  if (signal > 0) S.signal = Math.max(0, (S.signal || 0) + signal);
+  if (m.skillXp) addSkillXP(m.skillXp);
+
+  if (m.id === 'complete-100-exercises' || m.name === 'Complete 100 Exercises') {
+    ensureEnemies();
+    const e = S.corruptionEnemies?.burnoutWraith;
+    if (e?.active) {
+      const dmg = 12;
+      e.hp = Math.max(0, e.hp - dmg);
+      e.totalDamageTaken = (e.totalDamageTaken || 0) + dmg;
+      if (e.hp <= 0) {
+        e.active = false;
+        e.respawnAt = Date.now() + 24 * 60 * 60 * 1000;
+        e.totalTimesDefeated = (e.totalTimesDefeated || 0) + 1;
+        e.level = Math.min((e.level || 1) + 1, 10);
+        e.maxHp = Math.round((e.maxHp || 90) * 1.15);
+        S.signal += ENEMY_DEFEAT_SIGNAL;
+      }
+      addWarLog('action', `Mission reward hit BURNOUT WRAITH for ${dmg}.`, { id:'burnoutWraith', dmg });
+    }
+  }
+
+  S.history.unshift({
+    time: new Date().toISOString(),
+    action: `[MISSION] ${m.name}`,
+    category: (m.cat || m.category || 'mission').toLowerCase(),
+    effects: '',
+    xp,
+    signal,
+    type: 'mission'
+  });
+  if (S.history.length > 500) S.history = S.history.slice(0,500);
+  m.rewardGiven = true;
+}
+
+function updateDailyMissionProgress(action) {
+  if (!action) return;
+  generateMissions();
+  normalizeMissions();
+  const dailyExerciseMission = ensureDailyExerciseMission();
+  const actionId = action.id;
+  let completedAny = false;
+  for (const m of [...S.missions, dailyExerciseMission]) {
+    if (!m.autoComplete || m.completed) continue;
+    if ((m.targetAction || m.action) !== actionId) continue;
+    m.currentCount = Math.min(countTodayActionForMission(m), m.targetCount || 1);
+    if (m.currentCount >= (m.targetCount || 1)) {
+      m.completed = true;
+      grantAutoMissionReward(m);
+      completedAny = true;
+      toast('🎯 MISSION AUTO-COMPLETE', m.name, `+${m.xpBonus || 0}XP${m.bonusSignal?.guaranteed ? `  📶 +${m.bonusSignal.guaranteed}` : ''}`, 'success');
+      sfxMissionComplete();
+    }
+  }
+  if (completedAny) addWarLog('system', 'Daily mission auto-completed from logged actions.', {});
+}
+
 function generateMissions() {
   const today = todayStr();
-  if (S.missionsDate === today && S.missions.length === 3) return;
+  ensureDailyExerciseMission();
+  removeExerciseMissionFromRandomMissions();
+  if (S.missionsDate === today && S.missions.length === 3) { normalizeMissions(); refreshMissionProgressFromHistory(); return; }
 
   const phase = getTimePhase().id;
 
@@ -4736,8 +5063,14 @@ function generateMissions() {
   // ── Select 3 missions ──
   // Guarantee at least one "urgent" mission if any category is ≥5 days stale
   const urgentCats = SKILL_CATS.filter(c => (catLastSeen[c] || 0) >= 5);
-  const selected = [];
+  const selected = S.missionsDate === today
+    ? S.missions.slice(0, 3).map((m, i) => normalizeMission(m, i))
+    : [];
   const pool = [...MISSION_POOL.map((m,i) => ({...m, w:weights[i]}))];
+  for (const existing of selected) {
+    const idx = pool.findIndex(m => m.name === existing.name);
+    if (idx >= 0) pool.splice(idx, 1);
+  }
 
   // If there's an urgent category, force one mission from it
   if (urgentCats.length > 0 && selected.length === 0) {
@@ -4746,7 +5079,7 @@ function generateMissions() {
       (urgentCat === 'family' && m.cat.toLowerCase() === 'soul'));
     if (urgentPool.length > 0) {
       const pick = urgentPool[Math.floor(Math.random() * urgentPool.length)];
-      selected.push({...pick, completed:false});
+      selected.push(normalizeMission({...pick, completed:false, rewardGiven:false}, selected.length));
       const idx = pool.findIndex(m => m.name === pick.name);
       if (idx >= 0) pool.splice(idx, 1);
     }
@@ -4758,44 +5091,78 @@ function generateMissions() {
     let r = Math.random() * total, cum = 0;
     for (let i = 0; i < pool.length; i++) {
       cum += pool[i].w;
-      if (r <= cum) { selected.push({...pool[i], completed:false}); pool.splice(i,1); break; }
+      if (r <= cum) { selected.push(normalizeMission({...pool[i], completed:false, rewardGiven:false}, selected.length)); pool.splice(i,1); break; }
     }
   }
 
   S.missions = selected;
   S.missionsDate = today;
+  refreshMissionProgressFromHistory();
   saveState();
+}
+
+function missionCardHTML(m, i=null, opts={}) {
+  m = normalizeMission(m, i || 0);
+  const rewardParts = [`+${m.xpBonus || 0}XP`];
+  if (m.bonusSignal?.guaranteed) rewardParts.push(`+${m.bonusSignal.guaranteed} Signal`);
+  else if (m.bonusSignal) rewardParts.push('Signal chance');
+  if (m.skillXp?.body) rewardParts.push(`+${m.skillXp.body} Body XP`);
+  const rewardStr = rewardParts.join(' · ');
+  const targetCount = m.targetCount || 1;
+  const currentCount = Math.min(m.currentCount || 0, targetCount);
+  const progressPct = Math.round((currentCount / targetCount) * 100);
+  const progressHtml = m.targetAction ? `
+    <div class="mission-progress-meta">
+      <span>Progress</span>
+      <span>${m.completed ? `Complete · ${currentCount} / ${targetCount}` : `${currentCount} / ${targetCount}`}</span>
+    </div>
+    <div class="mission-progress-bar"><div class="mission-progress-fill" style="width:${progressPct}%"></div></div>
+  ` : '';
+  const manualHtml = opts.permanent
+    ? '<div class="mission-done-label">AUTO TRACKING</div>'
+    : `<button class="mission-complete-btn" onclick="${opts.modal ? 'completeMissionFromModal' : 'completeMission'}(${i})">Mark Complete</button>`;
+  const completeHtml = `<div class="mission-done-label">✓ ${m.autoComplete ? 'AUTO-COMPLETE' : 'COMPLETE'}</div>`;
+
+  return `<div class="mission-card${m.completed ? ' completed' : ''}${opts.permanent ? ' constant' : ''}" style="margin-bottom:10px;">
+    <div class="mission-header">
+      <div>
+        <div class="mission-name">${m.name}</div>
+        <div class="mission-cat">${opts.permanent ? 'DAILY TRAINING PROTOCOL' : m.cat}</div>
+      </div>
+      <div class="mission-reward">${rewardStr}</div>
+    </div>
+    ${progressHtml}
+    ${m.completed ? completeHtml : (m.autoComplete && targetCount > 1) ? '<div class="mission-done-label">AUTO TRACKING</div>' : manualHtml}
+  </div>`;
 }
 
 function renderMissions() {
   generateMissions();
+  refreshMissionProgressFromHistory();
   const container = document.getElementById('missions-container');
   container.innerHTML = '';
   for (let i = 0; i < S.missions.length; i++) {
-    const m = S.missions[i];
-    const card = document.createElement('div');
-    card.className = `mission-card${m.completed ? ' completed' : ''}`;
-    const rewardStr = m.bonusSignal ? `+${m.xpBonus}XP + Signal chance` : `+${m.xpBonus}XP`;
-    card.innerHTML = `
-      <div class="mission-header">
-        <div>
-          <div class="mission-name">${m.name}</div>
-          <div class="mission-cat">${m.cat}</div>
-        </div>
-        <div class="mission-reward">${rewardStr}</div>
-      </div>
-      ${m.completed
-        ? '<div class="mission-done-label">✓ COMPLETE</div>'
-        : `<button class="mission-complete-btn" onclick="completeMission(${i})">Mark Complete</button>`}
-    `;
-    container.appendChild(card);
+    const m = normalizeMission(S.missions[i], i);
+    const wrap = document.createElement('div');
+    wrap.innerHTML = missionCardHTML(m, i);
+    container.appendChild(wrap.firstElementChild);
   }
+  const daily = ensureDailyExerciseMission();
+  const label = document.createElement('div');
+  label.className = 'section-label';
+  label.style.marginTop = '14px';
+  label.textContent = 'DAILY TRAINING PROTOCOL';
+  container.appendChild(label);
+  const wrap = document.createElement('div');
+  wrap.innerHTML = missionCardHTML(daily, null, { permanent:true });
+  container.appendChild(wrap.firstElementChild);
 }
 
 function completeMission(idx) {
-  const m = S.missions[idx];
+  const m = normalizeMission(S.missions[idx], idx);
   if (m.completed) return;
   m.completed = true;
+  m.currentCount = m.targetCount || 1;
 
   // Find matching action for full effects
   let action = null;
@@ -4820,6 +5187,7 @@ function completeMission(idx) {
       signal: (action.signal || 0) + bonusSig,
       type: 'mission'
     });
+    m.rewardGiven = true;
   }
 
   saveState();
@@ -5183,6 +5551,12 @@ function applyDecay() {
     let regenAmt = 5;
     if (sleptOnTime)      regenAmt = 25;
     else if (noLateNegs)  regenAmt = 10;
+    const recoveryDebt = Math.min(12, Math.max(0, Math.round(S.energyRecoveryDebt || 0)));
+    if (recoveryDebt > 0) {
+      regenAmt = Math.max(0, regenAmt - recoveryDebt);
+      addWarLog('warning', `Energy recovery reduced by ${recoveryDebt}. Yesterday borrowed capacity from today.`, { recoveryDebt });
+      S.energyRecoveryDebt = 0;
+    }
     S.energy.current = clamp(S.energy.current + regenAmt, 0, S.energy.max);
   }
 
@@ -5196,6 +5570,65 @@ function applyDecay() {
   applyEnemyDecay();
 
   saveState();
+}
+
+const MOVEMENT_ACTION_IDS = ['pushups','walk','run','lift','bjj','stretch'];
+const MOVEMENT_ACTION_NAMES = ['10 Exercises','Walk','Run','Lift Weights','BJJ','Stretch'];
+
+function ensureMovementDecayState() {
+  const today = todayStr();
+  if (!S.movementDecay || S.movementDecay.date !== today) {
+    S.movementDecay = { date: today, applied: [] };
+  }
+  if (!Array.isArray(S.movementDecay.applied)) S.movementDecay.applied = [];
+}
+
+function hasMovementToday() {
+  const today = new Date().toDateString();
+  return (S.history || []).some(h => {
+    if (!h.time || new Date(h.time).toDateString() !== today) return false;
+    if (MOVEMENT_ACTION_IDS.includes(h.actionId)) return true;
+    return MOVEMENT_ACTION_NAMES.includes((h.action || '').replace(/\s+\(.+\)$/,''));
+  });
+}
+
+function feedEnemyPressure(id, hpGain, spreadGain = 0.15, label = 'system pressure') {
+  ensureEnemies();
+  const enemy = S.corruptionEnemies?.[id];
+  if (!enemy || !enemy.active) return;
+  enemy.hp = Math.min(enemy.maxHp, (enemy.hp || 0) + hpGain);
+  enemy.spread = Math.min(5, Math.max(1, (enemy.spread || 1) + spreadGain));
+  enemy.lastAffected = new Date().toISOString();
+  addWarLog('warning', `${enemy.name} fed on ${label}. +${hpGain} HP.`, { id, hpGain, spreadGain });
+}
+
+function checkMovementDecay() {
+  ensureMovementDecayState();
+  if (hasMovementToday()) return;
+
+  const hour = new Date().getHours();
+  const windows = [
+    { id:'pm2',  hour:14, fx:{health:-1}, debt:0, burnout:0, msg:'Movement deficit detected.' },
+    { id:'pm6',  hour:18, fx:{health:-2,corruption:1}, debt:1, burnout:0, msg:'Body systems becoming sedentary.' },
+    { id:'pm10', hour:22, fx:{health:-3,corruption:2}, debt:2, burnout:4, msg:'Sedentary spiral pressure rising.' },
+  ];
+
+  let appliedAny = false;
+  let latestMsg = '';
+  for (const w of windows) {
+    if (hour < w.hour || S.movementDecay.applied.includes(w.id)) continue;
+    applyFX(w.fx);
+    S.energyRecoveryDebt = Math.min(12, (S.energyRecoveryDebt || 0) + w.debt);
+    if (w.burnout > 0) feedEnemyPressure('burnoutWraith', w.burnout, 0.12, 'movement deficit');
+    S.movementDecay.applied.push(w.id);
+    addWarLog('warning', `${w.msg} ${Object.entries(w.fx).map(([k,v]) => `${k}${v>0?'+':''}${v}`).join(' ')}.`, { window: w.id });
+    latestMsg = w.msg;
+    appliedAny = true;
+  }
+  if (appliedAny) {
+    toast('⚠ BODY SYSTEMS', latestMsg, 'Minimum viable movement recommended.', 'warn');
+    saveState();
+  }
 }
 
 // Check clean day bonus at end of day (called from init and on action log)
@@ -5523,24 +5956,14 @@ function renderMissionsModalContent() {
   const container = document.getElementById('missionsModalContent');
   if (!container) return;
   generateMissions();
+  refreshMissionProgressFromHistory();
   const missions = S.missions || [];
   if (missions.length === 0) { container.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-family:\'Share Tech Mono\',monospace;font-size:11px;padding:20px;">No missions generated yet.</div>'; return; }
 
-  container.innerHTML = missions.map((m, i) => {
-    const rewardStr = m.bonusSignal ? `+${m.xpBonus}XP + Signal chance` : `+${m.xpBonus}XP`;
-    return `<div class="mission-card${m.completed ? ' completed' : ''}" style="margin-bottom:10px;">
-      <div class="mission-header">
-        <div>
-          <div class="mission-name">${m.name}</div>
-          <div class="mission-cat">${m.cat}</div>
-        </div>
-        <div class="mission-reward">${rewardStr}</div>
-      </div>
-      ${m.completed
-        ? '<div class="mission-done-label">✓ COMPLETE</div>'
-        : `<button class="mission-complete-btn" onclick="completeMissionFromModal(${i})">Mark Complete</button>`}
-    </div>`;
-  }).join('');
+  const daily = ensureDailyExerciseMission();
+  container.innerHTML = missions.map((m, i) => missionCardHTML(m, i, { modal:true })).join('') +
+    `<div class="section-label" style="margin-top:14px">DAILY TRAINING PROTOCOL</div>` +
+    missionCardHTML(daily, null, { permanent:true, modal:true });
 }
 
 function completeMissionFromModal(idx) {
@@ -5948,6 +6371,63 @@ function comboXPMult() {
   return tier ? tier.mult : 1.0;
 }
 
+function getCurrentComboDetails() {
+  ensureCombo();
+  const count = S.combo?.count || 0;
+  const tier = getComboTier(count);
+  const nextTier = COMBO_TIERS.slice().reverse().find(t => count < t.min) || null;
+  const state = S.currentSystemState || 'NOMINAL';
+  const stateCfg = STATE_CONFIG[state] || STATE_CONFIG.NOMINAL;
+  const activeSynergy = S.combo?.lastSynergy
+    ? SYNERGIES.find(s => s.name === S.combo.lastSynergy)
+    : null;
+  return {
+    active: !!tier,
+    name: tier?.label || 'NO ACTIVE HOT STREAK',
+    count,
+    xpMult: tier?.mult || 1,
+    signalBonus: activeSynergy ? `+${activeSynergy.signalBonus} Signal from ${activeSynergy.name}` : 'No active Signal combo bonus',
+    synergy: activeSynergy ? `${activeSynergy.name}: ${activeSynergy.desc}` : 'No active synergy bonus',
+    stateBonus: `${stateCfg.label}: ${stateCfg.effect || 'No active state bonus'}`,
+    next: nextTier ? `${nextTier.label} at ${nextTier.min} positive actions` : 'Top threshold active',
+  };
+}
+
+function openComboDetails() {
+  renderComboDetailsModal();
+  const modal = document.getElementById('comboDetailsModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeComboDetails() {
+  const modal = document.getElementById('comboDetailsModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderComboDetailsModal() {
+  const el = document.getElementById('comboDetailsContent');
+  if (!el) return;
+  const d = getCurrentComboDetails();
+  if (!d.active) {
+    el.innerHTML = `<div class="combo-detail-grid">
+      <div class="combo-detail-row"><div class="combo-detail-label">Status</div><div class="combo-detail-val">NO ACTIVE HOT STREAK</div></div>
+      <div class="combo-detail-row"><div class="combo-detail-label">Positive Action Chain</div><div class="combo-detail-val">${d.count}</div></div>
+      <div class="combo-detail-note">Log positive actions to build momentum. Combo starts at 3 positive actions.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = `<div class="combo-detail-grid">
+    <div class="combo-detail-row"><div class="combo-detail-label">Current Streak</div><div class="combo-detail-val">${d.name}</div></div>
+    <div class="combo-detail-row"><div class="combo-detail-label">Positive Action Chain</div><div class="combo-detail-val">${d.count}</div></div>
+    <div class="combo-detail-row"><div class="combo-detail-label">Current XP Bonus</div><div class="combo-detail-val">×${d.xpMult.toFixed(1)} XP</div></div>
+    <div class="combo-detail-row"><div class="combo-detail-label">Signal Bonus</div><div class="combo-detail-val">${escHtml(d.signalBonus)}</div></div>
+    <div class="combo-detail-row"><div class="combo-detail-label">Synergy</div><div class="combo-detail-val">${escHtml(d.synergy)}</div></div>
+    <div class="combo-detail-row"><div class="combo-detail-label">System State</div><div class="combo-detail-val">${escHtml(d.stateBonus)}</div></div>
+    <div class="combo-detail-row"><div class="combo-detail-label">Next Threshold</div><div class="combo-detail-val">${escHtml(d.next)}</div></div>
+    <div class="combo-detail-note">Increases on positive real actions. Major negative actions break the chain. Long inactivity over 4 hours resets momentum before the next positive action.</div>
+  </div>`;
+}
+
 function ensureCombo() {
   if (!S.combo) S.combo = { count:0, todayCats:[], todayDate:null, lastActionTime:null, balancedMindAwarded:false, lastSynergy:null };
 }
@@ -6036,7 +6516,7 @@ function renderComboUI() {
   if (count < 3) { chip.style.display = 'none'; return; }
   const tier = getComboTier(count);
   chip.style.display = 'flex';
-  chip.className = `combo-chip${tier.cls ? ' '+tier.cls : ''}`;
+  chip.className = `combo-chip clickable${tier.cls ? ' '+tier.cls : ''}`;
   document.getElementById('comboChipIcon').textContent  = tier.icon;
   document.getElementById('comboChipLabel').textContent = `×${count}`;
 }
@@ -9051,6 +9531,10 @@ function processWarAction(action, gainedSignal, energyDelta) {
     combatSuffix = buildCombatToastSuffix(attackResults, []);
   }
 
+  if (action.id === 'stream' && (S.energy?.current ?? 100) < 25) {
+    feedEnemyPressure('burnoutWraith', 5, 0.12, 'low-energy stream output');
+  }
+
   // Energy warning: only when crossing threshold, rate-limited
   if ((S.energy?.current ?? 100) < 30) {
     const recentEnergyWarn = (S.warLog||[]).slice(0,8).filter(e => e.message?.includes('Energy low'));
@@ -9081,7 +9565,7 @@ const ENEMY_DEFS = {
     icon: '📱',
     theme: 'Feeds on passive consumption and late-night instability.',
     startHp: 60, startMax: 60,
-    feedActions:   ['doomscrolled','stayedUpLate','avoidedTask'],
+    feedActions:   ['doomscrolled','stayedUpLate','avoidedTask','procrastinate'],
     weakActions:   ['noDoomscroll','sleepOnTime','meditate','readPhilosophy','walk'],
     feedCategories:['corruption'],
     weakCategories:['discipline','soul'],
@@ -9094,8 +9578,8 @@ const ENEMY_DEFS = {
     icon: '🌀',
     theme: 'Thrives in clutter, disorder, and unfinished systems.',
     startHp: 75, startMax: 75,
-    feedActions:   ['avoidedTask','junkMeal','junkSnack','overeat','doomscrolled'],
-    weakActions:   ['organizeInventory','purge','upkeepTask','householdTask','cleanArea','completeMinorTask','completeMediumTask'],
+    feedActions:   ['avoidedTask','procrastinate','junkMeal','junkSnack','overeat','doomscrolled'],
+    weakActions:   ['organizeInventory','purge','upkeepTask','householdTask','cleanArea','completeMinorTask','completeMediumTask','stream'],
     feedCategories:['corruption','food'],
     weakCategories:['discipline'],
     passiveLabel:  'Discipline gains -5% when strong',
@@ -9129,7 +9613,7 @@ const ENEMY_DEFS = {
   },
 };
 
-const ENEMY_DEFEAT_SIGNAL = 20;
+const ENEMY_DEFEAT_SIGNAL = 15;
 
 function ensureEnemies() {
   if (!S.corruptionEnemies) S.corruptionEnemies = {};
@@ -9223,7 +9707,9 @@ function calcEnemyDamage(action, enemy) {
 
 // Calculate HP healed when a negative action feeds an enemy
 function calcEnemyHeal(action, enemy) {
-  const base = Math.round(5 + (action.xp || 0) * 0.5 + enemy.spread);
+  let base = Math.round(5 + (action.xp || 0) * 0.5 + enemy.spread);
+  if (action.id === 'procrastinate' && enemy.id === 'entropyBloom') base += 6;
+  if (action.id === 'procrastinate' && enemy.id === 'doomscrollParasite') base += 2;
   return Math.max(2, Math.min(base, 25));
 }
 
@@ -9511,7 +9997,7 @@ function getStrongestEnemy() {
 
 // ── TACTICAL ACTION 1 — Neural Scan ──────────────────────────────────────
 function tacticalNeuralScan() {
-  if (!spendSignal(25, 'Neural Scan')) return;
+  if (!spendSignal(30, 'Neural Scan')) return;
   const enemy = getStrongestEnemy();
   const def   = enemy ? ENEMY_DEFS[enemy.id] : null;
   if (!enemy || !def) {
@@ -9532,7 +10018,7 @@ function tacticalNeuralScan() {
 
 // ── TACTICAL ACTION 2 — Signal Burst ─────────────────────────────────────
 function tacticalSignalBurst() {
-  if (!spendSignal(50, 'Signal Burst')) return;
+  if (!spendSignal(70, 'Signal Burst')) return;
   const enemy = getStrongestEnemy();
   if (!enemy) {
     toast('◎ SIGNAL BURST', 'No active threats.', '', 'success');
@@ -9564,7 +10050,7 @@ function tacticalSignalBurst() {
 
 // ── TACTICAL ACTION 3 — Firewall Reinforcement ───────────────────────────
 function tacticalFirewallReinforcement() {
-  if (!spendSignal(75, 'Firewall Reinforcement')) return;
+  if (!spendSignal(90, 'Firewall Reinforcement')) return;
   const exp = Date.now() + 24 * 60 * 60 * 1000;
   addBuff({
     id:          'firewallReinforcement',
@@ -9585,7 +10071,7 @@ function tacticalFirewallReinforcement() {
 
 // ── TACTICAL ACTION 4 — Recovery Pulse ───────────────────────────────────
 function tacticalRecoveryPulse() {
-  if (!spendSignal(60, 'Recovery Pulse')) return;
+  if (!spendSignal(75, 'Recovery Pulse')) return;
   const cs = getCombatStats();
   // Restore stats
   S.stats.corruption = Math.max(0, S.stats.corruption - 5);
@@ -9614,7 +10100,7 @@ function tacticalEmergencyShutdown() {
     toast('⚠ UNAVAILABLE', 'Emergency Shutdown', 'Available at corruption ≥50 or CORRUPTED state.', 'warn');
     return;
   }
-  if (!spendSignal(100, 'Emergency Shutdown')) return;
+  if (!spendSignal(140, 'Emergency Shutdown')) return;
   // Energy cost
   S.energy.current = clamp(S.energy.current - 10, 0, S.energy.max);
   // Stat recovery
@@ -9653,11 +10139,11 @@ function renderTacticalGrid() {
   const canCorrupt = S.stats.corruption >= 50 || S.currentSystemState === 'CORRUPTED';
 
   const actions = [
-    { id:'neuralScan', icon:'◎', name:'Neural Scan', cost:25, desc:'Identify primary threat and recommended counters.', fn:'tacticalNeuralScan()', danger:false },
-    { id:'signalBurst', icon:'⚡', name:'Signal Burst', cost:50, desc:'Direct damage strike on the strongest active threat.', fn:'tacticalSignalBurst()', danger:false },
-    { id:'firewallReinforcement', icon:'▣', name:'Firewall Reinforce', cost:75, desc:'Enemy spread growth -25% for 24 hours.', fn:'tacticalFirewallReinforcement()', danger:false, activeIfBuff:'firewallReinforcement' },
-    { id:'recoveryPulse', icon:'+', name:'Recovery Pulse', cost:60, desc:'Corruption -5, Energy +10. Light AOE damage.', fn:'tacticalRecoveryPulse()', danger:false },
-    { id:'emergencyShutdown', icon:'!', name:'Emergency Shutdown', cost:100, desc:'Corruption -10, Control +5, Energy -10. Heavy strike.', fn:'tacticalEmergencyShutdown()', danger:true, requireCorrupt:true },
+    { id:'neuralScan', icon:'◎', name:'Neural Scan', cost:30, desc:'Identify primary threat and recommended counters.', fn:'tacticalNeuralScan()', danger:false },
+    { id:'signalBurst', icon:'⚡', name:'Signal Burst', cost:70, desc:'Direct damage strike on the strongest active threat.', fn:'tacticalSignalBurst()', danger:false },
+    { id:'firewallReinforcement', icon:'▣', name:'Firewall Reinforce', cost:90, desc:'Enemy spread growth -25% for 24 hours.', fn:'tacticalFirewallReinforcement()', danger:false, activeIfBuff:'firewallReinforcement' },
+    { id:'recoveryPulse', icon:'+', name:'Recovery Pulse', cost:75, desc:'Corruption -5, Energy +10. Light AOE damage.', fn:'tacticalRecoveryPulse()', danger:false },
+    { id:'emergencyShutdown', icon:'!', name:'Emergency Shutdown', cost:140, desc:'Corruption -10, Control +5, Energy -10. Heavy strike.', fn:'tacticalEmergencyShutdown()', danger:true, requireCorrupt:true },
   ];
 
   grid.innerHTML = actions.map(a => {
@@ -9713,7 +10199,7 @@ const PROTOCOL_DEFS = [
     name: 'Training Gi',
     icon: '🥋',
     category: 'Body Systems',
-    cost: 150,
+    cost: 180,
     description: 'Physical combat ritual encoded into the system. BJJ actions carry stronger stabilization force.',
     effectText: 'BJJ gives +10% Body XP and +10% damage vs Burnout Wraith.',
     unlockReqText: 'Log BJJ 3 times.',
@@ -9729,7 +10215,7 @@ const PROTOCOL_DEFS = [
     name: 'Mobility Circuit',
     icon: '🚶',
     category: 'Body Systems',
-    cost: 100,
+    cost: 125,
     description: 'Low-impact movement restores system mobility and keeps decay from hardening.',
     effectText: 'Stretch and Walk restore +2 additional Energy.',
     unlockReqText: 'Log Stretch or Walk 5 times.',
@@ -9744,7 +10230,7 @@ const PROTOCOL_DEFS = [
     name: 'Clean Workspace Protocol',
     icon: '🧹',
     category: 'Discipline Systems',
-    cost: 175,
+    cost: 225,
     description: 'Environmental chaos dampened. Disorder has less room to reproduce.',
     effectText: 'Entropy Bloom spread reduced by 15%.',
     unlockReqText: 'Log cleanup/organization actions 5 times.',
@@ -9761,7 +10247,7 @@ const PROTOCOL_DEFS = [
     name: 'Deep Work Rig',
     icon: '📡',
     category: 'Grift Systems',
-    cost: 200,
+    cost: 350,
     description: 'Operational output routed through a higher-efficiency work channel.',
     effectText: 'Grift actions generate +10% Signal.',
     unlockReqText: 'Log 5 Grift actions.',
@@ -9775,7 +10261,7 @@ const PROTOCOL_DEFS = [
     name: 'Sleep Firewall',
     icon: '😴',
     category: 'Firewall Systems',
-    cost: 200,
+    cost: 350,
     description: 'Night-cycle defenses reinforced. Sleep corruption has less access.',
     effectText: 'Deep Night Signal feeds 25% less from late-night behavior.',
     unlockReqText: 'Log Sleep On Time 3 times.',
@@ -9789,7 +10275,7 @@ const PROTOCOL_DEFS = [
     name: 'Recovery Drone',
     icon: '🛡️',
     category: 'Recovery Systems',
-    cost: 225,
+    cost: 275,
     description: 'Passive stabilization drone runs minor repairs at system boot.',
     effectText: 'On app open: reduce Corruption by 1 if above 25.',
     unlockReqText: 'Log Recovery actions 5 times.',
@@ -9803,7 +10289,7 @@ const PROTOCOL_DEFS = [
     name: 'Philosophy Cache',
     icon: '📖',
     category: 'Recovery Systems',
-    cost: 125,
+    cost: 175,
     description: 'Stored wisdom archive improves reflective processing.',
     effectText: 'Study Philosophy gives +2 Soul and +5 Signal.',
     unlockReqText: 'Log Study Philosophy 3 times.',
@@ -9817,7 +10303,7 @@ const PROTOCOL_DEFS = [
     name: 'Inventory Grid',
     icon: '🗃️',
     category: 'Grift Systems',
-    cost: 150,
+    cost: 225,
     description: 'Inventory systems reduce operational chaos and strengthen anti-entropy output.',
     effectText: 'Organize Inventory damages Entropy Bloom +20% and gives +5 Signal.',
     unlockReqText: 'Log Organize Inventory 3 times.',
@@ -9831,7 +10317,7 @@ const PROTOCOL_DEFS = [
     name: 'Control Anchor',
     icon: '⚓',
     category: 'Firewall Systems',
-    cost: 250,
+    cost: 450,
     description: 'Emotional containment anchor installed. Instability still registers, but spreads less.',
     effectText: 'Negative actions increase Corruption 10% less.',
     unlockReqText: 'Log Apologize/Repair, Meditate, or No Doomscroll Block 5 times.',
@@ -9846,7 +10332,7 @@ const PROTOCOL_DEFS = [
     name: 'Signal Amplifier',
     icon: '📶',
     category: 'Signal Systems',
-    cost: 300,
+    cost: 650,
     description: 'Core reward architecture amplified. Real action converts more efficiently into usable Signal.',
     effectText: 'All positive actions generate +5% Signal.',
     unlockReqText: 'Reach Level 5.',
@@ -10263,9 +10749,9 @@ const VIRUS_BOSS_DEFS = [
     name: 'THE AVOIDANCE WRAITH',
     icon: '🙈',
     baseHp: [280, 360],
-    feedActions:   ['avoidedTask','doomscrolled','skippedWorkout'],
+    feedActions:   ['avoidedTask','procrastinate','doomscrolled','skippedWorkout'],
     feedCategories:['corruption'],
-    weakActions:   ['backlogTask','list1','list10','upkeepTask','workBlock30'],
+    weakActions:   ['backlogTask','list1','list10','stream','completeMinorTask','completeMediumTask','upkeepTask','workBlock30'],
     weakCategories:['grift','discipline'],
     passiveEffectText: 'Signal generation slightly reduced while active.',
     passiveType: 'signalMalus',
@@ -10312,7 +10798,7 @@ const VIRUS_BOSS_DEFS = [
   },
 ];
 
-const VIRUS_BOSS_SIGNAL_REWARD = 200;
+const VIRUS_BOSS_SIGNAL_REWARD = 160;
 const VIRUS_BOSS_XP_REWARD     = 150;
 
 function ensureWeeklyBoss() {
@@ -10536,6 +11022,7 @@ function init() {
 
   renderAllActions();
   updateUI();
+  checkMovementDecay();
   applyVisualVibe();
   updateCaffeineMeter();
   loadAudioPref();
@@ -10543,6 +11030,7 @@ function init() {
   _briefingPhaseCache = getTimePhase().id;
   generateBriefing();
   startBriefingClock();
+  setInterval(checkMovementDecay, 5 * 60 * 1000);
   // War system boot
   renderWarHUD();
   addWarLog('system', 'System online. War readiness assessed.');
