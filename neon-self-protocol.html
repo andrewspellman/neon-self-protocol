@@ -147,20 +147,46 @@ body::before{
   line-height:1.6;
   position:relative;
   overflow:hidden;
-  transition:border-left-color 1.2s ease, background 1.2s ease;
+  cursor:pointer;
+  transition:border-left-color 1.2s ease, background 1.2s ease, padding 0.2s ease, filter 0.15s ease;
 }
+.briefing:hover{filter:brightness(1.08);}
+.briefing:active{transform:scale(0.995);}
 .briefing-phase{
-  display:block;font-size:9px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:9px;
   letter-spacing:3px;margin-bottom:6px;
   font-weight:700;text-transform:uppercase;
   color:var(--briefing-accent, var(--neon-cyan));
   transition:color 1.2s ease;
 }
+.briefing-phase::after{
+  content:'⌃';
+  font-size:11px;
+  letter-spacing:0;
+  opacity:0.55;
+  transform:rotate(0deg);
+  transition:transform 0.2s ease, opacity 0.2s ease;
+}
 .briefing-text{
   display:block;
-  transition:opacity 0.4s ease;
+  max-height:120px;
+  transition:opacity 0.4s ease, max-height 0.22s ease, margin 0.22s ease;
 }
 .briefing-text.fading{opacity:0;}
+.briefing.collapsed{
+  padding:7px 12px;
+}
+.briefing.collapsed .briefing-phase{margin-bottom:0;}
+.briefing.collapsed .briefing-phase::after{
+  content:'›';
+  opacity:0.75;
+}
+.briefing.collapsed .briefing-text{
+  max-height:0;
+  opacity:0;
+  margin:0;
+  pointer-events:none;
+}
 
 /* Phase-specific briefing accents (applied via JS on #briefing) */
 .briefing.phase-morning { --briefing-accent:#00c8ff; }
@@ -837,7 +863,10 @@ body[class*="phase-"]::after{
   border-radius:5px;
   font-family:'Share Tech Mono',monospace;font-size:10px;
   transition:all 0.6s ease;
+  cursor:pointer;
 }
+.system-state-bar:hover{filter:brightness(1.14);border-color:rgba(0,200,255,0.22);}
+.system-state-bar:active{transform:scale(0.99);}
 .state-dot{
   width:7px;height:7px;border-radius:50%;
   background:var(--neon-cyan);
@@ -848,6 +877,7 @@ body[class*="phase-"]::after{
 .state-label{color:var(--text-dim);letter-spacing:1px;}
 .state-name{font-weight:700;letter-spacing:2px;color:var(--neon-cyan);transition:color 0.6s;}
 .state-effect{color:var(--text-dim);font-size:9px;margin-left:auto;letter-spacing:0.5px;}
+.state-info-cue{color:var(--text-dim);font-size:12px;opacity:0.75;margin-left:2px;}
 body.state-FLOW{--panel-border:rgba(0,255,136,0.2);}
 body.state-FLOW #systemStateBar{background:rgba(0,255,136,0.05);border-color:rgba(0,255,136,0.2);}
 body.state-FLOW .state-dot{background:var(--neon-green);box-shadow:0 0 10px var(--neon-green);}
@@ -1856,7 +1886,10 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
   border:1px solid rgba(100,180,255,0.2);
   border-radius:5px;
   animation:fadeSlideIn 0.4s ease;
+  touch-action:manipulation;
 }
+.freeze-bar.info-ready{cursor:help;}
+.freeze-bar.info-ready:hover{background:rgba(100,180,255,0.075);}
 .freeze-icon{font-size:16px;flex-shrink:0;}
 .freeze-body{flex:1;}
 .freeze-label{
@@ -1878,6 +1911,48 @@ body.mvd-active .system-state-bar{border-color:rgba(0,200,255,0.08);}
 }
 .freeze-btn:hover{background:rgba(100,180,255,0.15);}
 .freeze-btn:disabled{opacity:0.3;cursor:default;}
+
+/* ===== COMPACT INFO MODALS ===== */
+.info-modal{
+  display:none;position:fixed;inset:0;z-index:470;
+  background:rgba(0,0,0,0.86);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:18px;
+}
+.info-modal-card{
+  width:100%;max-width:420px;max-height:86vh;overflow-y:auto;
+  background:#0d1525;border:1px solid rgba(0,200,255,0.25);
+  border-radius:8px;padding:18px 16px;
+  box-shadow:0 0 24px rgba(0,200,255,0.1),0 18px 50px rgba(0,0,0,0.75);
+}
+.info-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.info-modal-title{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;
+  color:var(--neon-cyan);letter-spacing:2px;text-transform:uppercase;
+}
+.info-modal-close{
+  background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:4px;
+  color:var(--text-dim);padding:5px 9px;cursor:pointer;
+  font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;
+}
+.info-modal-section{margin-top:12px;}
+.info-modal-kicker{
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
+  color:var(--text-dim);text-transform:uppercase;margin-bottom:5px;
+}
+.info-modal-text{
+  font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.65;
+  color:#8aa0c4;
+}
+.info-modal-list{display:grid;gap:5px;margin-top:6px;}
+.info-modal-chip{
+  font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1.4;
+  color:#c8e8ff;background:rgba(255,255,255,0.035);
+  border:1px solid rgba(255,255,255,0.07);border-radius:4px;
+  padding:6px 8px;
+}
+.info-modal-chip.good{color:var(--neon-green);border-color:rgba(0,255,136,0.18);background:rgba(0,255,136,0.045);}
+.info-modal-chip.bad{color:var(--neon-orange);border-color:rgba(255,106,0,0.18);background:rgba(255,106,0,0.045);}
+.info-modal-chip.alert{color:#ff7790;border-color:rgba(255,34,68,0.24);background:rgba(255,34,68,0.055);}
 
 /* ===== WEEKLY REVIEW PROMPT ===== */
 .review-prompt{
@@ -3105,11 +3180,12 @@ input[type=range].music-slider::-moz-range-thumb{
       <span class="briefing-text" id="briefingText">Initializing system...</span>
     </div>
     <!-- System State Indicator -->
-    <div id="systemStateBar" class="system-state-bar">
+    <div id="systemStateBar" class="system-state-bar" onclick="openStateDetailsModal()" role="button" tabindex="0" title="View state diagnostics">
       <span class="state-dot" id="stateDot"></span>
       <span class="state-label">STATE:</span>
       <span class="state-name" id="stateName">NOMINAL</span>
       <span class="state-effect" id="stateEffect"></span>
+      <span class="state-info-cue">›</span>
     </div>
     <!-- Archetype -->
     <div id="archetypeBar" class="archetype-bar">
@@ -3167,7 +3243,7 @@ input[type=range].music-slider::-moz-range-thumb{
     </div>
     <!-- Streak Freeze Token -->
     <div id="freezeBar" style="display:none">
-      <div class="freeze-bar">
+      <div class="freeze-bar info-ready" id="freezeInfoTarget" title="Hold for freeze info">
         <span class="freeze-icon">🧊</span>
         <div class="freeze-body">
           <span class="freeze-label">STREAK FREEZE</span>
@@ -3696,6 +3772,28 @@ input[type=range].music-slider::-moz-range-thumb{
   </div>
 </div>
 
+<!-- SYSTEM STATE DETAILS MODAL -->
+<div id="stateDetailsModal" class="info-modal" onclick="if(event.target===this)closeStateDetailsModal()">
+  <div class="info-modal-card">
+    <div class="info-modal-head">
+      <div class="info-modal-title" id="stateDetailsTitle">STATE DIAGNOSTIC</div>
+      <button class="info-modal-close" onclick="closeStateDetailsModal()">CLOSE</button>
+    </div>
+    <div id="stateDetailsBody"></div>
+  </div>
+</div>
+
+<!-- STREAK FREEZE INFO MODAL -->
+<div id="freezeInfoModal" class="info-modal" onclick="if(event.target===this)closeFreezeInfoModal()">
+  <div class="info-modal-card">
+    <div class="info-modal-head">
+      <div class="info-modal-title">STREAK FREEZE</div>
+      <button class="info-modal-close" onclick="closeFreezeInfoModal()">CLOSE</button>
+    </div>
+    <div id="freezeInfoBody"></div>
+  </div>
+</div>
+
 <!-- OPERATIVE LOG MODAL -->
 <div id="opLogModal" style="display:none;position:fixed;inset:0;z-index:490;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;padding:0;">
   <div class="oplog-card">
@@ -3818,6 +3916,7 @@ const DEFAULT_STATE = {
   protocols: {},
   worldEvents: [],
   weeklyBoss: null,
+  ui: { briefingCollapsed:false },
 };
 
 let S = {};
@@ -3841,6 +3940,8 @@ function loadState() {
     if (!S.skills.recovery) S.skills.recovery = {xp:0,level:1};
     if (S.caffeineMg === undefined) S.caffeineMg = 0;
     if (!S.caffeineDate) S.caffeineDate = null;
+    if (!S.ui) S.ui = { briefingCollapsed:false };
+    if (S.ui.briefingCollapsed === undefined) S.ui.briefingCollapsed = false;
   } catch(e) {
     S = JSON.parse(JSON.stringify(DEFAULT_STATE));
   }
@@ -5878,6 +5979,54 @@ const PHASE_DIRECTIVES = {
   ],
 };
 
+let _briefingCollapsed = false;
+
+function loadBriefingCollapsed() {
+  if (!S.ui) S.ui = { briefingCollapsed:false };
+  _briefingCollapsed = !!S.ui.briefingCollapsed;
+}
+
+function saveBriefingCollapsed() {
+  if (!S.ui) S.ui = {};
+  S.ui.briefingCollapsed = _briefingCollapsed;
+  saveState();
+}
+
+function renderBriefingCollapseState() {
+  const briefingEl = document.getElementById('briefing');
+  const phaseEl = document.getElementById('briefingPhase');
+  if (!briefingEl || !phaseEl) return;
+  if (S.ui && typeof S.ui.briefingCollapsed === 'boolean') {
+    _briefingCollapsed = S.ui.briefingCollapsed;
+  }
+  const phase = getTimePhase();
+  briefingEl.classList.toggle('collapsed', _briefingCollapsed);
+  phaseEl.textContent = _briefingCollapsed ? `${phase.label} ▸` : `> ${phase.label}`;
+  briefingEl.setAttribute('aria-expanded', _briefingCollapsed ? 'false' : 'true');
+}
+
+function toggleBriefing() {
+  _briefingCollapsed = !_briefingCollapsed;
+  saveBriefingCollapsed();
+  renderBriefingCollapseState();
+}
+
+function initBriefingCollapse() {
+  loadBriefingCollapsed();
+  const briefingEl = document.getElementById('briefing');
+  if (!briefingEl) return;
+  briefingEl.setAttribute('role', 'button');
+  briefingEl.setAttribute('tabindex', '0');
+  briefingEl.addEventListener('click', toggleBriefing);
+  briefingEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleBriefing();
+    }
+  });
+  renderBriefingCollapseState();
+}
+
 function generateBriefing() {
   const phase = getTimePhase();
   const { id } = phase;
@@ -5891,7 +6040,7 @@ function generateBriefing() {
   briefingEl.classList.add(`phase-${id}`);
 
   // Update phase label
-  document.getElementById('briefingPhase').textContent = `> ${phase.label}`;
+  renderBriefingCollapseState();
 
   // Check for system state override (40% chance when in non-nominal state)
   const state = S.currentSystemState || 'NOMINAL';
@@ -6327,6 +6476,140 @@ function renderSystemStateUI() {
   document.body.className = document.body.className
     .replace(/state-\S+/g, '').trim();
   document.body.classList.add(`state-${state}`);
+}
+
+function getActionLabel(actionId) {
+  if (typeof ACTIONS === 'undefined') return actionId;
+  for (const group of Object.values(ACTIONS)) {
+    const found = group.find(a => a.id === actionId);
+    if (found) return found.name;
+  }
+  return actionId;
+}
+
+function getStateRecommendations(stateName) {
+  const state = stateName || S.currentSystemState || 'NOMINAL';
+  const byState = {
+    FLOW: ['Complete Medium Task','Walk','No Doomscroll Block'],
+    DISCIPLINE: ['Complete Upkeep Task','Complete Backlog Task','No Doomscroll Block','Sleep On Time'],
+    BURNOUT: ['Take Actual Break','Meditate','Power Nap','Stretch','Family Time'],
+    NOMINAL: ['Complete one meaningful action','Add one Body action','Keep corruption inputs offline'],
+  };
+
+  if (state !== 'CORRUPTED') return byState[state] || byState.NOMINAL;
+
+  const base = ['Apologize / Repair','Meditate','Take Actual Break','Walk','No Doomscroll Block','Sleep On Time','Drink Water','Power Nap','Clean One Area'];
+  const enemy = (typeof getStrongestEnemy === 'function') ? getStrongestEnemy() : null;
+  const enemyRecs = {
+    doomscrollParasite: ['No Doomscroll Block','Sleep On Time','Study Philosophy'],
+    entropyBloom: ['Clean One Area','Purge Possessions','Organize Inventory'],
+    burnoutWraith: ['Take Actual Break','Power Nap','Family Time','Stretch'],
+    deepNightSignal: ['Sleep On Time','No Doomscroll Block','Meditate'],
+  };
+  const tailored = enemy ? (enemyRecs[enemy.id] || []) : [];
+  return [...new Set([...tailored, ...base])].slice(0, 8);
+}
+
+function getCurrentStateDetails() {
+  const state = S.currentSystemState || 'NOMINAL';
+  const cfg = STATE_CONFIG[state] || STATE_CONFIG.NOMINAL;
+  const recent = (S.history || []).slice(0, 20);
+  const recentPositive = recent.filter(h => h.type === 'positive' || h.type === 'mission' || h.type === 'recovery');
+  const recentNegative = recent.filter(h => h.type === 'negative');
+  const recentCats = recentPositive.map(h => h.category);
+  const hasRecovery = recentCats.some(c => c === 'recovery' || c === 'soul');
+  const griftCount = recentCats.filter(c => c === 'grift').length;
+  const disciplineCount = recentCats.filter(c => c === 'discipline').length;
+  const bodyCount = recentCats.filter(c => c === 'body').length;
+  const soulCount = recentCats.filter(c => c === 'soul').length;
+  const categoriesUsed = new Set(recentCats.slice(0, 12)).size;
+  const recentStreakClean = recent.slice(0, 5).filter(h => h.type !== 'negative').length >= 4;
+  const stats = S.stats || {};
+  const enemy = state === 'CORRUPTED' && typeof getStrongestEnemy === 'function' ? getStrongestEnemy() : null;
+
+  const descriptions = {
+    NOMINAL: 'System stable. No strong modifier currently dominates the run.',
+    FLOW: 'Momentum state. Recent clean output is balanced across multiple systems.',
+    DISCIPLINE: 'Structure state. Control, streak, and discipline actions are holding the line.',
+    BURNOUT: 'Recovery debt state. Output has been high while Soul/recovery is underfed.',
+    CORRUPTED: 'Integrity breach. Negative patterns or corruption pressure are driving the system.',
+  };
+  const bonuses = {
+    NOMINAL: ['No active state bonus.'],
+    FLOW: ['XP x1.15','Signal economy running hot through balanced positive output.'],
+    DISCIPLINE: ['XP x1.10','Control pattern reinforced.','Signal stability improved through protocol adherence.'],
+    BURNOUT: ['No active state bonus.'],
+    CORRUPTED: ['No active state bonus.'],
+  };
+  const penalties = {
+    NOMINAL: [],
+    FLOW: ['Breaks if corruption rises, recent negatives land, or output narrows too far.'],
+    DISCIPLINE: [],
+    BURNOUT: ['XP x0.90','Recovery required before pushing high-output work.'],
+    CORRUPTED: ['XP x0.80','Recovery required. Corruption enemies may be applying passives.'],
+  };
+
+  const reasons = [];
+  if (state === 'CORRUPTED') {
+    if ((stats.corruption || 0) >= 50) reasons.push(`Corruption at ${Math.round(stats.corruption)}%.`);
+    if (recentNegative.length >= 5 && !hasRecovery) reasons.push(`${recentNegative.length} recent negative entries with no recovery anchor.`);
+    if (enemy) reasons.push(`Primary active threat: ${enemy.name} (${enemy.hp}/${enemy.maxHp} HP).`);
+  } else if (state === 'BURNOUT') {
+    reasons.push(`${griftCount + disciplineCount} recent Grift/Discipline actions against Soul ${Math.round(stats.soul || 0)}.`);
+    if (!hasRecovery) reasons.push('No recent recovery/soul action detected.');
+  } else if (state === 'FLOW') {
+    reasons.push(`${recentPositive.length} recent positive actions.`);
+    reasons.push(`${categoriesUsed} categories represented; corruption at ${Math.round(stats.corruption || 0)}%.`);
+    if (recentStreakClean) reasons.push('Recent chain is mostly clean.');
+  } else if (state === 'DISCIPLINE') {
+    reasons.push(`${disciplineCount} recent Discipline actions.`);
+    reasons.push(`Control ${Math.round(stats.control || 0)} with streak ${S.streak || 0}d.`);
+  } else {
+    reasons.push('No override thresholds currently active.');
+  }
+
+  return {
+    state,
+    label: cfg.label || state,
+    effect: cfg.effect || '',
+    description: descriptions[state] || descriptions.NOMINAL,
+    bonuses: bonuses[state] || bonuses.NOMINAL,
+    penalties: penalties[state] || [],
+    reasons: reasons.length ? reasons : ['State engine is nominal.'],
+    recommendations: getStateRecommendations(state),
+    enemy,
+  };
+}
+
+function renderInfoSection(title, items, cls = '') {
+  if (!items || !items.length) return '';
+  return `<div class="info-modal-section">
+    <div class="info-modal-kicker">${escHtml(title)}</div>
+    <div class="info-modal-list">${items.map(item => `<div class="info-modal-chip ${cls}">${escHtml(item)}</div>`).join('')}</div>
+  </div>`;
+}
+
+function openStateDetailsModal() {
+  const d = getCurrentStateDetails();
+  document.getElementById('stateDetailsTitle').textContent = d.label;
+  const recTitle = d.state === 'CORRUPTED' ? 'Recommended Stabilization Actions' : 'Recommended Actions';
+  const enemyLine = d.enemy ? `<div class="info-modal-section">
+    <div class="info-modal-kicker">Active Threat</div>
+    <div class="info-modal-text">${escHtml(d.enemy.name)} is the strongest active corruption enemy. Counter-actions are prioritized.</div>
+  </div>` : '';
+  document.getElementById('stateDetailsBody').innerHTML = `
+    <div class="info-modal-text">${escHtml(d.description)}</div>
+    ${renderInfoSection('Active Bonuses', d.bonuses, 'good')}
+    ${renderInfoSection('Active Penalties', d.penalties, d.state === 'CORRUPTED' ? 'alert' : 'bad')}
+    ${renderInfoSection('Why Active', d.reasons)}
+    ${enemyLine}
+    ${renderInfoSection(recTitle, d.recommendations, d.state === 'CORRUPTED' ? 'alert' : 'good')}
+  `;
+  document.getElementById('stateDetailsModal').style.display = 'flex';
+}
+
+function closeStateDetailsModal() {
+  document.getElementById('stateDetailsModal').style.display = 'none';
 }
 
 // Apply state multipliers to XP gain
@@ -6839,6 +7122,8 @@ function updateUI() {
 
   // System State UI
   renderSystemStateUI();
+  // Briefing collapsed state
+  renderBriefingCollapseState();
   // Combo UI
   renderComboUI();
   // Archetype UI
@@ -8042,6 +8327,101 @@ function useStreakFreeze() {
 
 function closeFreezeModal() {
   document.getElementById('freezeModal').style.display = 'none';
+}
+
+function getNextFreezeResetLabel() {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return next.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+}
+
+function openFreezeInfoModal() {
+  ensureStreakFreeze();
+  const tokens = S.streakFreeze?.tokens;
+  const tokenLine = Number.isFinite(tokens)
+    ? `Available this month: ${tokens} token${tokens === 1 ? '' : 's'}.`
+    : 'Available token count is not tracked in this build.';
+  const usedToday = S.streakFreeze?.lastUsedDate === todayStr();
+  document.getElementById('freezeInfoBody').innerHTML = `
+    <div class="info-modal-text">Streak Freeze protects your streak when life disrupts the system. It is not a failure shield for avoidance; it is a recovery buffer for real life. Monthly freezes reset at the start of each month.</div>
+    ${renderInfoSection('Current Status', [
+      tokenLine,
+      `Next reset: ${getNextFreezeResetLabel()}.`,
+      usedToday ? 'Status: active today. Streak is protected.' : 'Status: standing by.'
+    ], 'good')}
+    ${renderInfoSection('Usage Rules', [
+      'Use is manual from the freeze bar.',
+      'Activating a token marks today protected without logging an action.',
+      'Tokens regenerate monthly. Current system restores one token at month start.',
+      'Purpose: protect continuity during travel, illness, emergencies, or real overload.'
+    ])}
+  `;
+  document.getElementById('freezeInfoModal').style.display = 'flex';
+}
+
+function closeFreezeInfoModal() {
+  document.getElementById('freezeInfoModal').style.display = 'none';
+}
+
+let _freezeHoldTimer = null;
+let _freezeHoldOpened = false;
+let _freezeHoldStart = null;
+
+function clearFreezeHold() {
+  if (_freezeHoldTimer) clearTimeout(_freezeHoldTimer);
+  _freezeHoldTimer = null;
+  _freezeHoldStart = null;
+}
+
+function initFreezeLongPress() {
+  const target = document.getElementById('freezeInfoTarget');
+  if (!target) return;
+  target.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    _freezeHoldOpened = false;
+    clearFreezeHold();
+    _freezeHoldStart = { x:e.clientX, y:e.clientY };
+    _freezeHoldTimer = setTimeout(() => {
+      _freezeHoldOpened = true;
+      openFreezeInfoModal();
+    }, 600);
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(type => {
+    target.addEventListener(type, clearFreezeHold);
+  });
+  target.addEventListener('pointermove', e => {
+    if (!_freezeHoldStart) return;
+    const dx = Math.abs(e.clientX - _freezeHoldStart.x);
+    const dy = Math.abs(e.clientY - _freezeHoldStart.y);
+    if (dx > 10 || dy > 10) clearFreezeHold();
+  });
+  target.addEventListener('click', e => {
+    if (_freezeHoldOpened) {
+      e.preventDefault();
+      e.stopPropagation();
+      _freezeHoldOpened = false;
+    }
+  });
+}
+
+function initStateDetailsInteraction() {
+  const bar = document.getElementById('systemStateBar');
+  if (!bar) return;
+  bar.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openStateDetailsModal();
+    }
+  });
+}
+
+function initInfoModalKeys() {
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    closeStateDetailsModal();
+    closeFreezeInfoModal();
+    closeFreezeModal();
+  });
 }
 
 function confirmFreeze() {
@@ -11000,6 +11380,10 @@ function init() {
   ensureCatStreaks();
   ensureSeasonalArc();
   ensureOpLog();
+  initBriefingCollapse();
+  initFreezeLongPress();
+  initStateDetailsInteraction();
+  initInfoModalKeys();
   // Bootstrap records from existing history on first load
   // Check protocol unlocks on load (retroactive)
   setTimeout(() => { checkProtocolUnlocks(); renderProtocols(); }, 900);
