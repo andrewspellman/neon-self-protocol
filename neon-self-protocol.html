@@ -111,8 +111,12 @@ body::before{
   color:var(--neon-green);border:1px solid rgba(0,255,136,0.2);
   padding:2px 7px;border-radius:3px;
   background:rgba(0,255,136,0.04);white-space:nowrap;
-  transition:color 0.3s,border-color 0.3s;
+  transition:color 0.3s,border-color 0.3s,filter 0.15s,background 0.15s;
+  cursor:pointer;
 }
+.energy-badge::after{content:' ›';opacity:0.65;}
+.energy-badge:hover{filter:brightness(1.15);background:rgba(0,255,136,0.07);}
+.energy-badge:active{transform:scale(0.97);}
 .energy-badge.low     { color:var(--neon-orange);border-color:rgba(255,106,0,0.3); }
 .energy-badge.critical{ color:var(--neon-red);border-color:rgba(255,34,68,0.3); }
 
@@ -226,10 +230,15 @@ body[class*="phase-"]::after{
 .xp-row{
   display:flex;align-items:center;gap:6px;
   font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);
+  cursor:pointer;
+  transition:filter 0.15s;
 }
+.xp-row:hover{filter:brightness(1.15);}
+.xp-row:active{transform:scale(0.995);}
 .xp-bar-wrap{
   flex:1;height:6px;background:rgba(255,255,255,0.05);
   border-radius:3px;overflow:hidden;
+  border:1px solid rgba(255,221,0,0.08);
 }
 .xp-bar-fill{
   height:100%;background:linear-gradient(90deg,var(--neon-yellow),#ff8800);
@@ -239,6 +248,26 @@ body[class*="phase-"]::after{
 
 /* ===== STAT BARS ===== */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.stats-grid.collapsed{display:none;}
+.stats-compact{
+  display:none;align-items:center;gap:5px;flex-wrap:wrap;
+  margin-bottom:8px;padding:6px 8px;
+  background:rgba(255,255,255,0.025);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:5px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1.35;
+}
+.stats-compact.show{display:flex;}
+.stat-mini{
+  white-space:nowrap;letter-spacing:0.5px;
+  padding:2px 4px;border-radius:3px;
+  background:rgba(255,255,255,0.025);
+}
+.stat-mini.health{color:var(--health-color);}
+.stat-mini.focus{color:var(--focus-color);}
+.stat-mini.control{color:var(--control-color);}
+.stat-mini.soul{color:var(--soul-color);}
+.stat-mini.corruption{color:var(--corrupt-color);}
 .stat-row{
   background:rgba(255,255,255,0.02);
   border:1px solid rgba(255,255,255,0.04);
@@ -3171,7 +3200,7 @@ input[type=range].music-slider::-moz-range-thumb{
       <div class="logo">NSP // ANDREW</div>
       <div class="header-right">
         <div class="signal-badge" id="signalBadge">📶 0</div>
-        <div class="energy-badge" id="energyBadge">⚡ 70%</div>
+        <div class="energy-badge" id="energyBadge" onclick="openEnergyInfoModal()" role="button" tabindex="0" title="View Operational Energy details">⚡ 70%</div>
         <div class="streak-badge" id="streakBadge">🔥 0d</div>
       </div>
     </div>
@@ -3201,7 +3230,7 @@ input[type=range].music-slider::-moz-range-thumb{
       <div class="level-badge" id="levelBadge">Lv.1</div>
       <div class="level-info">
         <div class="rank-name" id="rankName">Street Initiate</div>
-        <div class="xp-row">
+        <div class="xp-row" id="xpToggle" onclick="toggleStatsCollapsed()" role="button" tabindex="0" title="Tap XP bar to collapse stats">
           <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBar" style="width:0%"></div></div>
           <span id="xpLabel" style="color:var(--neon-yellow);font-family:'Share Tech Mono',monospace;font-size:10px">0/100</span>
         </div>
@@ -3212,7 +3241,8 @@ input[type=range].music-slider::-moz-range-thumb{
       </div>
     </div>
     <!-- Stats -->
-    <div class="stats-grid">
+    <div class="stats-compact" id="statsCompact"></div>
+    <div class="stats-grid" id="statsGrid">
       <div class="stat-row s-health" oncontextmenu="showStatPopup(event,'health');return false;" ontouchstart="startStatHold(event,'health')" ontouchend="clearStatHold()" ontouchmove="clearStatHold()">
         <div class="stat-header"><span class="stat-label">HEALTH</span></div>
         <div class="stat-bar"><div class="stat-fill" id="barHealth" style="width:50%"></div></div>
@@ -3794,6 +3824,17 @@ input[type=range].music-slider::-moz-range-thumb{
   </div>
 </div>
 
+<!-- OPERATIONAL ENERGY INFO MODAL -->
+<div id="energyInfoModal" class="info-modal" onclick="if(event.target===this)closeEnergyInfoModal()">
+  <div class="info-modal-card">
+    <div class="info-modal-head">
+      <div class="info-modal-title">OPERATIONAL ENERGY</div>
+      <button class="info-modal-close" onclick="closeEnergyInfoModal()">CLOSE</button>
+    </div>
+    <div id="energyInfoBody"></div>
+  </div>
+</div>
+
 <!-- OPERATIVE LOG MODAL -->
 <div id="opLogModal" style="display:none;position:fixed;inset:0;z-index:490;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;padding:0;">
   <div class="oplog-card">
@@ -3850,6 +3891,8 @@ const DEFAULT_STATE = {
   missionsDate: null,
   dailyExerciseMission: null,
   movementDecay: { date:null, applied:[] },
+  lastHourlyMovementDecayAt: null,
+  hourlyMovementDecay: null,
   boss: {
     name: '',
     week: '',
@@ -3897,6 +3940,7 @@ const DEFAULT_STATE = {
   seasonalArc: null,   // current quarterly arc object
   opLog: [],           // daily operative log entries [ {date, text, actions} ]
   opLogPromptShown: null, // date string of last prompt shown
+  dailyLogPromptLastShownDate: null,
   streakFreeze: {
     tokens: 1,             // available freeze tokens
     lastEarnedMonth: null, // month string of last earned token
@@ -3916,7 +3960,7 @@ const DEFAULT_STATE = {
   protocols: {},
   worldEvents: [],
   weeklyBoss: null,
-  ui: { briefingCollapsed:false },
+  ui: { briefingCollapsed:false, statsCollapsed:false },
 };
 
 let S = {};
@@ -3940,8 +3984,9 @@ function loadState() {
     if (!S.skills.recovery) S.skills.recovery = {xp:0,level:1};
     if (S.caffeineMg === undefined) S.caffeineMg = 0;
     if (!S.caffeineDate) S.caffeineDate = null;
-    if (!S.ui) S.ui = { briefingCollapsed:false };
+    if (!S.ui) S.ui = { briefingCollapsed:false, statsCollapsed:false };
     if (S.ui.briefingCollapsed === undefined) S.ui.briefingCollapsed = false;
+    if (S.ui.statsCollapsed === undefined) S.ui.statsCollapsed = false;
   } catch(e) {
     S = JSON.parse(JSON.stringify(DEFAULT_STATE));
   }
@@ -5693,6 +5738,63 @@ function hasMovementToday() {
   });
 }
 
+function getLastMovementActionTime() {
+  const movement = (S.history || []).find(h => {
+    if (!h.time) return false;
+    if (MOVEMENT_ACTION_IDS.includes(h.actionId)) return true;
+    return MOVEMENT_ACTION_NAMES.includes((h.action || '').replace(/\s+\(.+\)$/,''));
+  });
+  return movement ? new Date(movement.time).getTime() : null;
+}
+
+function checkHourlyMovementDecay() {
+  const now = Date.now();
+  const hour = new Date().getHours();
+  if (hour >= 0 && hour < 5) return false; // protect deep-night sleep window
+
+  const lastMove = getLastMovementActionTime();
+  if (lastMove && now - lastMove < 60 * 60 * 1000) return false;
+  if (!lastMove) {
+    const lastAny = (S.history || []).find(h => h.time);
+    if (!lastAny) return false;
+    const lastAnyTime = new Date(lastAny.time).getTime();
+    if (!Number.isFinite(lastAnyTime) || now - lastAnyTime < 60 * 60 * 1000) return false;
+  }
+
+  const lastDecay = S.lastHourlyMovementDecayAt ? new Date(S.lastHourlyMovementDecayAt).getTime() : 0;
+  if (lastDecay && now - lastDecay < 60 * 60 * 1000) return false;
+
+  const prevHealth = Math.round(S.stats.health || 0);
+  if (prevHealth <= 0) return false;
+
+  applyFX({ health:-1 });
+  S.lastHourlyMovementDecayAt = new Date(now).toISOString();
+  const today = todayStr();
+  if (!S.hourlyMovementDecay || S.hourlyMovementDecay.date !== today) {
+    S.hourlyMovementDecay = { date: today, count: 0 };
+  }
+  S.hourlyMovementDecay.count = (S.hourlyMovementDecay.count || 0) + 1;
+
+  const corruptionFx = (S.hourlyMovementDecay.count >= 3 && (now - (lastMove || 0)) >= 3 * 60 * 60 * 1000) ? ' corruption+1' : '';
+  if (corruptionFx) applyFX({ corruption:1 });
+
+  S.history.unshift({
+    time: new Date(now).toISOString(),
+    action: '[SYSTEM] Movement deficit detected. Health systems softened slightly.',
+    category: 'system',
+    effects: `health-1${corruptionFx}`,
+    xp: 0,
+    signal: 0,
+    type: 'system',
+  });
+  if (S.history.length > 500) S.history = S.history.slice(0,500);
+  addWarLog('warning', 'Movement deficit detected. Health systems softened slightly.', { health: S.stats.health });
+  if (S.stats.health <= 35 && S.hourlyMovementDecay.count >= 2) {
+    toast('BODY SYSTEMS', 'Movement deficit detected.', '10 Exercises will stabilize Body systems.', 'warn');
+  }
+  return true;
+}
+
 function feedEnemyPressure(id, hpGain, spreadGain = 0.15, label = 'system pressure') {
   ensureEnemies();
   const enemy = S.corruptionEnemies?.[id];
@@ -5705,7 +5807,11 @@ function feedEnemyPressure(id, hpGain, spreadGain = 0.15, label = 'system pressu
 
 function checkMovementDecay() {
   ensureMovementDecayState();
-  if (hasMovementToday()) return;
+  const rollingDecayApplied = checkHourlyMovementDecay();
+  if (hasMovementToday()) {
+    if (rollingDecayApplied) saveState();
+    return;
+  }
 
   const hour = new Date().getHours();
   const windows = [
@@ -5728,6 +5834,8 @@ function checkMovementDecay() {
   }
   if (appliedAny) {
     toast('⚠ BODY SYSTEMS', latestMsg, 'Minimum viable movement recommended.', 'warn');
+    saveState();
+  } else if (rollingDecayApplied) {
     saveState();
   }
 }
@@ -6025,6 +6133,54 @@ function initBriefingCollapse() {
     }
   });
   renderBriefingCollapseState();
+}
+
+function renderStatsCollapseState() {
+  const grid = document.getElementById('statsGrid');
+  const compact = document.getElementById('statsCompact');
+  const xpToggle = document.getElementById('xpToggle');
+  if (!grid || !compact) return;
+  if (!S.ui) S.ui = {};
+  const collapsed = !!S.ui.statsCollapsed;
+  const stats = S.stats || {};
+  const items = [
+    ['HLT','health', stats.health],
+    ['FOC','focus', stats.focus],
+    ['CTL','control', stats.control],
+    ['SOL','soul', stats.soul],
+    ['COR','corruption', stats.corruption],
+  ];
+  compact.innerHTML = items.map(([label, cls, value], i) =>
+    `<span class="stat-mini ${cls}">${label} ${Math.round(value || 0)}%</span>${i < items.length - 1 ? '<span style="color:var(--text-dim);opacity:0.55">·</span>' : ''}`
+  ).join('');
+  grid.classList.toggle('collapsed', collapsed);
+  compact.classList.toggle('show', collapsed);
+  if (xpToggle) {
+    xpToggle.title = collapsed ? 'Tap XP bar to expand stats' : 'Tap XP bar to collapse stats';
+    xpToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
+}
+
+function toggleStatsCollapsed() {
+  if (!S.ui) S.ui = {};
+  S.ui.statsCollapsed = !S.ui.statsCollapsed;
+  saveState();
+  renderStatsCollapseState();
+}
+
+function initStatsCollapse() {
+  if (!S.ui) S.ui = { briefingCollapsed:false, statsCollapsed:false };
+  if (S.ui.statsCollapsed === undefined) S.ui.statsCollapsed = false;
+  const xpToggle = document.getElementById('xpToggle');
+  if (xpToggle) {
+    xpToggle.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleStatsCollapsed();
+      }
+    });
+  }
+  renderStatsCollapseState();
 }
 
 function generateBriefing() {
@@ -7124,6 +7280,8 @@ function updateUI() {
   renderSystemStateUI();
   // Briefing collapsed state
   renderBriefingCollapseState();
+  // Stats collapsed state
+  renderStatsCollapseState();
   // Combo UI
   renderComboUI();
   // Archetype UI
@@ -7156,6 +7314,7 @@ function updateUI() {
   renderOpLogSection();
   renderHistory('today');
   renderTodayActions();
+  maybeShowOpLogPrompt();
 }
 
 // ==========================================================================
@@ -8363,6 +8522,49 @@ function closeFreezeInfoModal() {
   document.getElementById('freezeInfoModal').style.display = 'none';
 }
 
+function openEnergyInfoModal() {
+  ensureSignalEnergy();
+  const current = Math.round(S.energy?.current || 0);
+  const max = Math.round(S.energy?.max || 100);
+  const low = current < 30;
+  document.getElementById('energyInfoBody').innerHTML = `
+    <div class="info-modal-section">
+      <div class="info-modal-kicker">What It Is</div>
+      <div class="info-modal-text">Energy represents available daily capacity. High-output actions spend it. Recovery and good rhythm restore it.</div>
+    </div>
+    ${renderInfoSection('How It Regenerates', [
+      'Sleep On Time',
+      'Take Actual Break',
+      'Power Nap',
+      'Meditate',
+      'Walk / Stretch',
+      'Clean Meal / Water',
+      'Daily regen restores capacity at day rollover, reduced by recovery debt when yesterday borrowed too hard.'
+    ], 'good')}
+    ${renderInfoSection('What Drains It', [
+      'Stream',
+      'BJJ',
+      'Run',
+      'Lift Weights',
+      'List 10 Items',
+      'Complete Medium/Large tasks',
+      'Doomscrolling',
+      'Staying Up Too Late',
+      'Procrastinate',
+      'Late caffeine pressure, when caffeine systems flag it.'
+    ], 'bad')}
+    ${renderInfoSection('Current Status', [
+      `Current Energy: ${current} / ${max}`,
+      low ? 'Recovery recommended: Power Nap, Meditate, Take Actual Break, Walk, or Sleep On Time.' : 'Energy stable. Spend it deliberately.'
+    ], low ? 'alert' : 'good')}
+  `;
+  document.getElementById('energyInfoModal').style.display = 'flex';
+}
+
+function closeEnergyInfoModal() {
+  document.getElementById('energyInfoModal').style.display = 'none';
+}
+
 let _freezeHoldTimer = null;
 let _freezeHoldOpened = false;
 let _freezeHoldStart = null;
@@ -8420,7 +8622,19 @@ function initInfoModalKeys() {
     if (e.key !== 'Escape') return;
     closeStateDetailsModal();
     closeFreezeInfoModal();
+    closeEnergyInfoModal();
     closeFreezeModal();
+  });
+}
+
+function initEnergyInfoInteraction() {
+  const badge = document.getElementById('energyBadge');
+  if (!badge) return;
+  badge.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openEnergyInfoModal();
+    }
   });
 }
 
@@ -9495,21 +9709,22 @@ function renderSeasonalArc() {
 function ensureOpLog() {
   if (!S.opLog) S.opLog = [];
   if (S.opLogPromptShown === undefined) S.opLogPromptShown = null;
+  if (S.dailyLogPromptLastShownDate === undefined) S.dailyLogPromptLastShownDate = S.opLogPromptShown || null;
 }
 
 function shouldPromptOpLog() {
   ensureOpLog();
   const today = todayStr();
-  if (S.opLogPromptShown === today) return false; // already prompted today
+  if (S.dailyLogPromptLastShownDate === today || S.opLogPromptShown === today) return false; // already prompted today
   const alreadyLogged = S.opLog.some(e => e.date === today);
   if (alreadyLogged) return false; // already wrote today
-  const todayActions = S.todayActions || 0;
-  return todayActions >= 3;
+  return new Date().getHours() >= 21;
 }
 
 function maybeShowOpLogPrompt() {
   if (!shouldPromptOpLog()) return;
   ensureOpLog();
+  S.dailyLogPromptLastShownDate = todayStr();
   S.opLogPromptShown = todayStr();
   saveState();
   // Delay so it doesn't interrupt action toast
@@ -9521,7 +9736,7 @@ function showOpLogModal() {
   const todayCount = S.todayActions || 0;
   const sub = todayCount >= 8 ? `Strong day — ${todayCount} actions logged. What was the signal?` :
               todayCount >= 5 ? `${todayCount} actions in. One line — what happened today?` :
-              `3 actions logged. What's the thread of today?`;
+              `Daily Log Protocol available. Review today's signal, corruption, and recovery before shutdown.`;
   document.getElementById('opLogSub').textContent = sub;
   const input = document.getElementById('opLogInput');
   input.value = '';
@@ -11381,8 +11596,10 @@ function init() {
   ensureSeasonalArc();
   ensureOpLog();
   initBriefingCollapse();
+  initStatsCollapse();
   initFreezeLongPress();
   initStateDetailsInteraction();
+  initEnergyInfoInteraction();
   initInfoModalKeys();
   // Bootstrap records from existing history on first load
   // Check protocol unlocks on load (retroactive)
