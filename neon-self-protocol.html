@@ -3184,6 +3184,128 @@ input[type=range].music-slider::-moz-range-thumb{
 .protocol-integrity-fill.low{
   background:linear-gradient(90deg,var(--neon-red),var(--neon-pink));
 }
+
+/* ===== APP PAGE SYSTEM ===== */
+/* War Room page — fixed overlay that slides in from the right */
+#warRoomPage {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  z-index: 200;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transform: translateX(100%);
+  transition: transform 0.28s ease;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: calc(40px + env(safe-area-inset-bottom, 16px));
+  scrollbar-width: thin;
+  scrollbar-color: var(--neon-red) var(--bg2);
+}
+#warRoomPage.active {
+  transform: translateX(0);
+}
+#warRoomPage::-webkit-scrollbar { width: 4px; }
+#warRoomPage::-webkit-scrollbar-track { background: var(--bg2); }
+#warRoomPage::-webkit-scrollbar-thumb { background: var(--neon-red); border-radius: 2px; }
+
+/* War Room sticky header */
+#warRoomStickyTop {
+  position: sticky;
+  top: 0; z-index: 100;
+  background: rgba(5,8,16,0.97);
+  border-bottom: 1px solid rgba(255,34,68,0.18);
+  backdrop-filter: blur(12px);
+}
+.wr-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 10px;
+  gap: 8px;
+}
+.wr-back-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.wr-back-btn:hover { color: var(--neon-cyan); border-color: rgba(0,200,255,0.25); }
+.wr-back-btn:active { transform: scale(0.97); }
+.wr-title-block { text-align: center; flex: 1; min-width: 0; }
+.wr-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px; font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--neon-red);
+  text-shadow: 0 0 10px rgba(255,34,68,0.45);
+}
+.wr-subtitle {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.wr-signal-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--neon-cyan);
+  border: 1px solid rgba(0,200,255,0.25);
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: rgba(0,200,255,0.05);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+#warRoomContent {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 4px 14px 20px;
+}
+
+/* War HUD on protocol page — clickable to open War Room */
+.war-hud {
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+}
+.war-hud:hover { filter: brightness(1.15); }
+.war-hud:active { transform: scale(0.98); }
+.war-hud-goto {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 1px;
+  color: rgba(170,68,255,0.5);
+  white-space: nowrap;
+}
+
+/* Page indicator dots (in protocol nav row) */
+.page-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 3px 6px 5px;
+}
+.page-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.page-dot.active {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 5px rgba(0,200,255,0.5);
+}
+.page-dot.war.active {
+  background: var(--neon-red);
+  box-shadow: 0 0 5px rgba(255,34,68,0.5);
+}
 </style>
 </head>
 <body>
@@ -3304,12 +3426,13 @@ input[type=range].music-slider::-moz-range-thumb{
         <span class="review-prompt-arrow" style="color:var(--neon-purple);">›</span>
       </div>
     </div>
-    <!-- War Readiness HUD -->
-    <div id="warHUD" class="war-hud">
+    <!-- War Readiness HUD — tap to open War Room page -->
+    <div id="warHUD" class="war-hud" onclick="switchPage('war')" role="button" tabindex="0" title="Open War Room">
       <span class="war-hud-label">◈ WAR READINESS</span>
       <span class="war-hud-stats" id="warHUDStats">
         STR — · DEF — · FW — · REC — · SIG —
       </span>
+      <span class="war-hud-goto">☠ ›</span>
     </div>
   </div>
 
@@ -3323,7 +3446,6 @@ input[type=range].music-slider::-moz-range-thumb{
   <button class="nav-btn" onclick="showPanel('discipline')">Discipline</button>
   <button class="nav-btn" onclick="showPanel('corruption')">Corrupt</button>
   <button class="nav-btn" onclick="showPanel('seasonal')">🌐 Arc</button>
-  <button class="nav-btn" onclick="showPanel('warroom')">☠ War</button>
   <button class="nav-btn" onclick="showPanel('protocols')">◈ Proto</button>
   <button class="nav-btn" onclick="showPanel('creativity')">Create</button>
   <button class="nav-btn" onclick="showPanel('custom')">Custom</button>
@@ -3332,6 +3454,11 @@ input[type=range].music-slider::-moz-range-thumb{
   <button class="nav-btn" onclick="showPanel('settings')">⚙ Settings</button>
   <button class="nav-btn" onclick="showPanel('history')">History</button>
 </nav>
+  <!-- Page indicator: shows which app-level page is active -->
+  <div class="page-indicator" id="pageIndicator">
+    <div class="page-dot active" id="pageDot-protocol" title="Protocol page"></div>
+    <div class="page-dot war" id="pageDot-war" title="War Room page"></div>
+  </div>
 
   </div><!-- /stickyTop -->
 
@@ -3479,44 +3606,6 @@ input[type=range].music-slider::-moz-range-thumb{
       <div id="achievements-container"></div>
     </div>
 
-    <!-- WAR ROOM -->
-    <div class="panel" id="panel-warroom">
-      <div class="panel-title" style="color:var(--neon-red);text-shadow:0 0 8px rgba(255,34,68,0.3);">☠ WAR ROOM</div>
-
-      <!-- Signal Balance -->
-      <div class="war-signal-row">
-        <span class="war-signal-label">📶 AVAILABLE SIGNAL</span>
-        <span class="war-signal-val" id="warSignalVal">0</span>
-      </div>
-
-      <!-- Weekly Virus Boss -->
-      <div class="section-label">Weekly Virus Boss</div>
-      <div id="virusBossContainer"></div>
-
-      <!-- World Events -->
-      <div class="section-label" style="margin-top:14px">World Events</div>
-      <div id="worldEventsContainer"></div>
-
-      <!-- Active Buffs -->
-      <div id="activeBuffsSection" style="display:none;margin-bottom:10px;">
-        <div class="section-label">Active Buffs</div>
-        <div id="activeBuffsContainer"></div>
-      </div>
-
-      <!-- Tactical Actions -->
-      <div class="section-label">Tactical Actions</div>
-      <div class="tactical-grid" id="tacticalGrid">
-        <!-- Populated by renderWarRoom() -->
-      </div>
-
-      <!-- Enemy Threat Display -->
-      <div class="section-label" style="margin-top:14px">Active Threats</div>
-      <div id="enemyContainer"></div>
-
-      <div class="section-label" style="margin-top:14px">War Log</div>
-      <div id="warLogContainer"></div>
-    </div>
-
     <!-- PROTOCOLS -->
     <div class="panel" id="panel-protocols">
       <div class="panel-title" style="color:var(--neon-cyan);">◈ PROTOCOLS</div>
@@ -3603,6 +3692,56 @@ input[type=range].music-slider::-moz-range-thumb{
 
   </div><!-- /panels -->
 </div><!-- /app -->
+
+<!-- WAR ROOM PAGE — fixed overlay, slides in from right -->
+<div id="warRoomPage">
+  <div id="warRoomStickyTop">
+    <div class="wr-nav-row">
+      <button class="wr-back-btn" onclick="switchPage('protocol')">‹ PROTOCOL</button>
+      <div class="wr-title-block">
+        <div class="wr-title">☠ WAR ROOM</div>
+        <div class="wr-subtitle">CORRUPTION BATTLEFIELD</div>
+      </div>
+      <div class="wr-signal-badge">📶 <span id="warSignalVal">0</span></div>
+    </div>
+  </div>
+
+  <div id="warRoomContent">
+
+    <!-- 1. War Readiness / Combat Stats (populated by renderWarHUD via warHUDStats; shown as mirror badge here) -->
+    <div class="war-hud" style="margin-top:14px;cursor:default;pointer-events:none;">
+      <span class="war-hud-label">◈ WAR READINESS</span>
+      <span class="war-hud-stats" id="warRoomReadinessStats">STR — · DEF — · FW — · REC — · SIG —</span>
+    </div>
+
+    <!-- 2. Weekly Virus Boss -->
+    <div class="section-label" style="margin-top:14px">Weekly Virus Boss</div>
+    <div id="virusBossContainer"></div>
+
+    <!-- 3. Active World Events -->
+    <div class="section-label" style="margin-top:14px">Active World Events</div>
+    <div id="worldEventsContainer"></div>
+
+    <!-- 4. Corruption Enemies -->
+    <div class="section-label" style="margin-top:14px">Active Threats</div>
+    <div id="enemyContainer"></div>
+
+    <!-- 5. Tactical Signal Actions -->
+    <div class="section-label" style="margin-top:14px">Tactical Signal Actions</div>
+    <div class="tactical-grid" id="tacticalGrid"></div>
+
+    <!-- 6. Active Buffs -->
+    <div id="activeBuffsSection" style="display:none;margin-bottom:10px;">
+      <div class="section-label">Active Buffs</div>
+      <div id="activeBuffsContainer"></div>
+    </div>
+
+    <!-- 7. War Log -->
+    <div class="section-label" style="margin-top:14px">War Log</div>
+    <div id="warLogContainer"></div>
+
+  </div>
+</div>
 
 <!-- QUICK LOG WIDGET -->
 <div id="quickLogWidget">
@@ -4446,12 +4585,70 @@ function toast(title, msg, effects='', type='') {
   }, 3000);
 }
 
+// ==========================================================================
+// APP-LEVEL PAGE SWITCHING (Protocol ↔ War Room)
+// ==========================================================================
+function switchPage(page) {
+  const warPage  = document.getElementById('warRoomPage');
+  const dotProt  = document.getElementById('pageDot-protocol');
+  const dotWar   = document.getElementById('pageDot-war');
+
+  if (page === 'war') {
+    warPage.classList.add('active');
+    warPage.scrollTop = 0;
+    if (dotProt) { dotProt.classList.remove('active'); }
+    if (dotWar)  { dotWar.classList.add('active'); }
+    // Render War Room content fresh when page opens
+    renderWarRoom();
+    // Sync the readiness stats mirror in the war room header
+    const src  = document.getElementById('warHUDStats');
+    const dest = document.getElementById('warRoomReadinessStats');
+    if (src && dest) dest.textContent = src.textContent;
+  } else {
+    warPage.classList.remove('active');
+    if (dotProt) { dotProt.classList.add('active'); }
+    if (dotWar)  { dotWar.classList.remove('active'); }
+  }
+
+  S.currentPage = page;
+  saveState();
+}
+
+function initPageSwipe() {
+  let _swipeStartX = 0;
+  let _swipeStartY = 0;
+
+  document.addEventListener('touchstart', function(e) {
+    _swipeStartX = e.touches[0].clientX;
+    _swipeStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    const dx    = e.changedTouches[0].clientX - _swipeStartX;
+    const dy    = e.changedTouches[0].clientY - _swipeStartY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    // Require strong horizontal intent: at least 70px and 1.5× more horizontal than vertical
+    if (absDx < 70 || absDy * 1.5 > absDx) return;
+
+    const cur = S.currentPage || 'protocol';
+    if (dx < 0 && cur === 'protocol') {
+      // Swipe left → War Room
+      switchPage('war');
+    } else if (dx > 0 && cur === 'war') {
+      // Swipe right → Protocol
+      switchPage('protocol');
+    }
+  }, { passive: true });
+}
+
 function showPanel(id) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   const btns = document.querySelectorAll('.nav-btn');
-  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','seasonal','warroom','protocols','creativity','custom','trends','achievements','settings','history'];
+  const labels = ['body','food','caffeine','grift','soul','discipline','corruption','seasonal','protocols','creativity','custom','trends','achievements','settings','history'];
   const idx = labels.indexOf(id);
   if (idx >= 0) btns[idx].classList.add('active');
   if (id === 'caffeine') updateCaffeineMeter();
@@ -10145,8 +10342,11 @@ function renderWarHUD() {
   const el = document.getElementById('warHUDStats');
   if (!el) return;
   const cs = getCombatStats();
-  el.textContent =
-    `STR ${cs.strike} · DEF ${cs.defense} · FW ${cs.firewall} · REC ${cs.recoveryPower} · SIG ${cs.signalStrength}`;
+  const txt = `STR ${cs.strike} · DEF ${cs.defense} · FW ${cs.firewall} · REC ${cs.recoveryPower} · SIG ${cs.signalStrength}`;
+  el.textContent = txt;
+  // Keep the war room page readiness mirror in sync
+  const mirror = document.getElementById('warRoomReadinessStats');
+  if (mirror) mirror.textContent = txt;
 }
 
 // ==========================================================================
@@ -11635,6 +11835,14 @@ function init() {
   // War system boot
   renderWarHUD();
   addWarLog('system', 'System online. War readiness assessed.');
+  // Page system init — restore last visited page (default: protocol)
+  if (!S.currentPage) S.currentPage = 'protocol';
+  if (S.currentPage === 'war') {
+    switchPage('war');
+  } else {
+    S.currentPage = 'protocol';
+  }
+  initPageSwipe();
   // Restore MVD calm UI if still active
   if (S.mvd && S.mvd.active && S.mvd.date === todayStr() && !S.mvd.allDone && S.mvd.dismissed !== todayStr()) {
     document.body.classList.add('mvd-active');
